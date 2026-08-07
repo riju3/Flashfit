@@ -6,12 +6,16 @@ if(!process.env.RESEND_API){
     console.log("Provide RESEND_API in side the .env file")
 }
 
-const resend = new Resend(process.env.RESEND_API);
+const resend = process.env.RESEND_API ? new Resend(process.env.RESEND_API) : null;
 
 const sendEmail = async({sendTo, subject, html })=>{
     try {
+        if (!resend) {
+            console.log("Resend API key missing. Email skipped.");
+            return null;
+        }
         const { data, error } = await resend.emails.send({
-            from: 'Binkeyit <noreply@amitprajapati.co.in>',
+            from: 'FlashFit <noreply@flashfit.app>',
             to: sendTo,
             subject: subject,
             html: html,
