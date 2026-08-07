@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff4d00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e94560;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Lightning bolt icon -->
+  <polygon points="22,5 12,28 20,28 14,55 32,22 23,22 30,5" fill="url(#grad)"/>
+  <!-- FlashFit text -->
+  <text x="40" y="38" font-family="Arial Black, Arial" font-weight="900" font-size="26" fill="#1a1a2e">Flash</text>
+  <text x="108" y="38" font-family="Arial Black, Arial" font-weight="900" font-size="26" fill="url(#grad)">Fit</text>
+  <!-- tagline -->
+  <text x="40" y="52" font-family="Arial" font-size="10" fill="#888">15-min fashion delivery</text>
+</svg>

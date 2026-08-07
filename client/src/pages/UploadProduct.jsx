@@ -1,0 +1,421 @@
+import React, { useState, useEffect } from 'react'
+import { FaCloudUploadAlt, FaLink } from "react-icons/fa"
+import uploadImage from '../utils/UploadImage'
+import Loading from '../components/Loading'
+import ViewImage from '../components/ViewImage'
+import { MdDelete } from "react-icons/md"
+import { useSelector } from 'react-redux'
+import { IoClose } from "react-icons/io5"
+import AddFieldComponent from '../components/AddFieldComponent'
+import Axios from '../utils/Axios'
+import SummaryApi from '../common/SummaryApi'
+import AxiosToastError from '../utils/AxiosToastError'
+import successAlert from '../utils/SuccessAlert'
+import { BsCheckCircleFill } from 'react-icons/bs'
+import { FiPlus } from 'react-icons/fi'
+
+const SIZE_OPTIONS   = ['XS','S','M','L','XL','XXL','XXXL','Free Size']
+const TAG_OPTIONS    = [
+  { value: 'new-arrival',  label: 'New Arrival', color: '#22C55E' },
+  { value: 'trending',     label: 'Trending',    color: '#FF4D00' },
+  { value: 'sale',         label: 'Sale',        color: '#E94560' },
+  { value: 'best-seller',  label: 'Best Seller', color: '#C9A84C' },
+]
+
+const FieldGroup = ({ label, children }) => (
+  <div className="space-y-1.5">
+    <label className="admin-label">{label}</label>
+    {children}
+  </div>
+)
+
+const UploadProduct = () => {
+  const [data, setData] = useState({
+    name: '', image: [], category: [], subCategory: [],
+    unit: '', stock: '', price: '', discount: '', description: '',
+    more_details: {}, sizes: [], colors: [], tags: [],
+  })
+  const [imageLoading, setImageLoading] = useState(false)
+  const [ViewImageURL, setViewImageURL]  = useState('')
+  const [urlInput, setUrlInput]          = useState('')
+  const allCategory    = useSelector(s => s.product.allCategory)
+  const [selectCategory, setSelectCategory]       = useState('')
+  const [selectSubCategory, setSelectSubCategory] = useState('')
+  const allSubCategory = useSelector(s => s.product.allSubCategory)
+  const [openAddField, setOpenAddField]  = useState(false)
+  const [fieldName, setFieldName]        = useState('')
+  const [customColor, setCustomColor]    = useState('#FF4D00')
+  const [submitting, setSubmitting]      = useState(false)
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setData(p => ({ ...p, [name]: value }))
+  }
+
+  // File upload
+  const handleUploadImage = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setImageLoading(true)
+    const response = await uploadImage(file)
+    const imageUrl = response?.data?.data?.url
+    if (imageUrl) setData(p => ({ ...p, image: [...p.image, imageUrl] }))
+    setImageLoading(false)
+  }
+
+  // URL image input
+  const handleAddImageUrl = () => {
+    if (!urlInput.trim()) return
+    setData(p => ({ ...p, image: [...p.image, urlInput.trim()] }))
+    setUrlInput('')
+  }
+
+  const handleDeleteImage = (index) => {
+    setData(p => ({ ...p, image: p.image.filter((_, i) => i !== index) }))
+  }
+
+  // Category
+  const handleRemoveCategory = (index) => {
+    setData(p => ({ ...p, category: p.category.filter((_, i) => i !== index) }))
+  }
+  const handleRemoveSubCategory = (index) => {
+    setData(p => ({ ...p, subCategory: p.subCategory.filter((_, i) => i !== index) }))
+  }
+
+  // Sizes
+  const toggleSize = (s) => {
+    setData(p => ({
+      ...p,
+      sizes: p.sizes.includes(s) ? p.sizes.filter(x => x !== s) : [...p.sizes, s]
+    }))
+  }
+
+  // Colors
+  const toggleColor = (c) => {
+    setData(p => ({
+      ...p,
+      colors: p.colors.includes(c) ? p.colors.filter(x => x !== c) : [...p.colors, c]
+    }))
+  }
+  const addCustomColor = () => {
+    if (!data.colors.includes(customColor)) toggleColor(customColor)
+  }
+
+  // Tags
+  const toggleTag = (t) => {
+    setData(p => ({
+      ...p,
+      tags: p.tags.includes(t) ? p.tags.filter(x => x !== t) : [...p.tags, t]
+    }))
+  }
+
+  // More fields
+  const handleAddField = () => {
+    setData(p => ({ ...p, more_details: { ...p.more_details, [fieldName]: '' } }))
+    setFieldName('')
+    setOpenAddField(false)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      const response = await Axios({ ...SummaryApi.createProduct, data })
+      const { data: responseData } = response
+      if (responseData.success) {
+        successAlert(responseData.message)
+        setData({
+          name:'', image:[], category:[], subCategory:[],
+          unit:'', stock:'', price:'', discount:'', description:'',
+          more_details:{}, sizes:[], colors:[], tags:[],
+        })
+      }
+    } catch (error) { AxiosToastError(error) }
+    setSubmitting(false)
+  }
+
+  return (
+    <section className="bg-fashion-light min-h-screen">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <div>
+          <h1 className="text-lg font-bold text-fashion-dark" style={{fontFamily:'Playfair Display,serif'}}>Upload Product</h1>
+          <p className="text-xs text-fashion-gray">Add a new product to your store</p>
+        </div>
+      </div>
+
+      <div className="max-w-3xl mx-auto p-4 lg:p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* ── Basic Info Card ── */}
+          <div className="bg-white rounded-2xl p-5 shadow-card space-y-4">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-fashion-gray border-b border-gray-100 pb-2">Basic Information</h2>
+
+            <FieldGroup label="Product Name *">
+              <input
+                id="name" type="text" name="name" value={data.name}
+                onChange={handleChange} required placeholder="e.g. Classic Slim-Fit Cotton Shirt"
+                className="admin-input"
+              />
+            </FieldGroup>
+
+            <FieldGroup label="Description *">
+              <textarea
+                id="description" name="description" value={data.description}
+                onChange={handleChange} required rows={4}
+                placeholder="Describe the product — fabric, fit, occasion..."
+                className="admin-input resize-none"
+              />
+            </FieldGroup>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FieldGroup label="Unit / Size Label">
+                <input
+                  id="unit" type="text" name="unit" value={data.unit}
+                  onChange={handleChange} placeholder="e.g. Per Piece, Set of 2"
+                  className="admin-input"
+                />
+              </FieldGroup>
+              <FieldGroup label="Stock Quantity *">
+                <input
+                  id="stock" type="number" name="stock" value={data.stock}
+                  onChange={handleChange} required min={0} placeholder="0"
+                  className="admin-input"
+                />
+              </FieldGroup>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FieldGroup label="Price (₹) *">
+                <input
+                  id="price" type="number" name="price" value={data.price}
+                  onChange={handleChange} required min={0} placeholder="999"
+                  className="admin-input"
+                />
+              </FieldGroup>
+              <FieldGroup label="Discount (%)">
+                <input
+                  id="discount" type="number" name="discount" value={data.discount}
+                  onChange={handleChange} min={0} max={100} placeholder="0"
+                  className="admin-input"
+                />
+              </FieldGroup>
+            </div>
+
+            {data.price && data.discount > 0 && (
+              <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2 text-sm text-green-700 font-medium">
+                Selling price: ₹{Math.round(data.price - (data.price * data.discount / 100))}
+                &nbsp;·&nbsp; Customer saves ₹{Math.round(data.price * data.discount / 100)}
+              </div>
+            )}
+          </div>
+
+          {/* ── Images Card ── */}
+          <div className="bg-white rounded-2xl p-5 shadow-card space-y-4">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-fashion-gray border-b border-gray-100 pb-2">Product Images</h2>
+
+            {/* File upload zone */}
+            <label htmlFor="productImage" className="flex flex-col items-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-6 cursor-pointer hover:border-primary-200 hover:bg-primary-50 transition-all group">
+              {imageLoading ? <Loading /> : (
+                <>
+                  <FaCloudUploadAlt size={32} className="text-gray-300 group-hover:text-primary-200 transition-colors" />
+                  <p className="text-sm font-medium text-fashion-gray group-hover:text-primary-200">Click to upload image</p>
+                  <p className="text-xs text-gray-400">JPG, PNG, WEBP</p>
+                </>
+              )}
+              <input type="file" id="productImage" className="hidden" accept="image/*" onChange={handleUploadImage} />
+            </label>
+
+            {/* URL image input */}
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <FaLink className="absolute left-3 top-1/2 -translate-y-1/2 text-fashion-gray" size={13}/>
+                <input
+                  type="url"
+                  value={urlInput}
+                  onChange={e => setUrlInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddImageUrl())}
+                  placeholder="Or paste image URL (https://...)"
+                  className="admin-input pl-9"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAddImageUrl}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-orange"
+                style={{background:'linear-gradient(135deg,#FF4D00,#E94560)'}}
+              >
+                Add
+              </button>
+            </div>
+
+            {/* Uploaded images */}
+            {data.image.length > 0 && (
+              <div className="flex flex-wrap gap-3">
+                {data.image.map((img, index) => (
+                  <div key={img + index} className="relative group w-20 h-20 rounded-xl overflow-hidden border border-gray-200">
+                    <img
+                      src={img} alt={`Product ${index + 1}`}
+                      className="w-full h-full object-cover cursor-pointer"
+                      onClick={() => setViewImageURL(img)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteImage(index)}
+                      className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <MdDelete className="text-white" size={18}/>
+                    </button>
+                    {index === 0 && (
+                      <span className="absolute bottom-0 left-0 right-0 text-[9px] font-bold text-center bg-primary-200 text-white py-0.5">COVER</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Category Card ── */}
+          <div className="bg-white rounded-2xl p-5 shadow-card space-y-4">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-fashion-gray border-b border-gray-100 pb-2">Categories</h2>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FieldGroup label="Category">
+                <select className="admin-input" value={selectCategory} onChange={e => {
+                  const cat = allCategory.find(el => el._id === e.target.value)
+                  if (cat && !data.category.find(c => c._id === cat._id)) {
+                    setData(p => ({ ...p, category: [...p.category, cat] }))
+                  }
+                  setSelectCategory('')
+                }}>
+                  <option value="">Select Category</option>
+                  {allCategory.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                </select>
+                <div className="flex flex-wrap gap-2">
+                  {data.category.map((c, i) => (
+                    <div key={c._id} className="flex items-center gap-1 bg-primary-50 text-primary-200 text-xs font-medium px-2 py-1 rounded-full border border-primary-100">
+                      {c.name}
+                      <button type="button" onClick={() => handleRemoveCategory(i)}><IoClose size={12}/></button>
+                    </div>
+                  ))}
+                </div>
+              </FieldGroup>
+
+              <FieldGroup label="Sub Category">
+                <select className="admin-input" value={selectSubCategory} onChange={e => {
+                  const sub = allSubCategory.find(el => el._id === e.target.value)
+                  if (sub && !data.subCategory.find(s => s._id === sub._id)) {
+                    setData(p => ({ ...p, subCategory: [...p.subCategory, sub] }))
+                  }
+                  setSelectSubCategory('')
+                }}>
+                  <option value="">Select Sub Category</option>
+                  {allSubCategory.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                </select>
+                <div className="flex flex-wrap gap-2">
+                  {data.subCategory.map((c, i) => (
+                    <div key={c._id} className="flex items-center gap-1 bg-primary-50 text-primary-200 text-xs font-medium px-2 py-1 rounded-full border border-primary-100">
+                      {c.name}
+                      <button type="button" onClick={() => handleRemoveSubCategory(i)}><IoClose size={12}/></button>
+                    </div>
+                  ))}
+                </div>
+              </FieldGroup>
+            </div>
+          </div>
+
+          {/* ── Fashion Attributes Card ── */}
+          <div className="bg-white rounded-2xl p-5 shadow-card space-y-5">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-fashion-gray border-b border-gray-100 pb-2">Fashion Attributes</h2>
+
+            {/* Sizes */}
+            <FieldGroup label="Available Sizes">
+              <div className="flex flex-wrap gap-2">
+                {SIZE_OPTIONS.map(s => (
+                  <button
+                    key={s} type="button" onClick={() => toggleSize(s)}
+                    className={`size-chip text-xs transition-all`}
+                    style={data.sizes.includes(s) ? {background:'linear-gradient(135deg,#FF4D00,#E94560)',borderColor:'#FF4D00',color:'#fff'} : {}}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </FieldGroup>
+
+
+
+            {/* Tags */}
+            <FieldGroup label="Product Labels / Tags">
+              <div className="flex flex-wrap gap-2">
+                {TAG_OPTIONS.map(t => (
+                  <button
+                    key={t.value} type="button" onClick={() => toggleTag(t.value)}
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-full border-2 transition-all
+                      ${data.tags.includes(t.value) ? 'text-white border-transparent' : 'bg-transparent border-gray-200 text-fashion-charcoal hover:border-gray-300'}`}
+                    style={data.tags.includes(t.value) ? {backgroundColor: t.color, borderColor: t.color} : {}}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </FieldGroup>
+          </div>
+
+          {/* ── Additional Details Card ── */}
+          {(Object.keys(data.more_details).length > 0 || openAddField) && (
+            <div className="bg-white rounded-2xl p-5 shadow-card space-y-4">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-fashion-gray border-b border-gray-100 pb-2">Additional Details</h2>
+              <div className="grid grid-cols-2 gap-4">
+                {Object.keys(data.more_details).map(k => (
+                  <FieldGroup key={k} label={k}>
+                    <input
+                      type="text" value={data.more_details[k]}
+                      onChange={e => {
+                        const val = e.target.value
+                        setData(p => ({ ...p, more_details: { ...p.more_details, [k]: val } }))
+                      }}
+                      className="admin-input"
+                    />
+                  </FieldGroup>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add field + Submit */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setOpenAddField(true)}
+              className="flex items-center gap-1.5 text-sm font-semibold text-primary-200 border-2 border-primary-100 hover:bg-primary-50 px-4 py-2.5 rounded-xl transition-all"
+            >
+              <FiPlus /> Add Custom Field
+            </button>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 flex items-center justify-center gap-2 text-white font-bold py-3 rounded-xl transition-all hover:shadow-orange hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+              style={{background:'linear-gradient(135deg,#FF4D00,#E94560)'}}
+            >
+              {submitting ? 'Publishing...' : 'Publish Product'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {ViewImageURL && <ViewImage url={ViewImageURL} close={() => setViewImageURL('')} />}
+      {openAddField && (
+        <AddFieldComponent
+          value={fieldName}
+          onChange={e => setFieldName(e.target.value)}
+          submit={handleAddField}
+          close={() => setOpenAddField(false)}
+        />
+      )}
+    </section>
+  )
+}
+
+export default UploadProduct

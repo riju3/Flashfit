@@ -1,0 +1,263 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────── Base Reset ───────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  background-color: #F8F5F2;
+  color: #2D2D2D;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ───────────── Scrollbars ───────────── */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbarCustom::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbarCustom::-webkit-scrollbar-track {
+  background: #F8F5F2;
+}
+.scrollbarCustom::-webkit-scrollbar-thumb {
+  background: #C9A84C;
+  border-radius: 999px;
+}
+
+/* ───────────── Typography Utilities ───────────── */
+.font-display {
+  font-family: "Playfair Display", serif;
+}
+
+/* ───────────── Premium Card ───────────── */
+.product-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.14);
+}
+
+/* ───────────── Shimmer Loading Skeleton ───────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #ede8e3 25%,
+    #f5f1ec 50%,
+    #ede8e3 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ───────────── Hero Gradient Text ───────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #FF4D00 0%, #E94560 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-gold {
+  background: linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ───────────── Glass Morphism ───────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* ───────────── Tag Badges ───────────── */
+.tag-new { background: #22C55E; color: #fff; }
+.tag-trending { background: linear-gradient(135deg, #FF4D00, #E94560); color: #fff; }
+.tag-sale { background: #E94560; color: #fff; }
+.tag-best-seller { background: linear-gradient(135deg, #C9A84C, #E8C97A); color: #111; }
+
+/* ───────────── Admin Input Styling ───────────── */
+.admin-input {
+  @apply bg-fashion-light border border-gray-200 rounded-lg px-4 py-2.5 w-full outline-none
+         focus:border-primary-200 focus:ring-2 focus:ring-primary-200 focus:ring-opacity-20
+         transition-all duration-200 text-fashion-dark placeholder-fashion-gray;
+}
+.admin-label {
+  @apply block text-sm font-medium text-fashion-charcoal mb-1.5;
+}
+
+/* ───────────── Size Selector ───────────── */
+.size-chip {
+  @apply inline-flex items-center justify-center w-10 h-10 rounded-lg border-2 border-gray-200
+         text-sm font-semibold cursor-pointer transition-all duration-200 select-none;
+}
+.size-chip:hover {
+  @apply border-primary-200 text-primary-200;
+}
+.size-chip.selected {
+  @apply border-primary-200 bg-primary-200 text-white;
+}
+.size-chip.unavailable {
+  @apply border-gray-100 text-gray-300 cursor-not-allowed line-through;
+}
+
+/* ───────────── Color Selector ───────────── */
+.color-dot {
+  @apply w-8 h-8 rounded-full cursor-pointer transition-all duration-200 border-2 border-transparent;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.color-dot:hover, .color-dot.selected {
+  transform: scale(1.2);
+  border-color: #111;
+}
+
+/* ───────────── Button Variants ───────────── */
+.btn-primary {
+  @apply bg-orange-gradient text-white font-semibold px-6 py-3 rounded-xl
+         hover:shadow-orange transition-all duration-300 active:scale-95;
+  background: linear-gradient(135deg, #FF4D00 0%, #E94560 100%);
+}
+.btn-secondary {
+  @apply bg-transparent border-2 border-primary-200 text-primary-200 font-semibold px-6 py-3 rounded-xl
+         hover:bg-primary-200 hover:text-white transition-all duration-300 active:scale-95;
+}
+.btn-dark {
+  @apply bg-fashion-dark text-white font-semibold px-6 py-3 rounded-xl
+         hover:bg-fashion-charcoal transition-all duration-300 active:scale-95;
+}
+
+/* ───────────── Section Heading ───────────── */
+.section-heading {
+  @apply text-2xl lg:text-3xl font-bold text-fashion-dark;
+  font-family: "Playfair Display", serif;
+}
+.section-subheading {
+  @apply text-sm text-fashion-gray tracking-widest uppercase font-medium;
+}
+
+/* ───────────── Animations ───────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.hero-section {
+  background: linear-gradient(135deg, #1A1A2E 0%, #2D1B4E 60%, #E94560 100%);
+  min-height: 520px;
+}
+@media (min-width: 1024px) {
+  .hero-section { min-height: 600px; }
+}
+
+/* ── Opacity utilities not covered by Tailwind ── */
+.bg-white\/8  { background-color: rgba(255,255,255,0.08); }
+.bg-white\/10 { background-color: rgba(255,255,255,0.10); }
+.bg-white\/15 { background-color: rgba(255,255,255,0.15); }
+
+/* ─────────────────────────────────────────────────
+   Brands Marquee — infinite seamless scroll
+───────────────────────────────────────────────── */
+@keyframes marquee-ltr {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+@keyframes marquee-rtl {
+  0%   { transform: translateX(-33.333%); }
+  100% { transform: translateX(0); }
+}
+
+/* Wrapper: clips overflow + fades edges */
+.marquee-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Soft edge fade masks */
+.marquee-wrapper::before,
+.marquee-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 2;
+  pointer-events: none;
+}
+.marquee-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, #ffffff, transparent);
+}
+.marquee-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, #ffffff, transparent);
+}
+
+/* Scrolling track — contains 3× brand list */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-ltr var(--duration, 60s) linear infinite;
+  will-change: transform;
+}
+
+/* Reverse row */
+.marquee-reverse .marquee-track {
+  animation-name: marquee-rtl;
+}
+
+/* Pause on hover */
+.marquee-wrapper:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Floating animation for PNG model cutouts */
+@keyframes float-model {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-14px) scale(1.02);
+  }
+}
+
+.animate-float-model {
+  animation: float-model 4.5s ease-in-out infinite;
+}
