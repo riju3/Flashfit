@@ -46,16 +46,19 @@ export async function registerUserController(request,response){
         const newUser = new UserModel(payload)
         const save = await newUser.save()
 
-        const VerifyEmailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`
-
-        const verifyEmail = await sendEmail({
-            sendTo : email,
-            subject : "Verify email from binkeyit",
-            html : verifyEmailTemplate({
-                name,
-                url : VerifyEmailUrl
+        try {
+            const VerifyEmailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`
+            await sendEmail({
+                sendTo : email,
+                subject : "Verify email from FlashFit",
+                html : verifyEmailTemplate({
+                    name,
+                    url : VerifyEmailUrl
+                })
             })
-        })
+        } catch(emailErr) {
+            console.log("Verify email error:", emailErr?.message || emailErr)
+        }
 
         return response.json({
             message : "User register successfully",

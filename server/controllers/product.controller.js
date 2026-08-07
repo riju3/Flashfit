@@ -291,18 +291,36 @@ export const searchProduct = async(request,response)=>{
             limit  = 10
         }
 
-        const query = search ? {
-            $text : {
-                $search : search
-            }
-        } : {}
-
         const skip = ( page - 1) * limit
+        let data = []
+        let dataCount = 0
 
-        const [data,dataCount] = await Promise.all([
-            ProductModel.find(query).sort({ createdAt  : -1 }).skip(skip).limit(limit).populate('category subCategory'),
-            ProductModel.countDocuments(query)
-        ])
+        if (search) {
+            try {
+                const query = { $text: { $search: search } };
+                [data, dataCount] = await Promise.all([
+                    ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
+                    ProductModel.countDocuments(query)
+                ])
+            } catch (textErr) {
+                // Fallback to regex search if $text index is missing in Atlas
+                const regexQuery = {
+                    $or: [
+                        { name: { $regex: search, $options: "i" } },
+                        { description: { $regex: search, $options: "i" } }
+                    ]
+                };
+                [data, dataCount] = await Promise.all([
+                    ProductModel.find(regexQuery).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
+                    ProductModel.countDocuments(regexQuery)
+                ])
+            }
+        } else {
+            [data, dataCount] = await Promise.all([
+                ProductModel.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
+                ProductModel.countDocuments({})
+            ])
+        }
 
         return response.json({
             message : "Product data",
