@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 
 const genertedRefreshToken = async(userId)=>{
     const token = await jwt.sign({ id : userId},
-        process.env.SECRET_KEY_REFRESH_TOKEN,
+        process.env.SECRET_KEY_REFRESH_TOKEN || process.env.JWT_SECRET,
         { expiresIn : '7d'}
     )
 
