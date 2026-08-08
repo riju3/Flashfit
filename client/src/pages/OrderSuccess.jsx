@@ -29,8 +29,6 @@ const OrderSuccess = () => {
           <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
             <FaCheckCircle className="text-green-500 text-6xl animate-scale-in" />
           </div>
-          <div className="absolute -top-2 -right-2 text-2xl">🎉</div>
-          <div className="absolute -bottom-2 -left-2 text-2xl">✨</div>
         </div>
 
         <h1 className="text-2xl font-black text-fashion-dark mb-2">Order Confirmed!</h1>
