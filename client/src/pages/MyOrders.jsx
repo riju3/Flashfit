@@ -68,8 +68,8 @@ const MyOrders = () => {
                     <span className="text-xs font-mono font-bold text-fashion-dark bg-gray-100 px-2.5 py-1 rounded-lg">
                       #{orderId ? orderId.slice(-8).toUpperCase() : 'ORDER'}
                     </span>
-                    <span className="text-xs text-fashion-gray">
-                      • {order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'Recent'}
+                    <span className="text-xs text-fashion-gray font-medium">
+                      • {order?.createdAt ? new Date(order.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true }) : 'Recent'}
                     </span>
                   </div>
 
