@@ -6,6 +6,9 @@ import { MdEmail, MdPhone, MdLocationOn } from 'react-icons/md';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import CustomerSupportModal from './CustomerSupportModal';
+import SizeGuideModal from './SizeGuideModal';
+import FaqModal from './FaqModal';
+import PrivacyPolicyModal from './PrivacyPolicyModal';
 
 const FlashFitLogo = () => (
   <div className="flex items-center gap-1.5">
@@ -31,10 +34,14 @@ const Footer = () => {
   const [supportPhone, setSupportPhone] = useState('+91 800 123 4567')
   const [supportEmail, setSupportEmail] = useState('hello@flashfit.in')
   const [storeAddress, setStoreAddress] = useState('42 Fashion Street, Mumbai, MH 400001')
+  
   const [openSupportModal, setOpenSupportModal] = useState(false)
+  const [openSizeModal, setOpenSizeModal] = useState(false)
+  const [openFaqModal, setOpenFaqModal] = useState(false)
+  const [openPrivacyModal, setOpenPrivacyModal] = useState(false)
+
   const user = useSelector(state => state.user)
   const navigate = useNavigate()
-
   const location = useLocation()
 
   useEffect(() => {
@@ -61,11 +68,18 @@ const Footer = () => {
 
   const handleHelpClick = (linkName) => {
     if (linkName === 'Track Order') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
       if (user?._id) {
         navigate('/dashboard/myorders')
       } else {
         navigate('/login')
       }
+    } else if (linkName === 'Size Guide') {
+      setOpenSizeModal(true)
+    } else if (linkName === 'FAQs') {
+      setOpenFaqModal(true)
+    } else if (linkName === 'Privacy Policy') {
+      setOpenPrivacyModal(true)
     } else {
       if (user?.role !== 'ADMIN') {
         setOpenSupportModal(true)
@@ -152,6 +166,7 @@ const Footer = () => {
               <li key={link.label}>
                 <Link
                   to={link.path}
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                   className="text-white/55 hover:text-white text-sm transition-colors hover:pl-1 block"
                 >
                   {link.label}
@@ -220,14 +235,18 @@ const Footer = () => {
         <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-white/40">
           <p>© 2025 FlashFit. All Rights Reserved.</p>
           <div className="flex gap-4">
-            <button onClick={() => setOpenSupportModal(true)} className="hover:text-white/70 transition-colors cursor-pointer">Terms</button>
-            <button onClick={() => setOpenSupportModal(true)} className="hover:text-white/70 transition-colors cursor-pointer">Privacy</button>
-            <button onClick={() => setOpenSupportModal(true)} className="hover:text-white/70 transition-colors cursor-pointer">Cookies</button>
+            <button onClick={() => setOpenPrivacyModal(true)} className="hover:text-white/70 transition-colors cursor-pointer">Terms</button>
+            <button onClick={() => setOpenPrivacyModal(true)} className="hover:text-white/70 transition-colors cursor-pointer">Privacy</button>
+            <button onClick={() => setOpenPrivacyModal(true)} className="hover:text-white/70 transition-colors cursor-pointer">Cookies</button>
           </div>
         </div>
       </div>
 
+      {/* Modals */}
       <CustomerSupportModal isOpen={openSupportModal} onClose={() => setOpenSupportModal(false)} />
+      <SizeGuideModal isOpen={openSizeModal} onClose={() => setOpenSizeModal(false)} />
+      <FaqModal isOpen={openFaqModal} onClose={() => setOpenFaqModal(false)} />
+      <PrivacyPolicyModal isOpen={openPrivacyModal} onClose={() => setOpenPrivacyModal(false)} />
     </footer>
   )
 }

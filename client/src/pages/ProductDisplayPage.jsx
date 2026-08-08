@@ -14,6 +14,7 @@ import { pricewithDiscount } from '../utils/PriceWithDiscount'
 import AddToCartButton from '../components/AddToCartButton'
 import CardProduct from '../components/CardProduct'
 import { valideURLConvert } from '../utils/valideURLConvert'
+import SizeGuideModal from '../components/SizeGuideModal'
 
 const TAG_LABELS = {
   'new-arrival': { label: 'New Arrival', className: 'bg-green-500 text-white' },
@@ -37,6 +38,7 @@ const ProductDisplayPage = () => {
   const [zoomed,         setZoomed]         = useState(false)
   const [reviewsData,    setReviewsData]    = useState({ reviews: [], averageRating: 0, totalReviews: 0 })
   const [showReviewsDropdown, setShowReviewsDropdown] = useState(false)
+  const [openSizeModal, setOpenSizeModal] = useState(false)
   const [touchStart, setTouchStart] = useState(null)
   const [touchEnd,   setTouchEnd]   = useState(null)
 
@@ -423,7 +425,7 @@ const ProductDisplayPage = () => {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-semibold text-fashion-dark">Select Size</p>
-                  <button className="text-xs text-primary-200 font-semibold hover:underline">Size Guide</button>
+                  <button onClick={() => setOpenSizeModal(true)} className="text-xs text-primary-200 font-semibold hover:underline cursor-pointer">Size Guide</button>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {SIZE_OPTIONS.map(s => {
@@ -654,6 +656,8 @@ const ProductDisplayPage = () => {
           </div>
         </div>
       )}
+
+      <SizeGuideModal isOpen={openSizeModal} onClose={() => setOpenSizeModal(false)} />
     </section>
   )
 }
