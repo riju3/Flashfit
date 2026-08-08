@@ -12,6 +12,10 @@ const settingsSchema = new mongoose.Schema({
     supportEmail: {
         type: String,
         default: "support@flashfit.com"
+    },
+    storeAddress: {
+        type: String,
+        default: "42 Fashion Street, Mumbai, MH 400001"
     }
 }, {
     timestamps: true

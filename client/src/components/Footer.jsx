@@ -1,8 +1,11 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaPinterest } from "react-icons/fa";
 import { MdEmail, MdPhone, MdLocationOn } from 'react-icons/md';
-import { FaBolt } from 'react-icons/fa';
+import Axios from '../utils/Axios';
+import SummaryApi from '../common/SummaryApi';
+import CustomerSupportModal from './CustomerSupportModal';
 
 const FlashFitLogo = () => (
   <div className="flex items-center gap-1.5">
@@ -25,6 +28,26 @@ const FlashFitLogo = () => (
 const Footer = () => {
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
+  const [supportPhone, setSupportPhone] = useState('+91 800 123 4567')
+  const [supportEmail, setSupportEmail] = useState('hello@flashfit.in')
+  const [storeAddress, setStoreAddress] = useState('42 Fashion Street, Mumbai, MH 400001')
+  const [openSupportModal, setOpenSupportModal] = useState(false)
+  const user = useSelector(state => state.user)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await Axios({ ...SummaryApi.getSettings })
+        if (response.data?.success && response.data?.data) {
+          if (response.data.data.supportPhone) setSupportPhone(response.data.data.supportPhone)
+          if (response.data.data.supportEmail) setSupportEmail(response.data.data.supportEmail)
+          if (response.data.data.storeAddress) setStoreAddress(response.data.data.storeAddress)
+        }
+      } catch (_) {}
+    }
+    fetchSettings()
+  }, [])
 
   const handleSubscribe = (e) => {
     e.preventDefault()
@@ -33,6 +56,22 @@ const Footer = () => {
       setEmail('')
     }
   }
+
+  const handleHelpClick = (linkName) => {
+    if (linkName === 'Track Order') {
+      if (user?._id) {
+        navigate('/dashboard/myorders')
+      } else {
+        navigate('/login')
+      }
+    } else {
+      if (user?.role !== 'ADMIN') {
+        setOpenSupportModal(true)
+      }
+    }
+  }
+
+  const cleanPhone = supportPhone.replace(/[^0-9+]/g, '')
 
   return (
     <footer className="bg-fashion-dark text-white mt-16">
@@ -57,7 +96,7 @@ const Footer = () => {
               />
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:shadow-orange hover:scale-105 active:scale-95"
+                className="px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:shadow-orange hover:scale-105 active:scale-95 cursor-pointer"
                 style={{background:'linear-gradient(135deg,#FF4D00,#E94560)'}}
               >
                 Subscribe
@@ -77,14 +116,16 @@ const Footer = () => {
           </p>
           <div className="flex items-center gap-3 mt-5">
             {[
-              { icon: <FaInstagram size={16}/>, href: '#', label: 'Instagram' },
-              { icon: <FaFacebook size={16}/>, href: '#', label: 'Facebook' },
-              { icon: <FaPinterest size={16}/>, href: '#', label: 'Pinterest' },
-              { icon: <FaTwitter size={16}/>, href: '#', label: 'Twitter' },
+              { icon: <FaInstagram size={16}/>, href: 'https://instagram.com', label: 'Instagram' },
+              { icon: <FaFacebook size={16}/>, href: 'https://facebook.com', label: 'Facebook' },
+              { icon: <FaPinterest size={16}/>, href: 'https://pinterest.com', label: 'Pinterest' },
+              { icon: <FaTwitter size={16}/>, href: 'https://twitter.com', label: 'Twitter' },
             ].map(s => (
               <a
                 key={s.label}
                 href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label={s.label}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white border border-white/15 hover:border-primary-100 transition-all duration-200 hover:bg-primary-200/20"
               >
@@ -98,13 +139,20 @@ const Footer = () => {
         <div>
           <h4 className="text-sm font-bold uppercase tracking-widest text-white/90 mb-4">Shop</h4>
           <ul className="space-y-2.5">
-            {['New Arrivals', 'Men', 'Women', 'Kids', 'Accessories', 'Sale'].map(link => (
-              <li key={link}>
+            {[
+              { label: 'New Arrivals', path: '/search?q=new-arrivals' },
+              { label: 'Men', path: '/search?q=men' },
+              { label: 'Women', path: '/search?q=women' },
+              { label: 'Kids', path: '/search?q=kids' },
+              { label: 'Accessories', path: '/search?q=accessories' },
+              { label: 'Sale', path: '/search?q=sale' },
+            ].map(link => (
+              <li key={link.label}>
                 <Link
-                  to={`/search?q=${link.toLowerCase().replace(' ', '-')}`}
+                  to={link.path}
                   className="text-white/55 hover:text-white text-sm transition-colors hover:pl-1 block"
                 >
-                  {link}
+                  {link.label}
                 </Link>
               </li>
             ))}
@@ -124,32 +172,33 @@ const Footer = () => {
               'Privacy Policy',
             ].map(link => (
               <li key={link}>
-                <Link
-                  to="/"
-                  className="text-white/55 hover:text-white text-sm transition-colors hover:pl-1 block"
+                <button
+                  type="button"
+                  onClick={() => handleHelpClick(link)}
+                  className="text-white/55 hover:text-white text-sm transition-colors hover:pl-1 block text-left cursor-pointer"
                 >
                   {link}
-                </Link>
+                </button>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Contact */}
+        {/* Contact (Dynamic from Admin Settings) */}
         <div>
           <h4 className="text-sm font-bold uppercase tracking-widest text-white/90 mb-4">Contact</h4>
           <ul className="space-y-3">
             <li className="flex items-start gap-2.5 text-white/55 text-sm">
               <MdLocationOn className="text-primary-100 mt-0.5 flex-shrink-0" size={16}/>
-              <span>42 Fashion Street, Mumbai, MH 400001</span>
+              <span>{storeAddress}</span>
             </li>
             <li className="flex items-center gap-2.5 text-white/55 text-sm">
               <MdPhone className="text-primary-100 flex-shrink-0" size={16}/>
-              <a href="tel:+918001234567" className="hover:text-white transition-colors">+91 800 123 4567</a>
+              <a href={`tel:${cleanPhone}`} className="hover:text-white transition-colors">{supportPhone}</a>
             </li>
             <li className="flex items-center gap-2.5 text-white/55 text-sm">
               <MdEmail className="text-primary-100 flex-shrink-0" size={16}/>
-              <a href="mailto:hello@flashfit.in" className="hover:text-white transition-colors">hello@flashfit.in</a>
+              <a href={`mailto:${supportEmail}`} className="hover:text-white transition-colors">{supportEmail}</a>
             </li>
           </ul>
 
@@ -169,12 +218,14 @@ const Footer = () => {
         <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-white/40">
           <p>© 2025 FlashFit. All Rights Reserved.</p>
           <div className="flex gap-4">
-            <Link to="/" className="hover:text-white/70 transition-colors">Terms</Link>
-            <Link to="/" className="hover:text-white/70 transition-colors">Privacy</Link>
-            <Link to="/" className="hover:text-white/70 transition-colors">Cookies</Link>
+            <button onClick={() => setOpenSupportModal(true)} className="hover:text-white/70 transition-colors cursor-pointer">Terms</button>
+            <button onClick={() => setOpenSupportModal(true)} className="hover:text-white/70 transition-colors cursor-pointer">Privacy</button>
+            <button onClick={() => setOpenSupportModal(true)} className="hover:text-white/70 transition-colors cursor-pointer">Cookies</button>
           </div>
         </div>
       </div>
+
+      <CustomerSupportModal isOpen={openSupportModal} onClose={() => setOpenSupportModal(false)} />
     </footer>
   )
 }

@@ -8,6 +8,7 @@ const AdminSettings = () => {
   const [upiId, setUpiId] = useState('')
   const [supportPhone, setSupportPhone] = useState('')
   const [supportEmail, setSupportEmail] = useState('')
+  const [storeAddress, setStoreAddress] = useState('')
   const [loading, setLoading] = useState(false)
 
   const fetchSettings = async () => {
@@ -20,6 +21,7 @@ const AdminSettings = () => {
         setUpiId(response.data.data.upiId || '')
         setSupportPhone(response.data.data.supportPhone || '+91 98765 43210')
         setSupportEmail(response.data.data.supportEmail || 'support@flashfit.com')
+        setStoreAddress(response.data.data.storeAddress || '42 Fashion Street, Mumbai, MH 400001')
       }
     } catch (error) {
       AxiosToastError(error)
@@ -38,7 +40,7 @@ const AdminSettings = () => {
       setLoading(true)
       const response = await Axios({
         ...SummaryApi.updateSettings,
-        data: { upiId, supportPhone, supportEmail }
+        data: { upiId, supportPhone, supportEmail, storeAddress }
       })
       if (response.data.success) {
         toast.success("Settings updated successfully!")
@@ -94,6 +96,20 @@ const AdminSettings = () => {
             className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-100"
             required
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-fashion-charcoal mb-1">
+            Store Physical Contact Address
+          </label>
+          <textarea
+            rows="2"
+            placeholder="e.g. 42 Fashion Street, Mumbai, MH 400001"
+            value={storeAddress}
+            onChange={(e) => setStoreAddress(e.target.value)}
+            className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-100"
+            required
+          ></textarea>
         </div>
 
         <button
