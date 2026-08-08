@@ -76,7 +76,7 @@ export const addBannerController = async (request, response) => {
 export const getAllBannersController = async (request, response) => {
     try {
         await seedDefaultBanners();
-        const banners = await BannerModel.find().sort({ orderIndex: 1, createdAt: -1 });
+        const banners = await BannerModel.find().sort({ createdAt: -1 });
         return response.json({
             message: "Banners fetched successfully",
             error: false,
