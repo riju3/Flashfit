@@ -51,41 +51,43 @@ const StickyBannerStack = () => {
               marginBottom: isLast ? '32px' : '120px'
             }}
           >
-            <div className={`rounded-[32px] p-6 sm:p-10 shadow-2xl text-white bg-gradient-to-br ${gradientClass} border border-white/20 overflow-hidden relative group backdrop-blur-md transition-transform hover:scale-[1.01]`}>
+            {/* Uniform Sized Card Box across Coupon & Discount Banners */}
+            <div className={`rounded-[32px] p-6 sm:p-8 shadow-2xl text-white bg-gradient-to-br ${gradientClass} border border-white/20 overflow-hidden relative group backdrop-blur-md min-h-[280px] sm:min-h-[300px] flex flex-col justify-center items-center text-center space-y-3.5 transition-transform hover:scale-[1.01]`}>
+              
               {/* Subtle Graphic Shimmer Overlay */}
               <div className="absolute right-[-40px] top-[-40px] w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700"></div>
 
-              <div className="relative z-10 text-center space-y-4 max-w-xl mx-auto">
+              <div className="relative z-10 text-center space-y-3.5 max-w-xl mx-auto flex flex-col items-center">
                 
                 {/* Eyebrow Header Pill */}
                 {banner.eyebrow && (
-                  <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest border border-white/30 text-white shadow-sm">
+                  <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest border border-white/30 text-white shadow-sm">
                     {banner.eyebrow}
                   </div>
                 )}
 
                 {/* Main Title */}
-                <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight drop-shadow-md">
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight drop-shadow-md max-w-lg">
                   {banner.title}
                 </h2>
 
                 {/* Subtitle / Description */}
                 {banner.subtitle && (
-                  <p className="text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-lg mx-auto">
+                  <p className="text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-md">
                     {banner.subtitle}
                   </p>
                 )}
 
-                {/* Glassmorphism Coupon Code Card (Match user screenshot) */}
+                {/* Sleek Compact Coupon Code Box (Same size & proportion as CTA button) */}
                 {banner.couponCode && (
-                  <div className="mt-4 pt-2">
-                    <div className="bg-white/20 backdrop-blur-xl border border-white/40 p-4 sm:p-5 rounded-2xl max-w-xs mx-auto text-center shadow-xl space-y-1.5">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">
-                        COUPON CODE
-                      </p>
-                      <div className="bg-white text-orange-600 font-black text-xl sm:text-2xl py-2 px-6 rounded-xl shadow-inner tracking-widest uppercase inline-block">
+                  <div className="pt-2">
+                    <div className="bg-white/20 backdrop-blur-xl border border-white/40 px-5 py-2 rounded-2xl inline-flex items-center gap-2.5 shadow-xl">
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/90">
+                        COUPON CODE:
+                      </span>
+                      <span className="bg-white text-orange-600 font-black text-sm sm:text-base py-1 px-4 rounded-xl shadow-inner tracking-widest uppercase">
                         {banner.couponCode}
-                      </div>
+                      </span>
                     </div>
                   </div>
                 )}
