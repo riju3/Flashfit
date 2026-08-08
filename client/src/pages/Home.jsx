@@ -145,7 +145,7 @@ const HeroSection = () => {
               </span>
             </div>
             <span className="text-[10px] sm:text-xs text-white font-bold tracking-wide mt-0.5 sm:mt-1.5 drop-shadow-md">
-              Get your product in just 15 min...
+              Get your product in just 30 min...
             </span>
           </div>
         </div>
@@ -171,7 +171,7 @@ const TrustBar = () => (
     <div className="container mx-auto px-4 py-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { icon: <HiOutlineLightningBolt className="text-primary-200" size={20}/>, text: '15-Min Delivery', sub: 'From stores near you' },
+          { icon: <HiOutlineLightningBolt className="text-primary-200" size={20}/>, text: '30-Min Delivery', sub: 'From stores near you' },
           { icon: <MdLocalShipping className="text-primary-200" size={20}/>, text: 'Free Shipping', sub: 'On orders above ₹999' },
           { icon: <MdReplay className="text-primary-200" size={20}/>, text: 'Easy Returns', sub: '7-day hassle free' },
           { icon: <BsShieldCheck className="text-primary-200" size={20}/>, text: '100% Authentic', sub: 'Verified brands only' },
