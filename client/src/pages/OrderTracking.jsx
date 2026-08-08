@@ -8,8 +8,9 @@ import SummaryApi from '../common/SummaryApi'
 import toast from 'react-hot-toast'
 import AxiosToastError from '../utils/AxiosToastError'
 import { FaCheck, FaBoxOpen, FaMotorcycle, FaHome, FaTimesCircle, FaStar } from 'react-icons/fa'
-import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage, FiZap, FiClock, FiExternalLink, FiX, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi'
+import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage, FiZap, FiClock, FiExternalLink, FiX, FiAlertTriangle, FiCheckCircle, FiHelpCircle } from 'react-icons/fi'
 import { valideURLConvert } from '../utils/valideURLConvert'
+import CustomerSupportModal from '../components/CustomerSupportModal'
 
 const CANCEL_REASONS = [
   "Ordered by mistake",
@@ -39,6 +40,7 @@ const OrderTracking = () => {
   const [hoverDeliveryRating, setHoverDeliveryRating] = useState(0)
   const [comment, setComment] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [openSupportModal, setOpenSupportModal] = useState(false)
 
   useEffect(() => {
     if (fetchOrder) fetchOrder()
@@ -484,6 +486,21 @@ const OrderTracking = () => {
                 Status: <span className="text-green-600 font-bold">{currentOrder?.payment_status || 'PAID / CONFIRMED'}</span>
               </p>
             </div>
+
+            <div className="pt-2 border-t border-gray-100 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <p className="text-xs font-bold text-fashion-dark flex items-center gap-1.5">
+                  <FiHelpCircle className="text-orange-500" /> Need Help With Your Order?
+                </p>
+                <p className="text-[10px] text-fashion-gray">View policy FAQs or contact support</p>
+              </div>
+              <button
+                onClick={() => setOpenSupportModal(true)}
+                className="py-2 px-4 bg-orange-50 hover:bg-orange-100 text-orange-600 font-extrabold text-xs rounded-xl border border-orange-200 transition-all cursor-pointer"
+              >
+                Customer Support
+              </button>
+            </div>
           </div>
 
         </div>
@@ -724,6 +741,8 @@ const OrderTracking = () => {
           </div>
         </section>
       )}
+
+      <CustomerSupportModal isOpen={openSupportModal} onClose={() => setOpenSupportModal(false)} />
     </div>
   )
 }

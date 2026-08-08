@@ -13,6 +13,8 @@ import Search from './Search';
 import { valideURLConvert } from '../utils/valideURLConvert';
 import { HiMenuAlt3 } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
+import { FiHelpCircle } from "react-icons/fi";
+import CustomerSupportModal from './CustomerSupportModal';
 
 const FlashFitLogo = () => (
   <div className="flex items-center gap-1 sm:gap-1.5">
@@ -53,6 +55,7 @@ const Header = () => {
   const { totalPrice, totalQty } = useGlobalContext()
   const [openCartSection, setOpenCartSection] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [openSupportModal, setOpenSupportModal] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -142,6 +145,16 @@ const Header = () => {
                 </button>
               )}
 
+              {/* Customer Support Button */}
+              <button
+                onClick={() => setOpenSupportModal(true)}
+                className="flex items-center gap-1.5 text-xs font-bold text-fashion-charcoal hover:text-orange-500 bg-gray-50 hover:bg-orange-50 border border-gray-200 px-3 py-2 rounded-xl transition-all cursor-pointer"
+                title="Customer Support & FAQ"
+              >
+                <FiHelpCircle className="text-orange-500" size={16} />
+                <span className="hidden sm:inline">Support</span>
+              </button>
+
               {/* Cart Button */}
               <button
                 onClick={() => setOpenCartSection(true)}
@@ -218,6 +231,8 @@ const Header = () => {
       {openCartSection && (
         <DisplayCartItem close={() => setOpenCartSection(false)} />
       )}
+
+      <CustomerSupportModal isOpen={openSupportModal} onClose={() => setOpenSupportModal(false)} />
     </>
   )
 }

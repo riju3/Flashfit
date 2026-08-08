@@ -4,7 +4,7 @@ export const getSettingsController = async (request, response) => {
     try {
         let settings = await SettingsModel.findOne();
         if (!settings) {
-            settings = await SettingsModel.create({ upiId: "" });
+            settings = await SettingsModel.create({ upiId: "", supportPhone: "+91 98765 43210", supportEmail: "support@flashfit.com" });
         }
         return response.json({
             message: "Settings fetched successfully",
@@ -23,12 +23,14 @@ export const getSettingsController = async (request, response) => {
 
 export const updateSettingsController = async (request, response) => {
     try {
-        const { upiId } = request.body;
+        const { upiId, supportPhone, supportEmail } = request.body;
         let settings = await SettingsModel.findOne();
         if (!settings) {
-            settings = new SettingsModel({ upiId });
+            settings = new SettingsModel({ upiId, supportPhone, supportEmail });
         } else {
-            settings.upiId = upiId !== undefined ? upiId : settings.upiId;
+            if (upiId !== undefined) settings.upiId = upiId;
+            if (supportPhone !== undefined) settings.supportPhone = supportPhone;
+            if (supportEmail !== undefined) settings.supportEmail = supportEmail;
         }
         await settings.save();
 
