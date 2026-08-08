@@ -12,6 +12,9 @@ import Axios from './utils/Axios';
 import SummaryApi from './common/SummaryApi';
 import GlobalProvider from './provider/GlobalProvider';
 
+// Disable success toast popups globally across the application
+toast.success = () => {};
+
 function App() {
   const dispatch  = useDispatch()
   const location  = useLocation()
