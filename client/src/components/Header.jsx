@@ -33,12 +33,12 @@ const FlashFitLogo = () => (
 )
 
 const NAV_LINKS = [
-  { label: 'Shop All',     path: '/search?q=' },
+  { label: 'Shop All',     path: '/search' },
   { label: 'New Arrivals', path: '/search?tag=new-arrival' },
   { label: 'Men',          path: '/search?q=men' },
   { label: 'Women',        path: '/search?q=women' },
-  { label: 'Kids',         path: '/search?q=kids' },
-  { label: 'Accessories',  path: '/search?q=accessories' },
+  { label: 'Footwear',     path: '/search?q=shoes' },
+  { label: 'Accessories',  path: '/search?q=watches' },
   { label: 'Sale',         path: '/search?tag=sale', highlight: true },
 ]
 

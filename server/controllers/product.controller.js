@@ -282,22 +282,29 @@ export const deleteProductDetails = async(request,response)=>{
 //search product
 export const searchProduct = async(request,response)=>{
     try {
-        let { search, page , limit } = request.body 
+        let { search, tag, page, limit } = request.body 
 
         if(!page){
             page = 1
         }
         if(!limit){
-            limit  = 10
+            limit = 24
         }
 
         const skip = ( page - 1) * limit
         let data = []
         let dataCount = 0
 
-        if (search) {
+        let filterQuery = {}
+
+        if (tag) {
+            filterQuery.tags = tag
+        }
+
+        if (search && search.trim() !== '') {
+            const cleanSearch = search.trim()
             try {
-                const query = { $text: { $search: search } };
+                const query = { ...filterQuery, $text: { $search: cleanSearch } };
                 [data, dataCount] = await Promise.all([
                     ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
                     ProductModel.countDocuments(query)
@@ -305,9 +312,10 @@ export const searchProduct = async(request,response)=>{
             } catch (textErr) {
                 // Fallback to regex search if $text index is missing in Atlas
                 const regexQuery = {
+                    ...filterQuery,
                     $or: [
-                        { name: { $regex: search, $options: "i" } },
-                        { description: { $regex: search, $options: "i" } }
+                        { name: { $regex: cleanSearch, $options: "i" } },
+                        { description: { $regex: cleanSearch, $options: "i" } }
                     ]
                 };
                 [data, dataCount] = await Promise.all([
@@ -317,8 +325,8 @@ export const searchProduct = async(request,response)=>{
             }
         } else {
             [data, dataCount] = await Promise.all([
-                ProductModel.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
-                ProductModel.countDocuments({})
+                ProductModel.find(filterQuery).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
+                ProductModel.countDocuments(filterQuery)
             ])
         }
 
