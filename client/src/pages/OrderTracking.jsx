@@ -280,9 +280,6 @@ const OrderTracking = () => {
                   <p className="text-xs text-fashion-gray font-semibold mt-1">
                     Total Amount: <span className="text-orange-600 font-extrabold">{DisplayPriceInRupees(currentOrder?.totalAmt || product.price)}</span>
                   </p>
-                  <span className="inline-block text-[10px] font-bold text-orange-600 mt-1 underline underline-offset-2">
-                    Click to view product page & buy again →
-                  </span>
                 </div>
               </Link>
             ) : (
