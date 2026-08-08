@@ -4,7 +4,8 @@ import { useSelector } from 'react-redux'
 import { DisplayPriceInRupees } from '../utils/DisplayPriceInRupees'
 import { useGlobalContext } from '../provider/GlobalProvider'
 import { FaCheck, FaBoxOpen, FaMotorcycle, FaHome } from 'react-icons/fa'
-import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage, FiZap, FiClock } from 'react-icons/fi'
+import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage, FiZap, FiClock, FiExternalLink } from 'react-icons/fi'
+import { valideURLConvert } from '../utils/valideURLConvert'
 
 const OrderTracking = () => {
   const { orderId } = useParams()
@@ -90,6 +91,9 @@ const OrderTracking = () => {
 
   const product = currentOrder?.product_details
   const address = currentOrder?.delivery_address
+
+  const targetProductId = currentOrder?.productId?._id || currentOrder?.productId || product?._id
+  const productUrl = targetProductId ? `/product/${valideURLConvert(product?.name || 'product')}-${targetProductId}` : '#'
 
   const formattedOrderTime = currentOrder?.createdAt
     ? new Date(currentOrder.createdAt).toLocaleString('en-IN', {
@@ -245,26 +249,42 @@ const OrderTracking = () => {
           
           {/* Purchased Product */}
           <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-gray-100 space-y-4 w-full overflow-hidden">
-            <h2 className="text-xs font-extrabold text-fashion-dark uppercase tracking-wider border-b pb-2 flex items-center gap-2">
-              <FiPackage className="text-orange-500" /> Express Order Item
-            </h2>
+            <div className="flex justify-between items-center border-b pb-2">
+              <h2 className="text-xs font-extrabold text-fashion-dark uppercase tracking-wider flex items-center gap-2">
+                <FiPackage className="text-orange-500" /> Express Order Item
+              </h2>
+              {targetProductId && (
+                <Link
+                  to={productUrl}
+                  className="text-[11px] font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 bg-orange-50 hover:bg-orange-100 px-2.5 py-1 rounded-full transition-all"
+                >
+                  View Product Page <FiExternalLink size={11} />
+                </Link>
+              )}
+            </div>
 
             {product?.name ? (
-              <div className="flex gap-3 sm:gap-4 items-center w-full min-w-0">
+              <Link
+                to={productUrl}
+                className="flex gap-3 sm:gap-4 items-center w-full min-w-0 group hover:opacity-95 transition-opacity"
+              >
                 <img
                   src={product.image?.[0] || '/favicon.png'}
                   alt={product.name}
-                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-2xl border border-gray-100 shadow-sm shrink-0"
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-2xl border border-gray-100 shadow-sm shrink-0 group-hover:scale-105 transition-transform"
                 />
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-xs sm:text-sm font-extrabold text-fashion-dark leading-snug line-clamp-2 break-words">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-fashion-dark leading-snug line-clamp-2 break-words group-hover:text-orange-600 transition-colors">
                     {product.name}
                   </h3>
                   <p className="text-xs text-fashion-gray font-semibold mt-1">
                     Total Amount: <span className="text-orange-600 font-extrabold">{DisplayPriceInRupees(currentOrder?.totalAmt || product.price)}</span>
                   </p>
+                  <span className="inline-block text-[10px] font-bold text-orange-600 mt-1 underline underline-offset-2">
+                    Click to view product page & buy again →
+                  </span>
                 </div>
-              </div>
+              </Link>
             ) : (
               <div className="text-xs text-fashion-gray space-y-1">
                 <p className="font-bold text-fashion-dark">Express Order Confirmed</p>
