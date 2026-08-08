@@ -488,6 +488,9 @@ const Home = () => {
 
   return (
     <div className="bg-fashion-light min-h-screen">
+      {/* Top Promotional Coupon Banner */}
+      <PromoCouponBanner />
+
       {/* Hero */}
       <HeroSection />
 
