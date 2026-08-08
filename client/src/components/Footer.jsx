@@ -35,6 +35,8 @@ const Footer = () => {
   const user = useSelector(state => state.user)
   const navigate = useNavigate()
 
+  const location = useLocation()
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -47,7 +49,7 @@ const Footer = () => {
       } catch (_) {}
     }
     fetchSettings()
-  }, [])
+  }, [location.pathname])
 
   const handleSubscribe = (e) => {
     e.preventDefault()
