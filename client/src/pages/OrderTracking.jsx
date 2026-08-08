@@ -2,13 +2,21 @@ import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { DisplayPriceInRupees } from '../utils/DisplayPriceInRupees'
+import { useGlobalContext } from '../provider/GlobalProvider'
 import { FaCheck, FaBoxOpen, FaTruck, FaHome, FaClock } from 'react-icons/fa'
-import { FiChevronLeft, FiMapPin, FiCreditCard } from 'react-icons/fi'
+import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage } from 'react-icons/fi'
 
 const OrderTracking = () => {
   const { orderId } = useParams()
   const orderList = useSelector(state => state.orders.order)
+  const { fetchOrder } = useGlobalContext()
   const [currentOrder, setCurrentOrder] = useState(null)
+
+  useEffect(() => {
+    if (fetchOrder) {
+      fetchOrder()
+    }
+  }, [])
 
   useEffect(() => {
     if (orderList && orderList.length > 0) {
@@ -16,7 +24,7 @@ const OrderTracking = () => {
       if (found) {
         setCurrentOrder(found)
       } else {
-        // Fallback to most recent order if ID is dynamic/mocked
+        // Fallback to most recent order if ID is dynamic
         setCurrentOrder(orderList[0])
       }
     }
@@ -29,13 +37,16 @@ const OrderTracking = () => {
     { title: 'Delivered', desc: 'Package delivered to address', icon: FaHome, status: 'pending', time: 'In 3-5 Days' }
   ]
 
+  const product = currentOrder?.product_details
+  const address = currentOrder?.delivery_address
+
   return (
     <div className="min-h-screen bg-gray-50/50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto space-y-6">
         
         {/* Top Header Navigation */}
         <div className="flex items-center justify-between">
-          <Link to="/dashboard/myorders" className="flex items-center gap-1.5 text-sm font-semibold text-fashion-dark hover:text-orange-500 transition-colors">
+          <Link to="/dashboard/myorders" className="flex items-center gap-1.5 text-sm font-bold text-fashion-dark hover:text-orange-500 transition-colors">
             <FiChevronLeft size={18} /> My Orders
           </Link>
           <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-bold">
@@ -43,19 +54,21 @@ const OrderTracking = () => {
           </span>
         </div>
 
-        {/* Tracking Header Card */}
+        {/* Tracking Header & Progress Stepper Card */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-gray-100 pb-4 mb-6 gap-2">
             <div>
-              <p className="text-xs text-fashion-gray font-medium">Order ID</p>
+              <p className="text-xs text-fashion-gray font-medium">Order Reference</p>
               <h1 className="text-lg font-extrabold text-fashion-dark font-mono">
-                #{currentOrder?._id ? currentOrder._id.toUpperCase() : (orderId || 'FF-LIVE-ORDER')}
+                #{currentOrder?._id ? currentOrder._id.slice(-12).toUpperCase() : (orderId || 'FF-LIVE-ORDER')}
               </h1>
             </div>
             <div>
-              <p className="text-xs text-fashion-gray font-medium">Placed On</p>
+              <p className="text-xs text-fashion-gray font-medium">Order Date</p>
               <p className="text-sm font-semibold text-fashion-dark">
-                {currentOrder?.createdAt ? new Date(currentOrder.createdAt).toLocaleDateString() : new Date().toLocaleDateString()}
+                {currentOrder?.createdAt ? new Date(currentOrder.createdAt).toLocaleDateString('en-IN', {
+                  day: 'numeric', month: 'short', year: 'numeric'
+                }) : new Date().toLocaleDateString()}
               </p>
             </div>
           </div>
@@ -95,57 +108,52 @@ const OrderTracking = () => {
           </div>
         </div>
 
-        {/* Order Details & Address Grid */}
+        {/* Product Details & Delivery Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Purchased Items */}
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-sm font-bold text-fashion-dark mb-4 uppercase tracking-wider border-b pb-2">
-              Item Details
+          {/* Purchased Item Details */}
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+            <h2 className="text-sm font-bold text-fashion-dark uppercase tracking-wider border-b pb-2 flex items-center gap-2">
+              <FiPackage className="text-orange-500" /> Purchased Product
             </h2>
 
-            {currentOrder?.product_details?.name ? (
-              <div className="flex gap-4 items-center">
-                <img
-                  src={currentOrder.product_details.image?.[0] || '/favicon.png'}
-                  alt={currentOrder.product_details.name}
-                  className="w-16 h-16 object-cover rounded-xl border border-gray-100"
-                />
-                <div>
-                  <h3 className="text-sm font-bold text-fashion-dark line-clamp-1">
-                    {currentOrder.product_details.name}
-                  </h3>
-                  <p className="text-xs text-fashion-gray font-semibold">
-                    Amount: {DisplayPriceInRupees(currentOrder.totalAmt)}
-                  </p>
+            {product?.name ? (
+              <div className="space-y-3">
+                <div className="flex gap-4 items-center">
+                  <img
+                    src={product.image?.[0] || '/favicon.png'}
+                    alt={product.name}
+                    className="w-20 h-20 object-cover rounded-xl border border-gray-100 shadow-sm"
+                  />
+                  <div>
+                    <h3 className="text-sm font-bold text-fashion-dark line-clamp-2">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-fashion-gray font-semibold mt-1">
+                      Purchased Price: <span className="text-orange-600 font-extrabold">{DisplayPriceInRupees(currentOrder?.totalAmt || product.price)}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-semibold text-fashion-dark">Order Total</span>
-                  <span className="font-bold text-orange-600">
-                    {currentOrder?.totalAmt ? DisplayPriceInRupees(currentOrder.totalAmt) : 'Confirmed'}
-                  </span>
-                </div>
-                <p className="text-xs text-fashion-gray">
-                  Your package is securely packed and being readied for dispatch.
-                </p>
+              <div className="space-y-2 text-xs text-fashion-gray">
+                <p className="font-bold text-fashion-dark">Order Confirmed</p>
+                <p>Total Paid: <span className="font-extrabold text-orange-600">{DisplayPriceInRupees(currentOrder?.totalAmt || 0)}</span></p>
               </div>
             )}
           </div>
 
-          {/* Delivery & Payment Info */}
+          {/* Delivery Address & Payment Info */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
             <div>
               <h2 className="text-sm font-bold text-fashion-dark mb-2 uppercase tracking-wider border-b pb-2 flex items-center gap-2">
                 <FiMapPin className="text-orange-500" /> Delivery Address
               </h2>
-              {currentOrder?.delivery_address ? (
+              {address ? (
                 <div className="text-xs text-fashion-gray space-y-0.5">
-                  <p className="font-bold text-fashion-dark">{currentOrder.delivery_address.address_line}</p>
-                  <p>{currentOrder.delivery_address.city}, {currentOrder.delivery_address.state} - {currentOrder.delivery_address.pincode}</p>
-                  <p className="pt-1 font-semibold text-fashion-dark">Phone: {currentOrder.delivery_address.mobile}</p>
+                  <p className="font-bold text-fashion-dark">{address.address_line}</p>
+                  <p>{address.city}, {address.state} - <span className="font-bold text-fashion-dark">{address.pincode}</span></p>
+                  <p className="pt-1 font-semibold text-fashion-dark">Mobile: {address.mobile}</p>
                 </div>
               ) : (
                 <p className="text-xs text-fashion-gray font-medium">Standard Home Delivery</p>
@@ -157,7 +165,7 @@ const OrderTracking = () => {
                 <FiCreditCard className="text-green-500" /> Payment Info
               </h2>
               <p className="text-xs font-semibold text-fashion-dark">
-                Status: <span className="text-green-600 font-bold">SUCCESS / VERIFIED</span>
+                Method: <span className="text-green-600 font-bold">{currentOrder?.payment_status || 'VERIFIED / CONFIRMED'}</span>
               </p>
             </div>
           </div>
