@@ -568,12 +568,6 @@ const CheckoutPage = () => {
                 <p className="font-bold text-fashion-dark mb-1">Delivering To:</p>
                 <p className="text-fashion-gray truncate">{addressList[selectAddress].address_line}</p>
                 <p className="text-fashion-gray">{addressList[selectAddress].city}, {addressList[selectAddress].pincode}</p>
-                <button
-                  onClick={() => setStep(1)}
-                  className="text-[11px] font-bold text-orange-600 hover:underline mt-2 inline-block"
-                >
-                  Change Address
-                </button>
               </div>
             )}
           </div>
