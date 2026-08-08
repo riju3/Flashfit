@@ -16,6 +16,18 @@ const DisplayCartItem = ({close}) => {
     const user = useSelector(state => state.user)
     const navigate = useNavigate()
 
+    const handleCloseCart = () => {
+        if (close) {
+            close()
+        } else {
+            if (window.history.length > 1) {
+                navigate(-1)
+            } else {
+                navigate('/')
+            }
+        }
+    }
+
     const redirectToCheckoutPage = () => {
         if (user?._id) {
             navigate("/checkout")
@@ -35,10 +47,7 @@ const DisplayCartItem = ({close}) => {
         <div className='bg-white w-full max-w-sm min-h-screen max-h-screen ml-auto'>
             <div className='flex items-center p-4 shadow-md gap-3 justify-between'>
                 <h2 className='font-semibold'>Cart</h2>
-                <Link to={"/"} className='lg:hidden'>
-                    <IoClose size={25}/>
-                </Link>
-                <button onClick={close} className='hidden lg:block'>
+                <button onClick={handleCloseCart} className='p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer'>
                     <IoClose size={25}/>
                 </button>
             </div>

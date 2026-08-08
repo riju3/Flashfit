@@ -65,7 +65,7 @@ const CheckoutPage = () => {
   const finalPayableAmount = Math.max(0, totalPrice - (appliedCoupon?.discountAmount || 0))
 
   useEffect(() => {
-    if (!user?._id) {
+    if (!user?.authLoading && !user?._id) {
       toast.error("Please login to access checkout")
       navigate('/login')
     }
