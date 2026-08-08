@@ -96,6 +96,12 @@ const ProductDisplayPage = () => {
       navigate('/login')
       return
     }
+
+    if (data?.sizes?.length > 0 && !selectedSize) {
+      toast.error("Please select a size first")
+      return
+    }
+
     try {
       setBuying(true)
       const response = await Axios({
@@ -418,7 +424,7 @@ const ProductDisplayPage = () => {
               ) : (
                 <div className="flex gap-3 items-center">
                   <div className="flex-1">
-                    <AddToCartButton data={data} />
+                    <AddToCartButton data={data} selectedSize={selectedSize} />
                   </div>
                   <button
                     onClick={handleBuyNow}

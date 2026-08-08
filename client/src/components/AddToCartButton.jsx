@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux'
 import { FaMinus, FaPlus } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom';
 
-const AddToCartButton = ({ data }) => {
+const AddToCartButton = ({ data, selectedSize }) => {
     const { fetchCartItem, updateCartItem, deleteCartItem } = useGlobalContext()
     const [loading, setLoading] = useState(false)
     const cartItem = useSelector(state => state.cartItem.cart)
@@ -22,6 +22,12 @@ const AddToCartButton = ({ data }) => {
     const handleADDTocart = async (e) => {
         e.preventDefault()
         e.stopPropagation()
+
+        // ── Size Validation: Require size if product defines sizes ──────────────
+        if (data?.sizes?.length > 0 && !selectedSize) {
+            toast.error("Please select a size first")
+            return
+        }
 
         // ── Redirect to login if user is not logged in ────────────────────────
         if (!user?._id) {
