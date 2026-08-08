@@ -177,19 +177,9 @@ const OrderTracking = () => {
             <FiChevronLeft size={18} /> My Orders
           </Link>
 
-          <div className="flex items-center gap-2">
-            {!isCancelled && !isDelivered && (
-              <button
-                onClick={() => setShowCancelModal(true)}
-                className="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-full transition-all flex items-center gap-1"
-              >
-                <FiX size={14} /> Cancel Order
-              </button>
-            )}
-            <span className="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-extrabold flex items-center gap-1">
-              <FiZap className="text-orange-600 fill-orange-500" size={13} /> 30 MIN EXPRESS
-            </span>
-          </div>
+          <span className="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-extrabold flex items-center gap-1">
+            <FiZap className="text-orange-600 fill-orange-500" size={13} /> 30 MIN EXPRESS
+          </span>
         </div>
 
         {/* DYNAMIC REAL-TIME 30 MIN COUNTDOWN HERO */}
@@ -343,18 +333,6 @@ const OrderTracking = () => {
               })}
             </div>
           </div>
-
-          {/* Cancel Order Action Button inside card */}
-          {!isCancelled && !isDelivered && (
-            <div className="pt-4 border-t border-gray-100 text-center">
-              <button
-                onClick={() => setShowCancelModal(true)}
-                className="py-2.5 px-6 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl border border-red-200 transition-all inline-flex items-center gap-1.5"
-              >
-                <FiX size={15} /> Cancel This Order
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Product Details & Delivery Address */}
@@ -431,6 +409,18 @@ const OrderTracking = () => {
           </div>
 
         </div>
+
+        {/* CANCEL ORDER BUTTON AT THE VERY BOTTOM AFTER DELIVERY ADDRESS */}
+        {!isCancelled && !isDelivered && (
+          <div className="pt-2 text-center">
+            <button
+              onClick={() => setShowCancelModal(true)}
+              className="w-full sm:w-auto py-3.5 px-8 bg-red-50 hover:bg-red-100 text-red-600 font-extrabold text-xs rounded-2xl border border-red-200 transition-all inline-flex items-center justify-center gap-2 shadow-sm hover:shadow-md cursor-pointer"
+            >
+              <FiX size={16} /> Cancel This Order
+            </button>
+          </div>
+        )}
 
       </div>
 
