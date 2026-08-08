@@ -477,50 +477,52 @@ const CheckoutPage = () => {
               Order Summary
             </h3>
 
-            {/* Apply Coupon Section */}
-            <div className="pt-1 border-b pb-3 space-y-2">
-              <p className="text-xs font-bold text-fashion-dark flex items-center gap-1.5">
-                <FiTag className="text-orange-500" /> Apply Coupon Code
-              </p>
+            {/* Apply Coupon Section - Only Visible in Step 1 (Checkout / Address Page) */}
+            {step === 1 && (
+              <div className="pt-1 border-b pb-3 space-y-2">
+                <p className="text-xs font-bold text-fashion-dark flex items-center gap-1.5">
+                  <FiTag className="text-orange-500" /> Apply Coupon Code
+                </p>
 
-              {appliedCoupon ? (
-                <div className="bg-green-50 border border-green-200 p-2.5 rounded-xl flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-extrabold text-green-700 flex items-center gap-1">
-                      <FiCheckCircle size={14} /> Coupon {appliedCoupon.code} Applied!
-                    </p>
-                    <p className="text-[10px] text-green-600 font-semibold">
-                      Saved {DisplayPriceInRupees(appliedCoupon.discountAmount)} ({appliedCoupon.discountPercentage}% OFF)
-                    </p>
+                {appliedCoupon ? (
+                  <div className="bg-green-50 border border-green-200 p-2.5 rounded-xl flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-extrabold text-green-700 flex items-center gap-1">
+                        <FiCheckCircle size={14} /> Coupon {appliedCoupon.code} Applied!
+                      </p>
+                      <p className="text-[10px] text-green-600 font-semibold">
+                        Saved {DisplayPriceInRupees(appliedCoupon.discountAmount)} ({appliedCoupon.discountPercentage}% OFF)
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-[11px] font-bold text-red-500 hover:bg-red-100/60 px-2 py-1 rounded-md transition-colors cursor-pointer"
+                    >
+                      Remove
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleRemoveCoupon}
-                    className="text-[11px] font-bold text-red-500 hover:bg-red-100/60 px-2 py-1 rounded-md transition-colors cursor-pointer"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="e.g. FIRST10"
-                    value={couponCodeInput}
-                    onChange={e => setCouponCodeInput(e.target.value.toUpperCase())}
-                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs uppercase font-extrabold tracking-wider focus:outline-none focus:ring-2 focus:ring-orange-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleApplyCoupon}
-                    disabled={verifyingCoupon}
-                    className="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {verifyingCoupon ? "..." : "Apply"}
-                  </button>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. FIRST10"
+                      value={couponCodeInput}
+                      onChange={e => setCouponCodeInput(e.target.value.toUpperCase())}
+                      className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs uppercase font-extrabold tracking-wider focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={verifyingCoupon}
+                      className="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {verifyingCoupon ? "..." : "Apply"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-2.5 text-xs">
               <div className="flex justify-between text-fashion-gray">
