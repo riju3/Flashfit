@@ -28,6 +28,22 @@ body {
   scrollbar-width: none;
 }
 
+/* Hide right-side vertical browser scrollbar on mobile devices */
+@media (max-width: 1024px) {
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+}
+
 .scrollbarCustom::-webkit-scrollbar {
   width: 6px;
 }
