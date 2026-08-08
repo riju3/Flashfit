@@ -25,6 +25,12 @@ const couponSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    usedByUsers: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ],
     description: {
         type: String,
         default: "10% OFF on your purchase!"

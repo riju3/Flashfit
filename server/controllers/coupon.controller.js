@@ -1,4 +1,5 @@
 import CouponModel from "../models/coupon.model.js";
+import OrderModel from "../models/order.model.js";
 
 // Seed default FIRST10 coupon if db is empty
 const seedDefaultCoupon = async () => {
@@ -185,6 +186,20 @@ export const verifyCouponController = async (request, response) => {
                 error: true,
                 success: false
             });
+        }
+
+        // One-time use per customer check
+        if (request.userId) {
+            const userAlreadyUsed = (coupon.usedByUsers && coupon.usedByUsers.some(id => String(id) === String(request.userId))) ||
+                await OrderModel.exists({ userId: request.userId, couponCode: formattedCode });
+
+            if (userAlreadyUsed) {
+                return response.status(400).json({
+                    message: `You have already used coupon code ${coupon.code}. Coupons can only be redeemed once per customer.`,
+                    error: true,
+                    success: false
+                });
+            }
         }
 
         // Check if expired / max uses reached

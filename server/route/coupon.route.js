@@ -15,7 +15,7 @@ couponRouter.post("/add", auth, addCouponController);
 couponRouter.get("/all", auth, getAllCouponsController);
 couponRouter.put("/update", auth, updateCouponController);
 couponRouter.delete("/delete", auth, deleteCouponController);
-couponRouter.post("/verify", verifyCouponController);
+couponRouter.post("/verify", auth, verifyCouponController);
 couponRouter.get("/banner", getBannerCouponController);
 
 export default couponRouter;

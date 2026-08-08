@@ -20,6 +20,7 @@ import mongoose from "mongoose";
                     image : el.productId.image,
                     size : el.size || ""
                 } ,
+                couponCode : couponCode ? String(couponCode).toUpperCase().trim() : "",
                 paymentId : "",
                 payment_status : "CASH ON DELIVERY",
                 delivery_address : addressId ,
@@ -30,11 +31,14 @@ import mongoose from "mongoose";
 
         const generatedOrder = await OrderModel.insertMany(payload)
 
-        // Increment coupon usage count if coupon was applied
+        // Increment coupon usage count and record user ID
         if (couponCode) {
             await CouponModel.findOneAndUpdate(
                 { code: String(couponCode).toUpperCase().trim() },
-                { $inc: { usesCount: 1 } }
+                { 
+                    $inc: { usesCount: 1 },
+                    $addToSet: { usedByUsers: userId }
+                }
             );
         }
 

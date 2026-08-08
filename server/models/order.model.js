@@ -22,6 +22,10 @@ const orderSchema = new mongoose.Schema({
             default : ""
         }
     },
+    couponCode : {
+        type : String,
+        default : ""
+    },
     paymentId : {
         type : String,
         default : ""
