@@ -160,6 +160,18 @@ const SummaryApi = {
     updateSettings : {
         url : '/api/settings/update',
         method : 'put'
+    },
+    cancelOrder : {
+        url : '/api/order/cancel-order',
+        method : 'post'
+    },
+    adminAllOrders : {
+        url : '/api/order/admin-all-orders',
+        method : 'get'
+    },
+    adminUpdateOrderStatus : {
+        url : '/api/order/admin-update-order-status',
+        method : 'put'
     }
 }
 

@@ -24,6 +24,7 @@ import CheckoutPage from "../pages/CheckoutPage";
 import Success from "../pages/Success";
 import Cancel from "../pages/Cancel";
 import AdminSettings from "../pages/AdminSettings";
+import AdminOrders from "../pages/AdminOrders";
 import OrderSuccess from "../pages/OrderSuccess";
 import OrderTracking from "../pages/OrderTracking";
 
@@ -99,6 +100,10 @@ const router = createBrowserRouter([
                     {
                         path : 'settings',
                         element : <AdminPermision><AdminSettings/></AdminPermision>
+                    },
+                    {
+                        path : 'admin-orders',
+                        element : <AdminPermision><AdminOrders/></AdminPermision>
                     }
                 ]
             },

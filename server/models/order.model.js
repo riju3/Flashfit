@@ -41,6 +41,14 @@ const orderSchema = new mongoose.Schema({
     invoice_receipt : {
         type : String,
         default : ""
+    },
+    order_status : {
+        type : String,
+        default : "CONFIRMED"
+    },
+    cancel_reason : {
+        type : String,
+        default : ""
     }
 },{
     timestamps : true

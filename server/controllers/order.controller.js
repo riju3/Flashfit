@@ -206,3 +206,125 @@ export async function getOrderDetailsController(request,response){
         })
     }
 }
+
+export async function cancelOrderController(request, response) {
+    try {
+        const userId = request.userId;
+        const { orderId, cancel_reason } = request.body;
+
+        if (!orderId) {
+            return response.status(400).json({
+                message: "Provide orderId",
+                error: true,
+                success: false
+            });
+        }
+
+        const order = await OrderModel.findOne({ _id: orderId, userId: userId });
+        if (!order) {
+            return response.status(404).json({
+                message: "Order not found",
+                error: true,
+                success: false
+            });
+        }
+
+        if (order.order_status === "DELIVERED") {
+            return response.status(400).json({
+                message: "Delivered orders cannot be cancelled",
+                error: true,
+                success: false
+            });
+        }
+
+        order.order_status = "CANCELLED";
+        order.cancel_reason = cancel_reason || "User requested cancellation";
+        await order.save();
+
+        return response.json({
+            message: "Order cancelled successfully",
+            error: false,
+            success: true,
+            data: order
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+
+export async function getAllOrdersAdminController(request, response) {
+    try {
+        const adminUser = await UserModel.findById(request.userId);
+        if (adminUser.role !== 'ADMIN') {
+            return response.status(403).json({
+                message: "Access denied. Admin only.",
+                error: true,
+                success: false
+            });
+        }
+
+        const allOrders = await OrderModel.find()
+            .sort({ createdAt: -1 })
+            .populate('userId', 'name email mobile')
+            .populate('delivery_address');
+
+        return response.json({
+            message: "All orders fetched successfully",
+            data: allOrders,
+            error: false,
+            success: true
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+
+export async function updateOrderStatusAdminController(request, response) {
+    try {
+        const adminUser = await UserModel.findById(request.userId);
+        if (adminUser.role !== 'ADMIN') {
+            return response.status(403).json({
+                message: "Access denied. Admin only.",
+                error: true,
+                success: false
+            });
+        }
+
+        const { orderId, order_status, cancel_reason } = request.body;
+
+        const order = await OrderModel.findById(orderId);
+        if (!order) {
+            return response.status(404).json({
+                message: "Order not found",
+                error: true,
+                success: false
+            });
+        }
+
+        if (order_status) order.order_status = order_status;
+        if (cancel_reason !== undefined) order.cancel_reason = cancel_reason;
+
+        await order.save();
+
+        return response.json({
+            message: "Order status updated successfully",
+            error: false,
+            success: true,
+            data: order
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}

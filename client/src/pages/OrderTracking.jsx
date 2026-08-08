@@ -3,9 +3,21 @@ import { useParams, Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { DisplayPriceInRupees } from '../utils/DisplayPriceInRupees'
 import { useGlobalContext } from '../provider/GlobalProvider'
-import { FaCheck, FaBoxOpen, FaMotorcycle, FaHome } from 'react-icons/fa'
-import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage, FiZap, FiClock, FiExternalLink } from 'react-icons/fi'
+import Axios from '../utils/Axios'
+import SummaryApi from '../common/SummaryApi'
+import toast from 'react-hot-toast'
+import AxiosToastError from '../utils/AxiosToastError'
+import { FaCheck, FaBoxOpen, FaMotorcycle, FaHome, FaTimesCircle } from 'react-icons/fa'
+import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage, FiZap, FiClock, FiExternalLink, FiX, FiAlertTriangle } from 'react-icons/fi'
 import { valideURLConvert } from '../utils/valideURLConvert'
+
+const CANCEL_REASONS = [
+  "Ordered by mistake",
+  "Delivery time is longer than expected",
+  "Need to change delivery address or phone number",
+  "Found a better price elsewhere",
+  "Other"
+]
 
 const OrderTracking = () => {
   const { orderId } = useParams()
@@ -14,6 +26,10 @@ const OrderTracking = () => {
   const [currentOrder, setCurrentOrder] = useState(null)
   
   const [now, setNow] = useState(Date.now())
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [selectedReason, setSelectedReason] = useState(CANCEL_REASONS[0])
+  const [customReason, setCustomReason] = useState('')
+  const [cancelling, setCancelling] = useState(false)
 
   useEffect(() => {
     if (fetchOrder) fetchOrder()
@@ -52,39 +68,40 @@ const OrderTracking = () => {
   // Progress Bar Percentage (0% to 100%)
   const progressPercentage = Math.min(100, Math.max(5, Math.floor((elapsedMs / totalDeliveryDurationMs) * 100)))
 
-  // Determine Active Stage based on exact elapsed time since order placement
-  const isDelivered = elapsedMinutes >= 30
-  const isOutForDelivery = elapsedMinutes >= 10 && elapsedMinutes < 30
-  const isPacking = elapsedMinutes >= 5 && elapsedMinutes < 10
-  const isConfirmed = elapsedMinutes < 5
+  // Order Status Checks (DB status takes precedence if updated by Admin, else fallbacks to live time)
+  const dbStatus = currentOrder?.order_status || 'CONFIRMED'
+  const isCancelled = dbStatus === 'CANCELLED'
+  const isDelivered = dbStatus === 'DELIVERED' || (!isCancelled && elapsedMinutes >= 30)
+  const isOutForDelivery = dbStatus === 'OUT_FOR_DELIVERY' || (!isCancelled && !isDelivered && elapsedMinutes >= 10)
+  const isPacking = dbStatus === 'PACKING' || (!isCancelled && !isDelivered && !isOutForDelivery && elapsedMinutes >= 5)
 
   const expressSteps = [
     {
       title: 'Order Confirmed',
       desc: 'Received & verified at Darkstore',
       icon: FaCheck,
-      status: elapsedMinutes >= 5 ? 'completed' : 'active',
+      status: isCancelled ? 'cancelled' : elapsedMinutes >= 5 || isPacking || isOutForDelivery || isDelivered ? 'completed' : 'active',
       time: '0 Min'
     },
     {
       title: 'Packed & Quality Checked',
       desc: 'Items packed in express bag',
       icon: FaBoxOpen,
-      status: elapsedMinutes >= 10 ? 'completed' : isPacking ? 'active' : 'pending',
+      status: isCancelled ? 'cancelled' : isPacking ? 'active' : isOutForDelivery || isDelivered ? 'completed' : 'pending',
       time: '5 Mins'
     },
     {
       title: 'Rider Out for Delivery 🛵',
       desc: isOutForDelivery ? 'Rider on fast route to your home' : 'Assigned express delivery executive',
       icon: FaMotorcycle,
-      status: elapsedMinutes >= 30 ? 'completed' : isOutForDelivery ? 'active' : 'pending',
+      status: isCancelled ? 'cancelled' : isOutForDelivery ? 'active' : isDelivered ? 'completed' : 'pending',
       time: '10 Mins'
     },
     {
       title: 'Delivered',
       desc: isDelivered ? 'Package handed over at doorstep' : 'Arriving at your doorstep',
       icon: FaHome,
-      status: isDelivered ? 'completed' : 'pending',
+      status: isCancelled ? 'cancelled' : isDelivered ? 'completed' : 'pending',
       time: '30 Mins'
     }
   ]
@@ -115,6 +132,41 @@ const OrderTracking = () => {
         hour12: true
       })
 
+  const handleCancelOrderSubmit = async (e) => {
+    e.preventDefault()
+    const finalReason = selectedReason === 'Other' ? customReason : selectedReason
+    if (!finalReason || !finalReason.trim()) {
+      toast.error("Please specify a reason for cancellation")
+      return
+    }
+
+    try {
+      setCancelling(true)
+      const response = await Axios({
+        ...SummaryApi.cancelOrder,
+        data: {
+          orderId: currentOrder?._id,
+          cancel_reason: finalReason
+        }
+      })
+
+      if (response.data.success) {
+        toast.success("Order cancelled successfully")
+        setShowCancelModal(false)
+        setCurrentOrder(prev => ({
+          ...prev,
+          order_status: 'CANCELLED',
+          cancel_reason: finalReason
+        }))
+        if (fetchOrder) fetchOrder()
+      }
+    } catch (error) {
+      AxiosToastError(error)
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50/50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -124,34 +176,63 @@ const OrderTracking = () => {
           <Link to="/dashboard/myorders" className="flex items-center gap-1.5 text-sm font-bold text-fashion-dark hover:text-orange-500 transition-colors">
             <FiChevronLeft size={18} /> My Orders
           </Link>
-          <span className="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-extrabold flex items-center gap-1">
-            <FiZap className="text-orange-600 fill-orange-500" size={13} /> 30 MIN EXPRESS
-          </span>
+
+          <div className="flex items-center gap-2">
+            {!isCancelled && !isDelivered && (
+              <button
+                onClick={() => setShowCancelModal(true)}
+                className="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-full transition-all flex items-center gap-1"
+              >
+                <FiX size={14} /> Cancel Order
+              </button>
+            )}
+            <span className="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-extrabold flex items-center gap-1">
+              <FiZap className="text-orange-600 fill-orange-500" size={13} /> 30 MIN EXPRESS
+            </span>
+          </div>
         </div>
 
         {/* DYNAMIC REAL-TIME 30 MIN COUNTDOWN HERO */}
-        <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden">
+        <div className={`p-6 rounded-3xl shadow-xl relative overflow-hidden text-white transition-all ${
+          isCancelled
+            ? 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700'
+            : isDelivered
+            ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-teal-700'
+            : 'bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600'
+        }`}>
           <div className="absolute right-[-20px] bottom-[-20px] opacity-15 pointer-events-none">
-            <FaMotorcycle size={180} />
+            {isCancelled ? <FaTimesCircle size={180} /> : <FaMotorcycle size={180} />}
           </div>
 
           <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider bg-black/20 px-3 py-1 rounded-full w-fit mb-2">
                 <FiZap size={14} className="text-yellow-300 fill-yellow-300" />
-                {isDelivered ? 'Order Delivered!' : isOutForDelivery ? 'Rider On The Way' : isPacking ? 'Packing In Progress' : 'Order Placed'}
+                {isCancelled
+                  ? 'ORDER CANCELLED'
+                  : isDelivered
+                  ? 'DELIVERED SUCCESSFULLY'
+                  : isOutForDelivery
+                  ? 'RIDER ON THE WAY'
+                  : isPacking
+                  ? 'PACKING IN PROGRESS'
+                  : 'ORDER PLACED'}
               </div>
               
-              <h1 className="text-3xl font-black tracking-tight">
-                {isDelivered ? (
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+                {isCancelled ? (
+                  'Order Has Been Cancelled'
+                ) : isDelivered ? (
                   'Delivered in 30 Mins!'
                 ) : (
                   `${String(minLeft).padStart(2, '0')} mins ${String(secLeft).padStart(2, '0')} secs`
                 )}
               </h1>
               
-              <p className="text-xs font-semibold text-orange-100 mt-1">
-                {isDelivered
+              <p className="text-xs font-semibold text-white/90 mt-1">
+                {isCancelled
+                  ? `Reason: "${currentOrder?.cancel_reason || 'Requested by customer'}"`
+                  : isDelivered
                   ? 'Your package has been successfully delivered to your doorstep.'
                   : isOutForDelivery
                   ? 'Rider is speeding on motorcycle to deliver your package 🛵'
@@ -161,32 +242,50 @@ const OrderTracking = () => {
               </p>
             </div>
 
-            {/* Rider / Status Badge */}
+            {/* Live Status Badge */}
             <div className="bg-white/20 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/30 text-center shrink-0">
-              <span className="text-[10px] font-extrabold uppercase text-orange-100 block">Live Status</span>
+              <span className="text-[10px] font-extrabold uppercase text-white/80 block">Status</span>
               <span className="text-xs font-black text-white flex items-center justify-center gap-1 mt-0.5">
-                <span className={`w-2 h-2 rounded-full ${isDelivered ? 'bg-blue-400' : 'bg-green-400 animate-ping'}`}></span>
-                {isDelivered ? 'Delivered' : isOutForDelivery ? 'Out for Delivery' : isPacking ? 'Packing' : 'Confirmed'}
+                <span className={`w-2 h-2 rounded-full ${
+                  isCancelled ? 'bg-red-300' : isDelivered ? 'bg-green-300' : 'bg-yellow-300 animate-ping'
+                }`}></span>
+                {dbStatus.replace(/_/g, ' ')}
               </span>
             </div>
           </div>
 
           {/* Express Live Dynamic Progress Bar */}
-          <div className="mt-6 pt-4 border-t border-white/20">
-            <div className="w-full bg-black/20 h-3 rounded-full overflow-hidden p-0.5">
-              <div
-                className="bg-white h-full rounded-full transition-all duration-700 shadow-sm"
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
+          {!isCancelled && (
+            <div className="mt-6 pt-4 border-t border-white/20">
+              <div className="w-full bg-black/20 h-3 rounded-full overflow-hidden p-0.5">
+                <div
+                  className="bg-white h-full rounded-full transition-all duration-700 shadow-sm"
+                  style={{ width: `${isDelivered ? 100 : progressPercentage}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-[11px] font-bold text-white/80 mt-2">
+                <span>Darkstore (0m)</span>
+                <span>Packing (5m)</span>
+                <span>On Bike (10m)</span>
+                <span>Delivered (30m)</span>
+              </div>
             </div>
-            <div className="flex justify-between text-[11px] font-bold text-orange-100 mt-2">
-              <span>Darkstore (0m)</span>
-              <span>Packing (5m)</span>
-              <span>On Bike (10m)</span>
-              <span>Delivered (30m)</span>
+          )}
+        </div>
+
+        {/* Cancellation Alert if Cancelled */}
+        {isCancelled && (
+          <div className="bg-red-50 border-2 border-red-200 p-4 rounded-2xl flex items-start gap-3 text-red-800">
+            <FiAlertTriangle size={20} className="shrink-0 text-red-600 mt-0.5" />
+            <div className="text-xs space-y-1">
+              <h3 className="font-bold text-sm text-red-900">Order Cancelled</h3>
+              <p className="font-medium">
+                Cancellation Reason: <span className="font-bold italic">"{currentOrder?.cancel_reason || 'Customer requested cancellation'}"</span>
+              </p>
+              <p className="text-red-700 text-[11px]">If any payment was deducted, refund will process within 24 hours.</p>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Order Info Card with EXACT ORDER TIME */}
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
@@ -216,10 +315,12 @@ const OrderTracking = () => {
                 const Icon = step.icon
                 const isCompleted = step.status === 'completed'
                 const isActive = step.status === 'active'
+                const isStepCancelled = step.status === 'cancelled'
 
                 return (
                   <div key={index} className="relative flex items-start gap-4">
                     <div className={`flex items-center justify-center w-10 h-10 rounded-full shrink-0 z-10 font-bold transition-all ${
+                      isStepCancelled ? 'bg-red-100 text-red-500' :
                       isCompleted ? 'bg-green-500 text-white shadow-md shadow-green-500/20' :
                       isActive ? 'bg-orange-500 text-white ring-4 ring-orange-100 shadow-md shadow-orange-500/20 animate-bounce' :
                       'bg-gray-100 text-gray-400'
@@ -228,7 +329,7 @@ const OrderTracking = () => {
                     </div>
                     <div className="flex-1 pt-1">
                       <div className="flex justify-between items-center">
-                        <h3 className={`text-sm font-extrabold ${isActive || isCompleted ? 'text-fashion-dark' : 'text-gray-400'}`}>
+                        <h3 className={`text-sm font-extrabold ${isStepCancelled ? 'line-through text-red-400' : isActive || isCompleted ? 'text-fashion-dark' : 'text-gray-400'}`}>
                           {step.title}
                         </h3>
                         <span className="text-[11px] font-mono font-bold text-fashion-gray">
@@ -242,6 +343,18 @@ const OrderTracking = () => {
               })}
             </div>
           </div>
+
+          {/* Cancel Order Action Button inside card */}
+          {!isCancelled && !isDelivered && (
+            <div className="pt-4 border-t border-gray-100 text-center">
+              <button
+                onClick={() => setShowCancelModal(true)}
+                className="py-2.5 px-6 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl border border-red-200 transition-all inline-flex items-center gap-1.5"
+              >
+                <FiX size={15} /> Cancel This Order
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Product Details & Delivery Address */}
@@ -320,6 +433,83 @@ const OrderTracking = () => {
         </div>
 
       </div>
+
+      {/* CANCEL ORDER MODAL */}
+      {showCancelModal && (
+        <section className="bg-black/70 fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4 animate-scale-in">
+            <div className="flex justify-between items-center border-b pb-3">
+              <h3 className="font-extrabold text-base text-fashion-dark flex items-center gap-2">
+                <FiAlertTriangle className="text-red-500" /> Cancel Order Confirmation
+              </h3>
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCancelOrderSubmit} className="space-y-4">
+              <p className="text-xs font-bold text-fashion-charcoal">
+                Why do you want to cancel this order?
+              </p>
+
+              <div className="space-y-2">
+                {CANCEL_REASONS.map((reason, index) => (
+                  <label
+                    key={index}
+                    className={`flex items-center gap-3 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                      selectedReason === reason
+                        ? 'border-red-500 bg-red-50/50 text-red-900'
+                        : 'border-gray-200 text-fashion-dark hover:bg-gray-50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="cancel_reason"
+                      checked={selectedReason === reason}
+                      onChange={() => setSelectedReason(reason)}
+                      className="accent-red-500"
+                    />
+                    <span>{reason}</span>
+                  </label>
+                ))}
+              </div>
+
+              {selectedReason === "Other" && (
+                <div>
+                  <textarea
+                    rows={3}
+                    placeholder="Please specify your reason for cancellation..."
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    className="w-full p-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-200"
+                    required
+                  ></textarea>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCancelModal(false)}
+                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-fashion-dark text-xs font-bold rounded-xl transition-colors"
+                >
+                  Keep Order
+                </button>
+                <button
+                  type="submit"
+                  disabled={cancelling}
+                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md transition-all disabled:opacity-50"
+                >
+                  {cancelling ? "Cancelling..." : "Confirm Cancellation"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      )}
     </div>
   )
 }
