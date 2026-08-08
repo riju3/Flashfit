@@ -64,8 +64,13 @@ const DisplayCartItem = ({close}) => {
                                                                 className='object-scale-down'
                                                             />
                                                         </div>
-                                                        <div className='w-full max-w-sm text-xs'>
-                                                            <p className='text-xs text-ellipsis line-clamp-2'>{item?.productId?.name}</p>
+                                                        <div className='w-full max-w-sm text-xs space-y-0.5'>
+                                                            <p className='text-xs font-semibold text-fashion-dark text-ellipsis line-clamp-2'>{item?.productId?.name}</p>
+                                                            {item?.size && (
+                                                                <span className="inline-block px-2 py-0.5 text-[10px] font-extrabold bg-orange-50 text-orange-600 border border-orange-200 rounded-md">
+                                                                    Size: {item.size}
+                                                                </span>
+                                                            )}
                                                             <p className='text-neutral-400'>{item?.productId?.unit}</p>
                                                             <p className='font-semibold'>{DisplayPriceInRupees(pricewithDiscount(item?.productId?.price,item?.productId?.discount))}</p>
                                                         </div>

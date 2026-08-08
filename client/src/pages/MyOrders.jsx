@@ -91,6 +91,11 @@ const MyOrders = () => {
                       <h2 className="text-sm font-bold text-fashion-dark line-clamp-1 group-hover:text-orange-600 transition-colors">
                         {product?.name || 'Fashion Item'}
                       </h2>
+                      {product?.size && (
+                        <span className="inline-block mt-0.5 px-2 py-0.5 text-[10px] font-extrabold bg-orange-50 text-orange-600 border border-orange-200 rounded-md">
+                          Size: {product.size}
+                        </span>
+                      )}
                       <p className="text-xs text-fashion-gray mt-0.5">
                         Amount Paid: <span className="font-bold text-fashion-dark">{DisplayPriceInRupees(order?.totalAmt || 0)}</span>
                       </p>

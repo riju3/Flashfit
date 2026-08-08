@@ -368,6 +368,13 @@ const OrderTracking = () => {
                   <h3 className="text-xs sm:text-sm font-extrabold text-fashion-dark leading-snug line-clamp-2 break-words group-hover:text-orange-600 transition-colors">
                     {product.name}
                   </h3>
+                  {product.size && (
+                    <div className="mt-1">
+                      <span className="inline-block px-2.5 py-0.5 text-[11px] font-extrabold bg-orange-50 text-orange-600 border border-orange-200 rounded-md">
+                        Size: {product.size}
+                      </span>
+                    </div>
+                  )}
                   <p className="text-xs text-fashion-gray font-semibold mt-1">
                     Total Amount: <span className="text-orange-600 font-extrabold">{DisplayPriceInRupees(currentOrder?.totalAmt || product.price)}</span>
                   </p>

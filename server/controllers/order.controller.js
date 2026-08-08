@@ -16,7 +16,8 @@ import mongoose from "mongoose";
                 productId : el.productId._id, 
                 product_details : {
                     name : el.productId.name,
-                    image : el.productId.image
+                    image : el.productId.image,
+                    size : el.size || ""
                 } ,
                 paymentId : "",
                 payment_status : "CASH ON DELIVERY",
