@@ -194,18 +194,24 @@ const TrustBar = () => (
 // ─── Category Pill Navigation ────────────────────────────────────────────────
 const CategoryPills = ({ categories, subCategories, onCategoryClick }) => {
   const [active, setActive] = useState(null)
+  const navigate = useNavigate()
 
   const handleClick = (cat) => {
     setActive(cat._id)
     onCategoryClick(cat._id, cat.name)
   }
 
+  const handleAllClick = () => {
+    setActive(null)
+    navigate('/search')
+  }
+
   return (
     <section className="container mx-auto px-4 py-6">
       <div className="flex gap-3 overflow-x-auto scrollbar-none pb-1">
         <button
-          onClick={() => setActive(null)}
-          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border
+          onClick={handleAllClick}
+          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border cursor-pointer
             ${active === null ? 'text-white border-primary-200 shadow-orange' : 'text-fashion-charcoal border-gray-200 hover:border-primary-100 hover:text-primary-200 bg-white'}`}
           style={active === null ? {background:'linear-gradient(135deg,#FF4D00,#E94560)'} : {}}
         >

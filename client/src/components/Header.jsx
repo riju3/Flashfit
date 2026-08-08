@@ -33,7 +33,7 @@ const FlashFitLogo = () => (
 )
 
 const NAV_LINKS = [
-  { label: 'Shop All',     path: '/search' },
+  { label: 'All',           path: '/search' },
   { label: 'New Arrivals', path: '/search?tag=new-arrival' },
   { label: 'Men',          path: '/search?q=men' },
   { label: 'Women',        path: '/search?q=women' },
