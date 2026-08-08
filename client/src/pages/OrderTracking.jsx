@@ -31,10 +31,12 @@ const OrderTracking = () => {
   const [customReason, setCustomReason] = useState('')
   const [cancelling, setCancelling] = useState(false)
 
-  // ── Review & Rating State ──
+  // ── Review & Rating State (Defaults to 0 Stars) ──
   const [userReview, setUserReview] = useState(null)
-  const [rating, setRating] = useState(5)
+  const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
+  const [deliveryRating, setDeliveryRating] = useState(0)
+  const [hoverDeliveryRating, setHoverDeliveryRating] = useState(0)
   const [comment, setComment] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
 
@@ -44,9 +46,9 @@ const OrderTracking = () => {
 
   useEffect(() => {
     if (orderList && orderList.length > 0) {
-      const found = orderList.find(item => item._id === orderId || item.orderId === orderId)
-      if (found) {
-        setCurrentOrder(found)
+      if (orderId) {
+        const found = orderList.find(o => o._id === orderId || o.orderId === orderId)
+        setCurrentOrder(found || orderList[0])
       } else {
         setCurrentOrder(orderList[0])
       }
@@ -74,6 +76,14 @@ const OrderTracking = () => {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault()
+    if (rating === 0) {
+      toast.error("Please select a product rating")
+      return
+    }
+    if (deliveryRating === 0) {
+      toast.error("Please select a delivery rating")
+      return
+    }
     if (!comment.trim()) {
       toast.error("Please write a review comment")
       return
@@ -92,6 +102,7 @@ const OrderTracking = () => {
           productId: targetProductId,
           orderId: currentOrder?._id,
           rating,
+          deliveryRating,
           comment: comment.trim()
         }
       })
@@ -479,63 +490,116 @@ const OrderTracking = () => {
 
         {/* DELIVERED ORDER REVIEW CARD */}
         {isDelivered && !isCancelled && (
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-orange-100 space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-orange-100 space-y-5">
+            <div className="border-b border-gray-100 pb-3">
               <h2 className="text-sm font-extrabold text-fashion-dark flex items-center gap-2">
-                <FaStar className="text-amber-400" size={16} /> Rate & Review Delivered Product
+                <FaStar className="text-amber-400" size={16} /> Rate Your Order & Experience
               </h2>
-              <span className="text-xs font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">
-                Verified Purchase
-              </span>
+              <p className="text-[11px] text-fashion-gray mt-0.5">Please rate the product quality and delivery service below.</p>
             </div>
 
             {userReview ? (
-              <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <FaStar
-                        key={star}
-                        size={16}
-                        className={star <= userReview.rating ? 'text-amber-400 fill-amber-400 text-amber-400' : 'text-gray-300'}
-                      />
-                    ))}
-                    <span className="text-xs font-bold text-fashion-dark ml-2">({userReview.rating}/5 Stars)</span>
+              <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-orange-100/60 pb-2">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <p className="text-[10px] text-fashion-gray font-bold uppercase">Product Rating</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <FaStar
+                            key={star}
+                            size={14}
+                            className={star <= userReview.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}
+                          />
+                        ))}
+                        <span className="text-xs font-bold text-fashion-dark ml-1">({userReview.rating}/5)</span>
+                      </div>
+                    </div>
+
+                    {userReview.deliveryRating && (
+                      <div className="border-l border-orange-200 pl-4">
+                        <p className="text-[10px] text-fashion-gray font-bold uppercase">Delivery Rating</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <FaStar
+                              key={star}
+                              size={14}
+                              className={star <= userReview.deliveryRating ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}
+                            />
+                          ))}
+                          <span className="text-xs font-bold text-fashion-dark ml-1">({userReview.deliveryRating}/5)</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <span className="text-xs font-bold text-green-600 flex items-center gap-1">
-                    <FiCheckCircle size={14} /> Review Published
+
+                  <span className="text-xs font-bold text-green-600 flex items-center gap-1 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">
+                    <FiCheckCircle size={13} /> Review Published
                   </span>
                 </div>
+
                 <p className="text-xs text-fashion-dark font-medium italic">"{userReview.comment}"</p>
-                <p className="text-[10px] text-fashion-gray">Thank you! Your review is now visible on the product page.</p>
+                <p className="text-[10px] text-fashion-gray">Thank you! Your feedback helps us improve.</p>
               </div>
             ) : (
-              <form onSubmit={handleReviewSubmit} className="space-y-4">
-                <div>
-                  <p className="text-xs font-bold text-fashion-gray mb-1.5">Your Rating:</p>
-                  <div className="flex items-center gap-1.5">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        type="button"
-                        key={star}
-                        onMouseEnter={() => setHoverRating(star)}
-                        onMouseLeave={() => setHoverRating(0)}
-                        onClick={() => setRating(star)}
-                        className="p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer"
-                      >
-                        <FaStar size={24} className={star <= (hoverRating || rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'} />
-                      </button>
-                    ))}
-                    <span className="text-xs font-bold text-fashion-dark ml-2">
-                      {hoverRating || rating} Star{(hoverRating || rating) > 1 ? 's' : ''}
-                    </span>
+              <form onSubmit={handleReviewSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50/70 p-4 rounded-2xl border border-gray-100">
+                  {/* Product Rating */}
+                  <div>
+                    <p className="text-xs font-extrabold text-fashion-dark mb-1.5 flex items-center gap-1">
+                      <span>1. Product Quality & Fit</span>
+                      <span className="text-red-500">*</span>
+                    </p>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          type="button"
+                          key={star}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => setRating(star)}
+                          className="p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer"
+                        >
+                          <FaStar size={22} className={star <= (hoverRating || rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'} />
+                        </button>
+                      ))}
+                      <span className="text-xs font-bold text-fashion-dark ml-1.5">
+                        {hoverRating || rating}/5
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Delivery Rating */}
+                  <div>
+                    <p className="text-xs font-extrabold text-fashion-dark mb-1.5 flex items-center gap-1">
+                      <span>2. Express Delivery & Service</span>
+                      <span className="text-red-500">*</span>
+                    </p>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          type="button"
+                          key={star}
+                          onMouseEnter={() => setHoverDeliveryRating(star)}
+                          onMouseLeave={() => setHoverDeliveryRating(0)}
+                          onClick={() => setDeliveryRating(star)}
+                          className="p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer"
+                        >
+                          <FaStar size={22} className={star <= (hoverDeliveryRating || deliveryRating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'} />
+                        </button>
+                      ))}
+                      <span className="text-xs font-bold text-fashion-dark ml-1.5">
+                        {hoverDeliveryRating || deliveryRating}/5
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 <div>
+                  <label className="block text-xs font-extrabold text-fashion-dark mb-1.5">Your Detailed Feedback:</label>
                   <textarea
                     rows={3}
-                    placeholder="How was the product quality, fit, and delivery experience? Write your review here..."
+                    placeholder="Share your experience with product quality, fabric, fitting, and express delivery..."
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     className="w-full p-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-200"
@@ -546,9 +610,9 @@ const OrderTracking = () => {
                 <button
                   type="submit"
                   disabled={submittingReview}
-                  className="py-2.5 px-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                  className="py-3 px-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {submittingReview ? 'Publishing Review...' : 'Submit Product Review'}
+                  {submittingReview ? 'Publishing Review...' : 'Submit Rating & Review'}
                 </button>
               </form>
             )}

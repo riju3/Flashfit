@@ -5,7 +5,7 @@ import OrderModel from "../models/order.model.js";
 export async function addReviewController(request, response) {
     try {
         const userId = request.userId;
-        const { productId, rating, comment, orderId } = request.body;
+        const { productId, rating, deliveryRating, comment, orderId } = request.body;
 
         if (!productId || !rating || !comment) {
             return response.status(400).json({
@@ -43,6 +43,7 @@ export async function addReviewController(request, response) {
             userAvatar: user.avatar || '',
             orderId: orderId || '',
             rating: Number(rating),
+            deliveryRating: Number(deliveryRating || 5),
             comment: comment.trim()
         });
 

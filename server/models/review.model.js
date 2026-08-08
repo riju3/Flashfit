@@ -29,6 +29,12 @@ const reviewSchema = new mongoose.Schema({
         min: 1,
         max: 5
     },
+    deliveryRating: {
+        type: Number,
+        default: 5,
+        min: 1,
+        max: 5
+    },
     comment: {
         type: String,
         required: true,
