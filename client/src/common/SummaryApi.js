@@ -152,6 +152,14 @@ const SummaryApi = {
     getOrderItems : {
         url : '/api/order/order-list',
         method : 'get'
+    },
+    getSettings : {
+        url : '/api/settings/get',
+        method : 'get'
+    },
+    updateSettings : {
+        url : '/api/settings/update',
+        method : 'put'
     }
 }
 

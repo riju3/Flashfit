@@ -73,6 +73,7 @@ const UserMenu = ({ close }) => {
           <MenuItem to="/dashboard/subcategory"    icon={<FiTag size={14}/>}         label="Sub Categories" />
           <MenuItem to="/dashboard/upload-product" icon={<FiUploadCloud size={14}/>} label="Upload Product" />
           <MenuItem to="/dashboard/product"        icon={<FiPackage size={14}/>}     label="All Products" />
+          <MenuItem to="/dashboard/settings"       icon={<FiGrid size={14}/>}        label="Payment Settings" />
         </div>
       )}
 

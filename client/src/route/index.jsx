@@ -23,6 +23,9 @@ import CartMobile from "../pages/CartMobile";
 import CheckoutPage from "../pages/CheckoutPage";
 import Success from "../pages/Success";
 import Cancel from "../pages/Cancel";
+import AdminSettings from "../pages/AdminSettings";
+import OrderSuccess from "../pages/OrderSuccess";
+import OrderTracking from "../pages/OrderTracking";
 
 const router = createBrowserRouter([
     {
@@ -92,6 +95,10 @@ const router = createBrowserRouter([
                     {
                         path : 'product',
                         element : <AdminPermision><ProductAdmin/></AdminPermision>
+                    },
+                    {
+                        path : 'settings',
+                        element : <AdminPermision><AdminSettings/></AdminPermision>
                     }
                 ]
             },
@@ -115,6 +122,18 @@ const router = createBrowserRouter([
             {
                 path : "checkout",
                 element : <CheckoutPage/>
+            },
+            {
+                path : "order-success",
+                element : <OrderSuccess/>
+            },
+            {
+                path : "order-tracking/:orderId",
+                element : <OrderTracking/>
+            },
+            {
+                path : "order-tracking",
+                element : <OrderTracking/>
             },
             {
                 path : "success",

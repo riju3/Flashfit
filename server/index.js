@@ -14,6 +14,7 @@ import productRouter from './route/product.route.js'
 import cartRouter from './route/cart.route.js'
 import addressRouter from './route/address.route.js'
 import orderRouter from './route/order.route.js'
+import settingsRouter from './route/settings.route.js'
 
 const app = express()
 const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'];
@@ -52,6 +53,7 @@ app.use("/api/product",productRouter)
 app.use("/api/cart",cartRouter)
 app.use("/api/address",addressRouter)
 app.use('/api/order',orderRouter)
+app.use('/api/settings',settingsRouter)
 
 connectDB().then(()=>{
     app.listen(PORT,()=>{
