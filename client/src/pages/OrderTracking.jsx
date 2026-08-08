@@ -144,7 +144,7 @@ const OrderTracking = () => {
               
               <h1 className="text-3xl font-black tracking-tight">
                 {isDelivered ? (
-                  'Delivered in 30 Mins! 🎉'
+                  'Delivered in 30 Mins!'
                 ) : (
                   `${String(minLeft).padStart(2, '0')} mins ${String(secLeft).padStart(2, '0')} secs`
                 )}
