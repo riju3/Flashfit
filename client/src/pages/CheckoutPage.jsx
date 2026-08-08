@@ -310,15 +310,6 @@ const CheckoutPage = () => {
                     </div>
                   )}
                 </div>
-
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <button
-                    onClick={handleProceedToPayment}
-                    className="w-full py-4 px-6 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-extrabold rounded-2xl shadow-lg hover:shadow-orange-500/25 transition-all flex items-center justify-center gap-2"
-                  >
-                    Proceed to Payment Options →
-                  </button>
-                </div>
               </div>
             )}
 
@@ -556,6 +547,18 @@ const CheckoutPage = () => {
                 <span className="text-base text-orange-600">{DisplayPriceInRupees(finalPayableAmount)}</span>
               </div>
             </div>
+
+            {/* Proceed to Payment Button under Order Summary when in Step 1 */}
+            {step === 1 && (
+              <div className="pt-2">
+                <button
+                  onClick={handleProceedToPayment}
+                  className="w-full py-3.5 px-5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-extrabold rounded-xl shadow-md hover:shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95"
+                >
+                  Proceed to Payment Options →
+                </button>
+              </div>
+            )}
 
             {/* Selected Address Preview if in Step 2 */}
             {step === 2 && addressList && addressList[selectAddress] && (
