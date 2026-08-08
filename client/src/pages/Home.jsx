@@ -386,8 +386,67 @@ const BrandsMarquee = () => {
 }
 
 // ─── Main Home Component ─────────────────────────────────────────────────────
-const Home = () => {
+const PromoCouponBanner = () => {
+  const [bannerCoupon, setBannerCoupon] = useState(null)
+  const [copied, setCopied] = useState(false)
 
+  useEffect(() => {
+    const fetchBannerCoupon = async () => {
+      try {
+        const response = await Axios({ ...SummaryApi.getBannerCoupon })
+        if (response.data?.success && response.data?.data) {
+          setBannerCoupon(response.data.data)
+        }
+      } catch (_) {}
+    }
+    fetchBannerCoupon()
+  }, [])
+
+  if (!bannerCoupon || bannerCoupon.status !== 'Active') return null
+
+  const handleCopyCode = () => {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(bannerCoupon.code)
+    } else {
+      const input = document.createElement('input')
+      input.value = bannerCoupon.code
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand('copy')
+      document.body.removeChild(input)
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2500)
+  }
+
+  return (
+    <div className="bg-gradient-to-r from-orange-600 via-amber-500 to-rose-600 text-white py-2.5 px-4 shadow-sm border-b border-orange-400/40">
+      <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+        <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start text-xs font-extrabold tracking-wide">
+          <span className="bg-white/20 text-white px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black border border-white/30">
+            Special Offer
+          </span>
+          <span>{bannerCoupon.description || `${bannerCoupon.discountPercentage}% OFF on your purchase!`}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-orange-100">Use Code:</span>
+          <div className="flex items-center gap-1.5 bg-white text-fashion-dark px-3 py-1 rounded-xl shadow-inner font-extrabold text-xs tracking-wider border border-orange-200">
+            <span className="text-orange-600 font-black">{bannerCoupon.code}</span>
+            <button
+              onClick={handleCopyCode}
+              className="ml-1 text-[10px] font-extrabold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-2 py-0.5 rounded-md transition-colors cursor-pointer border border-orange-200"
+            >
+              {copied ? 'Copied! ✓' : 'Copy Code'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const Home = () => {
   const loadingCategory = useSelector(state => state.product.loadingCategory)
   const categoryData    = useSelector(state => state.product.allCategory)
   const subCategoryData = useSelector(state => state.product.allSubCategory)

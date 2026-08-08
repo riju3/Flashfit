@@ -9,7 +9,7 @@ import SummaryApi from '../common/SummaryApi'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { loadStripe } from '@stripe/stripe-js'
-import { FiArrowLeft, FiCheckCircle, FiPlus, FiCreditCard, FiSmartphone } from 'react-icons/fi'
+import { FiArrowLeft, FiCheckCircle, FiPlus, FiCreditCard, FiSmartphone, FiTag } from 'react-icons/fi'
 import { FaMoneyBillWave } from 'react-icons/fa'
 
 const CheckoutPage = () => {
@@ -21,8 +21,48 @@ const CheckoutPage = () => {
   const [step, setStep] = useState(1) // 1: Delivery Address, 2: Payment Method
   const [upiId, setUpiId] = useState('')
   const [selectedPayment, setSelectedPayment] = useState('upi') // 'upi', 'cod', 'card'
+
+  // Coupon State
+  const [couponCodeInput, setCouponCodeInput] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState(null)
+  const [verifyingCoupon, setVerifyingCoupon] = useState(false)
+
   const user = useSelector(state => state.user)
   const navigate = useNavigate()
+
+  const handleApplyCoupon = async () => {
+    if (!couponCodeInput.trim()) {
+      toast.error("Please enter a coupon code")
+      return
+    }
+    try {
+      setVerifyingCoupon(true)
+      const response = await Axios({
+        ...SummaryApi.verifyCoupon,
+        data: {
+          code: couponCodeInput.trim(),
+          orderAmount: totalPrice
+        }
+      })
+      if (response.data?.success && response.data?.data) {
+        setAppliedCoupon(response.data.data)
+        toast.success(`Coupon ${response.data.data.code} applied! Saved ₹${response.data.data.discountAmount}`)
+      }
+    } catch (error) {
+      AxiosToastError(error)
+      setAppliedCoupon(null)
+    } finally {
+      setVerifyingCoupon(false)
+    }
+  }
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCodeInput('')
+    toast.info("Coupon removed")
+  }
+
+  const finalPayableAmount = Math.max(0, totalPrice - (appliedCoupon?.discountAmount || 0))
 
   useEffect(() => {
     if (!user?._id) {
@@ -66,7 +106,8 @@ const CheckoutPage = () => {
           list_items: cartItemsList,
           addressId: addressList[selectAddress]?._id,
           subTotalAmt: totalPrice,
-          totalAmt: totalPrice,
+          totalAmt: finalPayableAmount,
+          couponCode: appliedCoupon?.code || ""
         }
       })
 
@@ -95,7 +136,7 @@ const CheckoutPage = () => {
     const transactionNote = `FlashFit Order Payment`
     
     // Standard UPI Intent Link
-    const upiLink = `upi://pay?pa=${encodeURIComponent(merchantUpi)}&pn=${encodeURIComponent(payeeName)}&am=${totalPrice}&cu=INR&tn=${encodeURIComponent(transactionNote)}`
+    const upiLink = `upi://pay?pa=${encodeURIComponent(merchantUpi)}&pn=${encodeURIComponent(payeeName)}&am=${finalPayableAmount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`
 
     // Attempt to launch the app on mobile devices
     if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
@@ -113,7 +154,8 @@ const CheckoutPage = () => {
           list_items: cartItemsList,
           addressId: addressList[selectAddress]?._id,
           subTotalAmt: totalPrice,
-          totalAmt: totalPrice,
+          totalAmt: finalPayableAmount,
+          couponCode: appliedCoupon?.code || "",
           payment_status: "PAID via " + appName
         }
       })
@@ -444,15 +486,66 @@ const CheckoutPage = () => {
               Order Summary
             </h3>
 
+            {/* Apply Coupon Section */}
+            <div className="pt-1 border-b pb-3 space-y-2">
+              <p className="text-xs font-bold text-fashion-dark flex items-center gap-1.5">
+                <FiTag className="text-orange-500" /> Apply Coupon Code
+              </p>
+
+              {appliedCoupon ? (
+                <div className="bg-green-50 border border-green-200 p-2.5 rounded-xl flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-extrabold text-green-700 flex items-center gap-1">
+                      <FiCheckCircle size={14} /> Coupon {appliedCoupon.code} Applied!
+                    </p>
+                    <p className="text-[10px] text-green-600 font-semibold">
+                      Saved {DisplayPriceInRupees(appliedCoupon.discountAmount)} ({appliedCoupon.discountPercentage}% OFF)
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="text-[11px] font-bold text-red-500 hover:bg-red-100/60 px-2 py-1 rounded-md transition-colors cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. FIRST10"
+                    value={couponCodeInput}
+                    onChange={e => setCouponCodeInput(e.target.value.toUpperCase())}
+                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs uppercase font-extrabold tracking-wider focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={verifyingCoupon}
+                    className="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {verifyingCoupon ? "..." : "Apply"}
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2.5 text-xs">
               <div className="flex justify-between text-fashion-gray">
                 <span>Items Total ({totalQty})</span>
                 <span className="line-through">{DisplayPriceInRupees(notDiscountTotalPrice)}</span>
               </div>
               <div className="flex justify-between text-fashion-gray">
-                <span>Discounted Total</span>
+                <span>Discounted Items Total</span>
                 <span className="font-bold text-fashion-dark">{DisplayPriceInRupees(totalPrice)}</span>
               </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-green-600 font-bold">
+                  <span>Coupon Discount ({appliedCoupon.code})</span>
+                  <span>- {DisplayPriceInRupees(appliedCoupon.discountAmount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-fashion-gray">
                 <span>Delivery Fee</span>
                 <span className="text-green-600 font-bold">FREE</span>
@@ -460,7 +553,7 @@ const CheckoutPage = () => {
               
               <div className="pt-3 border-t border-gray-100 flex justify-between items-center text-sm font-extrabold text-fashion-dark">
                 <span>Grand Total</span>
-                <span className="text-base text-orange-600">{DisplayPriceInRupees(totalPrice)}</span>
+                <span className="text-base text-orange-600">{DisplayPriceInRupees(finalPayableAmount)}</span>
               </div>
             </div>
 

@@ -184,6 +184,30 @@ const SummaryApi = {
     getOrderReview : {
         url : '/api/review/order',
         method : 'get'
+    },
+    addCoupon : {
+        url : '/api/coupon/add',
+        method : 'post'
+    },
+    getAllCoupons : {
+        url : '/api/coupon/all',
+        method : 'get'
+    },
+    updateCoupon : {
+        url : '/api/coupon/update',
+        method : 'put'
+    },
+    deleteCoupon : {
+        url : '/api/coupon/delete',
+        method : 'delete'
+    },
+    verifyCoupon : {
+        url : '/api/coupon/verify',
+        method : 'post'
+    },
+    getBannerCoupon : {
+        url : '/api/coupon/banner',
+        method : 'get'
     }
 }
 

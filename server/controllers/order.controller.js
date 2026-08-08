@@ -2,12 +2,13 @@ import Stripe from "../config/stripe.js";
 import CartProductModel from "../models/cartproduct.model.js";
 import OrderModel from "../models/order.model.js";
 import UserModel from "../models/user.model.js";
+import CouponModel from "../models/coupon.model.js";
 import mongoose from "mongoose";
 
  export async function CashOnDeliveryOrderController(request,response){
     try {
         const userId = request.userId // auth middleware 
-        const { list_items, totalAmt, addressId,subTotalAmt } = request.body 
+        const { list_items, totalAmt, addressId, subTotalAmt, couponCode } = request.body 
 
         const payload = list_items.map(el => {
             return({
@@ -28,6 +29,14 @@ import mongoose from "mongoose";
         })
 
         const generatedOrder = await OrderModel.insertMany(payload)
+
+        // Increment coupon usage count if coupon was applied
+        if (couponCode) {
+            await CouponModel.findOneAndUpdate(
+                { code: String(couponCode).toUpperCase().trim() },
+                { $inc: { usesCount: 1 } }
+            );
+        }
 
         ///remove from the cart
         const removeCartItems = await CartProductModel.deleteMany({ userId : userId })
