@@ -203,7 +203,7 @@ const CategoryPills = ({ categories, subCategories, onCategoryClick }) => {
 
   const handleAllClick = () => {
     setActive(null)
-    navigate('/search')
+    navigate('/')
   }
 
   return (
