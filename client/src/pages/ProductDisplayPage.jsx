@@ -39,8 +39,46 @@ const ProductDisplayPage = () => {
   const [reviewsData,    setReviewsData]    = useState({ reviews: [], averageRating: 0, totalReviews: 0 })
   const [showReviewsDropdown, setShowReviewsDropdown] = useState(false)
   const [openSizeModal, setOpenSizeModal] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
   const [touchStart, setTouchStart] = useState(null)
   const [touchEnd,   setTouchEnd]   = useState(null)
+
+  const handleShareProduct = async () => {
+    const shareData = {
+      title: data?.name || 'FlashFit Fashion',
+      text: `Check out ${data?.name || 'this item'} on FlashFit!`,
+      url: window.location.href,
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData)
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          copyUrlToClipboard()
+        }
+      }
+    } else {
+      copyUrlToClipboard()
+    }
+  }
+
+  const copyUrlToClipboard = () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(window.location.href)
+      } else {
+        const input = document.createElement('input')
+        input.value = window.location.href
+        document.body.appendChild(input)
+        input.select()
+        document.execCommand('copy')
+        document.body.removeChild(input)
+      }
+    } catch (_) {}
+    setCopiedLink(true)
+    setTimeout(() => setCopiedLink(false), 2500)
+  }
 
   const fetchProductReviews = async (pId) => {
     if (!pId) return
@@ -470,9 +508,24 @@ const ProductDisplayPage = () => {
               )}
             </div>
 
-            {/* Share */}
-            <button className="flex items-center gap-2 text-xs text-fashion-gray hover:text-fashion-dark transition-colors">
-              <FiShare2 size={14}/> Share Product
+            {/* Share Button with Web Share API and Clipboard Copy Feedback */}
+            <button
+              onClick={handleShareProduct}
+              className={`flex items-center gap-2 text-xs font-bold px-3.5 py-2 rounded-xl border transition-all cursor-pointer w-fit ${
+                copiedLink
+                  ? 'bg-green-50 text-green-700 border-green-200 shadow-sm'
+                  : 'bg-gray-50 text-fashion-dark hover:bg-orange-50 hover:border-orange-200 border-gray-200'
+              }`}
+            >
+              {copiedLink ? (
+                <>
+                  <FiCheckCircle size={15} className="text-green-600" /> Link Copied to Clipboard!
+                </>
+              ) : (
+                <>
+                  <FiShare2 size={15} className="text-orange-500" /> Share Product
+                </>
+              )}
             </button>
 
             {/* Specifications */}
