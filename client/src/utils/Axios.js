@@ -22,17 +22,16 @@ Axios.interceptors.request.use(
     }
 )
 
-//extend the life span of access token with 
-// the help refresh
-Axios.interceptors.request.use(
+//extend the life span of access token with the help of refresh token
+Axios.interceptors.response.use(
     (response)=>{
         return response
     },
     async(error)=>{
         let originRequest = error.config 
 
-        if(error.response.status === 401 && !originRequest.retry){
-            originRequest.retry = true
+        if(error?.response?.status === 401 && !originRequest._retry){
+            originRequest._retry = true
 
             const refreshToken = localStorage.getItem("refreshToken")
 
@@ -50,7 +49,6 @@ Axios.interceptors.request.use(
     }
 )
 
-
 const refreshAccessToken = async(refreshToken)=>{
     try {
         const response = await Axios({
@@ -60,8 +58,10 @@ const refreshAccessToken = async(refreshToken)=>{
             }
         })
 
-        const accessToken = response.data.data.accessToken
-        localStorage.setItem('accesstoken',accessToken)
+        const accessToken = response?.data?.data?.accessToken || response?.data?.data?.accesstoken
+        if(accessToken){
+            localStorage.setItem('accesstoken',accessToken)
+        }
         return accessToken
     } catch (error) {
         console.log(error)
