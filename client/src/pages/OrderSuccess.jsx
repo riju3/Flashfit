@@ -45,7 +45,7 @@ const OrderSuccess = () => {
           </div>
           <div className="flex justify-between items-center text-xs text-fashion-gray">
             <span>Estimated Delivery</span>
-            <span className="font-bold text-green-600">⚡ 15 Minute Express Delivery</span>
+            <span className="font-bold text-green-600">⚡ 30 Minute Express Delivery</span>
           </div>
         </div>
 

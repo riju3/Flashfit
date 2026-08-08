@@ -39,7 +39,7 @@ const OrderTracking = () => {
 
   // Order Timestamp Calculation
   const orderTimeMs = currentOrder?.createdAt ? new Date(currentOrder.createdAt).getTime() : now
-  const totalDeliveryDurationMs = 15 * 60 * 1000 // 15 Minutes
+  const totalDeliveryDurationMs = 30 * 60 * 1000 // 30 Minutes
   const elapsedMs = Math.max(0, now - orderTimeMs)
   const remainingMs = Math.max(0, totalDeliveryDurationMs - elapsedMs)
 
@@ -52,39 +52,39 @@ const OrderTracking = () => {
   const progressPercentage = Math.min(100, Math.max(5, Math.floor((elapsedMs / totalDeliveryDurationMs) * 100)))
 
   // Determine Active Stage based on exact elapsed time since order placement
-  const isDelivered = elapsedMinutes >= 15
-  const isOutForDelivery = elapsedMinutes >= 5 && elapsedMinutes < 15
-  const isPacking = elapsedMinutes >= 2 && elapsedMinutes < 5
-  const isConfirmed = elapsedMinutes < 2
+  const isDelivered = elapsedMinutes >= 30
+  const isOutForDelivery = elapsedMinutes >= 10 && elapsedMinutes < 30
+  const isPacking = elapsedMinutes >= 5 && elapsedMinutes < 10
+  const isConfirmed = elapsedMinutes < 5
 
   const expressSteps = [
     {
       title: 'Order Confirmed',
       desc: 'Received & verified at Darkstore',
       icon: FaCheck,
-      status: elapsedMinutes >= 2 ? 'completed' : 'active',
+      status: elapsedMinutes >= 5 ? 'completed' : 'active',
       time: '0 Min'
     },
     {
       title: 'Packed & Quality Checked',
       desc: 'Items packed in express bag',
       icon: FaBoxOpen,
-      status: elapsedMinutes >= 5 ? 'completed' : isPacking ? 'active' : 'pending',
-      time: '2 Mins'
+      status: elapsedMinutes >= 10 ? 'completed' : isPacking ? 'active' : 'pending',
+      time: '5 Mins'
     },
     {
       title: 'Rider Out for Delivery 🛵',
       desc: isOutForDelivery ? 'Rider on fast route to your home' : 'Assigned express delivery executive',
       icon: FaMotorcycle,
-      status: elapsedMinutes >= 15 ? 'completed' : isOutForDelivery ? 'active' : 'pending',
-      time: '5 Mins'
+      status: elapsedMinutes >= 30 ? 'completed' : isOutForDelivery ? 'active' : 'pending',
+      time: '10 Mins'
     },
     {
       title: 'Delivered',
       desc: isDelivered ? 'Package handed over at doorstep' : 'Arriving at your doorstep',
       icon: FaHome,
       status: isDelivered ? 'completed' : 'pending',
-      time: '15 Mins'
+      time: '30 Mins'
     }
   ]
 
@@ -121,11 +121,11 @@ const OrderTracking = () => {
             <FiChevronLeft size={18} /> My Orders
           </Link>
           <span className="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-extrabold flex items-center gap-1">
-            <FiZap className="text-orange-600 fill-orange-500" size={13} /> 15 MIN EXPRESS
+            <FiZap className="text-orange-600 fill-orange-500" size={13} /> 30 MIN EXPRESS
           </span>
         </div>
 
-        {/* DYNAMIC REAL-TIME 15 MIN COUNTDOWN HERO */}
+        {/* DYNAMIC REAL-TIME 30 MIN COUNTDOWN HERO */}
         <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden">
           <div className="absolute right-[-20px] bottom-[-20px] opacity-15 pointer-events-none">
             <FaMotorcycle size={180} />
@@ -140,7 +140,7 @@ const OrderTracking = () => {
               
               <h1 className="text-3xl font-black tracking-tight">
                 {isDelivered ? (
-                  'Delivered in 15 Mins! 🎉'
+                  'Delivered in 30 Mins! 🎉'
                 ) : (
                   `${String(minLeft).padStart(2, '0')} mins ${String(secLeft).padStart(2, '0')} secs`
                 )}
@@ -177,9 +177,9 @@ const OrderTracking = () => {
             </div>
             <div className="flex justify-between text-[11px] font-bold text-orange-100 mt-2">
               <span>Darkstore (0m)</span>
-              <span>Packing (2m)</span>
-              <span>On Bike (5m)</span>
-              <span>Delivered (15m)</span>
+              <span>Packing (5m)</span>
+              <span>On Bike (10m)</span>
+              <span>Delivered (30m)</span>
             </div>
           </div>
         </div>
