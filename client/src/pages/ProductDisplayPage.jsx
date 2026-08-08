@@ -338,7 +338,7 @@ const ProductDisplayPage = () => {
               </p>
             )}
 
-            {/* Ratings, Reviews & Purchased Badge */}
+            {/* Ratings & Reviews Bar (Shows ONLY real reviews) */}
             <div
               onClick={() => {
                 setShowReviewsDropdown(true)
@@ -346,18 +346,22 @@ const ProductDisplayPage = () => {
               }}
               className="flex items-center gap-3 flex-wrap text-xs cursor-pointer group/rating hover:opacity-90 transition-opacity"
             >
-              <div className="flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full font-bold group-hover/rating:scale-105 transition-transform">
-                <span>{reviewsData.totalReviews > 0 ? reviewsData.averageRating : '4.8'}</span>
-                <FaStar className="text-amber-500" size={11} />
-              </div>
-              <span className="text-fashion-gray font-medium group-hover/rating:text-orange-600 transition-colors">
-                {reviewsData.totalReviews > 0 ? `${reviewsData.totalReviews} Customer Review${reviewsData.totalReviews > 1 ? 's' : ''}` : '148 Ratings & 32 Reviews'} (Click to view)
-              </span>
-              <span className="text-gray-300">•</span>
-              {/* Purchased Badge */}
-              <span className="inline-flex items-center gap-1 bg-primary-50 text-primary-200 px-2.5 py-1 rounded-full font-bold border border-primary-100">
-                <FiCheckCircle size={12} /> 1.2k+ purchased
-              </span>
+              {reviewsData.totalReviews > 0 ? (
+                <>
+                  <div className="flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full font-bold group-hover/rating:scale-105 transition-transform">
+                    <span>{reviewsData.averageRating}</span>
+                    <FaStar className="text-amber-500" size={11} />
+                  </div>
+                  <span className="text-fashion-gray font-medium group-hover/rating:text-orange-600 transition-colors">
+                    {reviewsData.totalReviews} Customer Review{reviewsData.totalReviews > 1 ? 's' : ''} (Click to view)
+                  </span>
+                </>
+              ) : (
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-fashion-gray font-medium">No ratings & reviews yet</span>
+                  <span className="text-primary-200 font-semibold group-hover/rating:underline text-[11px]">(Click to view section)</span>
+                </div>
+              )}
             </div>
 
             {/* Price Block */}
@@ -495,25 +499,31 @@ const ProductDisplayPage = () => {
             </div>
 
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2 bg-amber-50/80 px-3.5 py-2 rounded-2xl border border-amber-200">
-                <span className="text-2xl font-black text-amber-600 leading-none">
-                  {reviewsData.totalReviews > 0 ? reviewsData.averageRating : '4.8'}
-                </span>
-                <div className="flex items-center gap-0.5 text-amber-500">
-                  {[1, 2, 3, 4, 5].map(s => (
-                    <FaStar key={s} size={13} className={s <= Math.round(Number(reviewsData.averageRating || 4.8)) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'} />
-                  ))}
+              {reviewsData.totalReviews > 0 ? (
+                <div className="flex items-center gap-2 bg-amber-50/80 px-3.5 py-2 rounded-2xl border border-amber-200">
+                  <span className="text-2xl font-black text-amber-600 leading-none">
+                    {reviewsData.averageRating}
+                  </span>
+                  <div className="flex items-center gap-0.5 text-amber-500">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <FaStar key={s} size={13} className={s <= Math.round(Number(reviewsData.averageRating)) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'} />
+                    ))}
+                  </div>
+                  <span className="text-xs font-bold text-fashion-dark border-l border-amber-200 pl-2">
+                    {reviewsData.totalReviews} Review{reviewsData.totalReviews !== 1 ? 's' : ''}
+                  </span>
                 </div>
-                <span className="text-xs font-bold text-fashion-dark border-l border-amber-200 pl-2">
-                  {reviewsData.totalReviews} Review{reviewsData.totalReviews !== 1 ? 's' : ''}
-                </span>
-              </div>
+              ) : (
+                <div className="px-3.5 py-2 bg-gray-100 rounded-2xl text-xs font-bold text-fashion-gray border border-gray-200">
+                  No Customer Reviews Yet
+                </div>
+              )}
 
               <button
                 onClick={() => setShowReviewsDropdown(prev => !prev)}
                 className="py-2.5 px-5 bg-fashion-dark hover:bg-black text-white font-extrabold text-xs rounded-2xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
               >
-                <span>{showReviewsDropdown ? 'Hide Reviews' : `View All Reviews (${reviewsData.totalReviews})`}</span>
+                <span>{showReviewsDropdown ? 'Hide Reviews' : `View Reviews (${reviewsData.totalReviews})`}</span>
                 {showReviewsDropdown ? <FiChevronUp size={16} /> : <FiChevronDown size={16} />}
               </button>
             </div>
