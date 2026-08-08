@@ -51,8 +51,7 @@ const productSchema = new mongoose.Schema({
     // Fashion-specific fields
     sizes : {
         type : [String],
-        default : [],
-        enum : { values : ['XS','S','M','L','XL','XXL','XXXL','Free Size',''], message : '{VALUE} is not a valid size' }
+        default : []
     },
     colors : {
         type : [String],
