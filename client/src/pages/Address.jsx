@@ -51,8 +51,7 @@ const Address = () => {
                           <div className='w-full'>
                             <p>{address.address_line}</p>
                             <p>{address.city}</p>
-                            <p>{address.state}</p>
-                            <p>{address.country} - {address.pincode}</p>
+                            <p>{address.state} - {address.pincode}</p>
                             <p>{address.mobile}</p>
                           </div>
                           <div className=' grid gap-10'>

@@ -249,8 +249,7 @@ const CheckoutPage = () => {
                                   </span>
                                 )}
                               </div>
-                              <p>{address.city}, {address.state}</p>
-                              <p>{address.country} - <span className="font-bold text-fashion-dark">{address.pincode}</span></p>
+                              <p>{address.city}, {address.state} - <span className="font-bold text-fashion-dark">{address.pincode}</span></p>
                               <p className="text-fashion-dark font-semibold pt-1">Mobile: {address.mobile}</p>
                             </div>
                           </div>

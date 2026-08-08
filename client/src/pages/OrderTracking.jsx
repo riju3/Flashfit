@@ -144,8 +144,7 @@ const OrderTracking = () => {
               {currentOrder?.delivery_address ? (
                 <div className="text-xs text-fashion-gray space-y-0.5">
                   <p className="font-bold text-fashion-dark">{currentOrder.delivery_address.address_line}</p>
-                  <p>{currentOrder.delivery_address.city}, {currentOrder.delivery_address.state}</p>
-                  <p>{currentOrder.delivery_address.country} - {currentOrder.delivery_address.pincode}</p>
+                  <p>{currentOrder.delivery_address.city}, {currentOrder.delivery_address.state} - {currentOrder.delivery_address.pincode}</p>
                   <p className="pt-1 font-semibold text-fashion-dark">Phone: {currentOrder.delivery_address.mobile}</p>
                 </div>
               ) : (
