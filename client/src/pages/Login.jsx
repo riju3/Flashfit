@@ -16,6 +16,7 @@ const Login = () => {
         password: "",
     })
     const [showPassword, setShowPassword] = useState(false)
+    const [isLoggingIn, setIsLoggingIn] = useState(false)
     const navigate = useNavigate()
     const dispatch = useDispatch()
 
@@ -32,11 +33,11 @@ const Login = () => {
 
     const valideValue = Object.values(data).every(el => el)
 
-
     const handleSubmit = async(e)=>{
         e.preventDefault()
 
         try {
+            setIsLoggingIn(true)
             const response = await Axios({
                 ...SummaryApi.login,
                 data : data
@@ -44,29 +45,31 @@ const Login = () => {
             
             if(response.data.error){
                 toast.error(response.data.message)
+                setIsLoggingIn(false)
             }
 
             if(response.data.success){
-                toast.success(response.data.message)
                 localStorage.setItem('accesstoken',response.data.data.accesstoken)
                 localStorage.setItem('refreshToken',response.data.data.refreshToken)
 
                 const userDetails = await fetchUserDetails()
                 dispatch(setUserDetails(userDetails.data))
 
+                // Hold for 2 seconds with animation before completing navigation
+                await new Promise(resolve => setTimeout(resolve, 2000))
+
                 setData({
                     email : "",
                     password : "",
                 })
+                setIsLoggingIn(false)
                 navigate("/")
             }
 
         } catch (error) {
+            setIsLoggingIn(false)
             AxiosToastError(error)
         }
-
-
-
     }
     return (
         <section className='w-full container mx-auto px-2'>
@@ -83,6 +86,7 @@ const Login = () => {
                             value={data.email}
                             onChange={handleChange}
                             placeholder='Enter your email'
+                            disabled={isLoggingIn}
                         />
                     </div>
                     <div className='grid gap-1'>
@@ -91,11 +95,12 @@ const Login = () => {
                             <input
                                 type={showPassword ? "text" : "password"}
                                 id='password'
-                                className='w-full outline-none'
+                                className='w-full outline-none bg-transparent'
                                 name='password'
                                 value={data.password}
                                 onChange={handleChange}
                                 placeholder='Enter your password'
+                                disabled={isLoggingIn}
                             />
                             <div onClick={() => setShowPassword(preve => !preve)} className='cursor-pointer'>
                                 {
@@ -110,7 +115,19 @@ const Login = () => {
                         <Link to={"/forgot-password"} className='block ml-auto hover:text-primary-200'>Forgot password ?</Link>
                     </div>
     
-                    <button disabled={!valideValue} className={` ${valideValue ? "bg-orange-600 hover:bg-orange-500" : "bg-gray-500" }    text-white py-2 rounded font-semibold my-3 tracking-wide`}>Login</button>
+                    <button
+                        disabled={!valideValue || isLoggingIn}
+                        className={` ${valideValue && !isLoggingIn ? "bg-orange-600 hover:bg-orange-500 cursor-pointer" : "bg-gray-400 cursor-not-allowed"} text-white py-2.5 rounded font-bold my-3 tracking-wide flex items-center justify-center gap-2 transition-all`}
+                    >
+                        {isLoggingIn ? (
+                            <span className="flex items-center gap-2">
+                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                Logging in<span className="animate-pulse">...</span>
+                            </span>
+                        ) : (
+                            "Login"
+                        )}
+                    </button>
 
                 </form>
 

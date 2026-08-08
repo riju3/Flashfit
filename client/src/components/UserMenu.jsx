@@ -17,18 +17,27 @@ const UserMenu = ({ close }) => {
   const user     = useSelector(state => state.user)
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true)
       const response = await Axios({ ...SummaryApi.logout })
+      
+      // Hold for 2 seconds with animation before completing logout
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
       if (response.data.success) {
         if (close) close()
         dispatch(logout())
         localStorage.clear()
-        toast.success(response.data.message)
+        setIsLoggingOut(false)
         navigate('/')
       }
-    } catch (error) { AxiosToastError(error) }
+    } catch (error) { 
+      setIsLoggingOut(false)
+      AxiosToastError(error) 
+    }
   }
 
   const handleClose = () => { if (close) close() }
@@ -88,10 +97,20 @@ const UserMenu = ({ close }) => {
       <div className="border-t border-gray-100 pt-2 mt-2">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
+          disabled={isLoggingOut}
+          className="w-full flex items-center justify-center sm:justify-start gap-2.5 px-3 py-2 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all disabled:opacity-75 cursor-pointer"
         >
-          <FiLogOut size={14} className="text-red-400"/>
-          Log Out
+          {isLoggingOut ? (
+            <span className="flex items-center gap-2 text-red-600 font-bold">
+              <span className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></span>
+              Logging out<span className="animate-pulse">...</span>
+            </span>
+          ) : (
+            <>
+              <FiLogOut size={14} className="text-red-400"/>
+              Log Out
+            </>
+          )}
         </button>
       </div>
     </div>
