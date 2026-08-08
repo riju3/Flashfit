@@ -278,3 +278,28 @@ body {
 .animate-float-model {
   animation: float-model 4.5s ease-in-out infinite;
 }
+
+/* ───────────── Express Splash Truck Animations ───────────── */
+@keyframes spin-fast {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-fast {
+  animation: spin-fast 0.3s linear infinite;
+}
+
+@keyframes truck-rev {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+.animate-truck-rev {
+  animation: truck-rev 0.25s ease-in-out infinite;
+}
+
+@keyframes road-track {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-road-track {
+  animation: road-track 0.35s linear infinite;
+}

@@ -11,6 +11,7 @@ import { useDispatch } from 'react-redux';
 import Axios from './utils/Axios';
 import SummaryApi from './common/SummaryApi';
 import GlobalProvider from './provider/GlobalProvider';
+import ExpressSplashLoader from './components/ExpressSplashLoader';
 
 // Disable success toast popups globally across the application
 toast.success = () => {};
@@ -62,6 +63,7 @@ function App() {
 
   return (
     <GlobalProvider>
+      <ExpressSplashLoader />
       <div className="min-h-screen flex flex-col bg-fashion-light">
         <Header />
         <main className="flex-1">
