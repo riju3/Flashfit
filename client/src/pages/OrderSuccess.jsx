@@ -9,14 +9,14 @@ const OrderSuccess = () => {
   const orderDetails = location?.state?.orderDetails
 
   useEffect(() => {
-    // Automatically redirect to tracking page after 3.5 seconds if orderDetails exists
+    // Automatically redirect to tracking page after 4 seconds if orderDetails exists
     const timer = setTimeout(() => {
       if (orderDetails?._id) {
         navigate(`/order-tracking/${orderDetails._id}`)
       } else {
         navigate('/dashboard/myorders')
       }
-    }, 3500)
+    }, 4000)
 
     return () => clearTimeout(timer)
   }, [orderDetails, navigate])
@@ -70,7 +70,7 @@ const OrderSuccess = () => {
         </div>
 
         <p className="text-[11px] text-gray-400 mt-4 animate-pulse">
-          Redirecting to live order tracking in 3 seconds...
+          Redirecting to live order tracking in 4 seconds...
         </p>
       </div>
     </div>
