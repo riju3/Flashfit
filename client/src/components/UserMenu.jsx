@@ -10,10 +10,10 @@ import isAdmin from '../utils/isAdmin'
 import { HiOutlineExternalLink } from "react-icons/hi"
 import {
   FiUser, FiShoppingBag, FiMapPin, FiLogOut,
-  FiGrid, FiTag, FiUploadCloud, FiPackage
+  FiGrid, FiTag, FiUploadCloud, FiPackage, FiHelpCircle
 } from 'react-icons/fi'
 
-const UserMenu = ({ close }) => {
+const UserMenu = ({ close, openSupport }) => {
   const user     = useSelector(state => state.user)
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -90,6 +90,18 @@ const UserMenu = ({ close }) => {
       {/* User links */}
       <div className="space-y-0.5">
         <MenuItem to="/dashboard/myorders" icon={<FiShoppingBag size={14}/>} label="My Orders" />
+        {user.role !== 'ADMIN' && (
+          <button
+            onClick={() => {
+              if (close) close()
+              if (openSupport) openSupport()
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-fashion-charcoal hover:bg-primary-50 hover:text-primary-200 transition-all cursor-pointer text-left"
+          >
+            <FiHelpCircle size={14} className="text-orange-500" />
+            Customer Support & FAQ
+          </button>
+        )}
         <MenuItem to="/dashboard/address"  icon={<FiMapPin size={14}/>}      label="Saved Addresses" />
         <MenuItem to="/dashboard/profile"  icon={<FiUser size={14}/>}        label="Profile" />
       </div>

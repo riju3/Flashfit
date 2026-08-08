@@ -131,7 +131,7 @@ const Header = () => {
                   {openUserMenu && (
                     <div className="absolute right-0 top-10 z-50 animate-fade-in-up">
                       <div className="bg-white rounded-2xl p-4 min-w-52 shadow-dark border border-gray-100">
-                        <UserMenu close={handleCloseUserMenu} />
+                        <UserMenu close={handleCloseUserMenu} openSupport={() => setOpenSupportModal(true)} />
                       </div>
                     </div>
                   )}
@@ -144,16 +144,6 @@ const Header = () => {
                   Login
                 </button>
               )}
-
-              {/* Customer Support Button */}
-              <button
-                onClick={() => setOpenSupportModal(true)}
-                className="flex items-center gap-1.5 text-xs font-bold text-fashion-charcoal hover:text-orange-500 bg-gray-50 hover:bg-orange-50 border border-gray-200 px-3 py-2 rounded-xl transition-all cursor-pointer"
-                title="Customer Support & FAQ"
-              >
-                <FiHelpCircle className="text-orange-500" size={16} />
-                <span className="hidden sm:inline">Support</span>
-              </button>
 
               {/* Cart Button */}
               <button

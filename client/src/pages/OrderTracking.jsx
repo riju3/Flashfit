@@ -23,6 +23,7 @@ const CANCEL_REASONS = [
 const OrderTracking = () => {
   const { orderId } = useParams()
   const orderList = useSelector(state => state.orders.order)
+  const user = useSelector(state => state.user)
   const { fetchOrder } = useGlobalContext()
   const [currentOrder, setCurrentOrder] = useState(null)
   
@@ -487,20 +488,22 @@ const OrderTracking = () => {
               </p>
             </div>
 
-            <div className="pt-2 border-t border-gray-100 flex items-center justify-between flex-wrap gap-2">
-              <div>
-                <p className="text-xs font-bold text-fashion-dark flex items-center gap-1.5">
-                  <FiHelpCircle className="text-orange-500" /> Need Help With Your Order?
-                </p>
-                <p className="text-[10px] text-fashion-gray">View policy FAQs or contact support</p>
+            {user?.role !== 'ADMIN' && (
+              <div className="pt-2 border-t border-gray-100 flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <p className="text-xs font-bold text-fashion-dark flex items-center gap-1.5">
+                    <FiHelpCircle className="text-orange-500" /> Need Help With Your Order?
+                  </p>
+                  <p className="text-[10px] text-fashion-gray">View policy FAQs or contact support</p>
+                </div>
+                <button
+                  onClick={() => setOpenSupportModal(true)}
+                  className="py-2 px-4 bg-orange-50 hover:bg-orange-100 text-orange-600 font-extrabold text-xs rounded-xl border border-orange-200 transition-all cursor-pointer"
+                >
+                  Customer Support
+                </button>
               </div>
-              <button
-                onClick={() => setOpenSupportModal(true)}
-                className="py-2 px-4 bg-orange-50 hover:bg-orange-100 text-orange-600 font-extrabold text-xs rounded-xl border border-orange-200 transition-all cursor-pointer"
-              >
-                Customer Support
-              </button>
-            </div>
+            )}
           </div>
 
         </div>
