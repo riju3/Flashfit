@@ -246,15 +246,12 @@ export const verifyCouponController = async (request, response) => {
 export const getBannerCouponController = async (request, response) => {
     try {
         await seedDefaultCoupon();
-        let coupon = await CouponModel.findOne({ isBannerCoupon: true, status: "Active" });
-        if (!coupon) {
-            coupon = await CouponModel.findOne({ status: "Active" }).sort({ createdAt: -1 });
-        }
+        const coupon = await CouponModel.findOne({ isBannerCoupon: true, status: "Active" });
         return response.json({
             message: "Banner coupon fetched",
             error: false,
             success: true,
-            data: coupon
+            data: coupon || null
         });
     } catch (error) {
         return response.status(500).json({
