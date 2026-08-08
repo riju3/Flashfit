@@ -42,12 +42,13 @@ const ProductDisplayPage = () => {
 
   const fetchProductReviews = async (pId) => {
     if (!pId) return
+    setReviewsData({ reviews: [], averageRating: 0, totalReviews: 0 })
     try {
       const response = await Axios({
         url: `${SummaryApi.getProductReviews.url}/${pId}`,
         method: SummaryApi.getProductReviews.method
       })
-      if (response.data?.success) {
+      if (response.data?.success && response.data?.data) {
         setReviewsData(response.data.data)
       }
     } catch (_) {}
