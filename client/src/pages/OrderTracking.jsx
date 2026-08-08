@@ -410,15 +410,30 @@ const OrderTracking = () => {
 
         </div>
 
-        {/* CANCEL ORDER BUTTON AT THE VERY BOTTOM AFTER DELIVERY ADDRESS */}
+        {/* CANCEL YOUR ORDER WHITE BOX AT THE VERY BOTTOM */}
         {!isCancelled && !isDelivered && (
-          <div className="pt-2 text-center">
-            <button
-              onClick={() => setShowCancelModal(true)}
-              className="w-full sm:w-auto py-3.5 px-8 bg-red-50 hover:bg-red-100 text-red-600 font-extrabold text-xs rounded-2xl border border-red-200 transition-all inline-flex items-center justify-center gap-2 shadow-sm hover:shadow-md cursor-pointer"
-            >
-              <FiX size={16} /> Cancel This Order
-            </button>
+          <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="text-sm font-extrabold text-fashion-dark">
+                  Cancel Your Order
+                </h3>
+                <p className="text-[11px] text-fashion-gray">Want to change items or address? You can cancel your order now.</p>
+              </div>
+              <button
+                onClick={() => setShowCancelModal(true)}
+                className="w-full sm:w-auto py-2.5 px-6 bg-red-50 hover:bg-red-100 text-red-600 font-extrabold text-xs rounded-xl border border-red-200 transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <FiX size={15} /> Cancel Order
+              </button>
+            </div>
+
+            {/* Faded 2-3 Line Cancellation Policy Details */}
+            <div className="text-[11px] text-gray-400 leading-snug space-y-0.5 pt-1 font-medium opacity-80">
+              <p>• Orders can be cancelled anytime before doorstep delivery for a 100% full refund.</p>
+              <p>• Prepaid refunds for UPI / Cards are processed automatically to your payment source.</p>
+              <p>• Need help? Contact FlashFit 24/7 Express Customer Support.</p>
+            </div>
           </div>
         )}
 
