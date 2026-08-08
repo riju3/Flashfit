@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { valideURLConvert } from '../utils/valideURLConvert'
 import CategoryWiseProductDisplay from '../components/CategoryWiseProductDisplay'
+import StickyBannerStack from '../components/StickyBannerStack'
 import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import CardProduct from '../components/CardProduct'
@@ -506,45 +507,13 @@ const Home = () => {
         </section>
       )}
 
-      {/* ── Promotional Coupon Banner in Middle of Home Page ── */}
-      <PromoCouponBanner />
+      {/* ── Sticky Overlapping Text Banners Section ── */}
+      <StickyBannerStack />
 
-      {/* ── Sale Banner ── */}
+      {/* ── Sale Products Section ── */}
       {saleItems.length > 0 && (
         <section className="container mx-auto px-4 py-8">
-          {/* Sale Banner Card */}
-          <div
-            className="rounded-2xl p-6 lg:p-10 mb-8 relative overflow-hidden flex items-center justify-between"
-            style={{background:'linear-gradient(135deg,#111111 0%,#3D0000 60%,#FF4D00 100%)'}}
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10 blur-3xl" style={{background:'#FF4D00'}}/>
-            <div className="relative z-10 max-w-sm">
-              <p className="text-primary-100 text-sm font-bold tracking-widest uppercase mb-2">Up to 60% Off</p>
-              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-3" style={{fontFamily:'Playfair Display,serif'}}>
-                End of Season<br/>
-                <span style={{background:'linear-gradient(135deg,#FF4D00,#E94560)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>
-                  Sale
-                </span>
-              </h2>
-              <p className="text-white/65 text-sm mb-5">Hundreds of styles at unbeatable prices.</p>
-              <Link
-                to="/search?tag=sale"
-                className="inline-flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-xl transition-all hover:scale-105"
-                style={{background:'linear-gradient(135deg,#FF4D00,#E94560)'}}
-              >
-                Shop Sale <FiArrowRight />
-              </Link>
-            </div>
-
-            {/* PNG Model Cutout for Sale Banner */}
-            <div className="relative hidden md:flex w-1/2 h-[260px] lg:h-[300px] items-center justify-end flex-shrink-0">
-              <img
-                src={bannerRedDress}
-                alt="Sale Fashion Model Cutout"
-                className="h-full w-auto max-w-full object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] select-none pointer-events-none"
-              />
-            </div>
-          </div>
+          <SectionHeader eyebrow="Limited Time Deals" title="End of Season Sale Items" href="/search?tag=sale" />
           <ProductRow products={saleItems} loading={loadingRows} />
         </section>
       )}

@@ -208,6 +208,22 @@ const SummaryApi = {
     getBannerCoupon : {
         url : '/api/coupon/banner',
         method : 'get'
+    },
+    addBanner : {
+        url : '/api/banner/add',
+        method : 'post'
+    },
+    getAllBanners : {
+        url : '/api/banner/all',
+        method : 'get'
+    },
+    updateBanner : {
+        url : '/api/banner/update',
+        method : 'put'
+    },
+    deleteBanner : {
+        url : '/api/banner/delete',
+        method : 'delete'
     }
 }
 

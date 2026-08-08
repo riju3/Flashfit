@@ -17,6 +17,7 @@ import orderRouter from './route/order.route.js'
 import settingsRouter from './route/settings.route.js'
 import reviewRouter from './route/review.route.js'
 import couponRouter from './route/coupon.route.js'
+import bannerRouter from './route/banner.route.js'
 
 const app = express()
 const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'];
@@ -58,10 +59,10 @@ app.use('/api/order',orderRouter)
 app.use('/api/settings',settingsRouter)
 app.use('/api/review',reviewRouter)
 app.use('/api/coupon',couponRouter)
+app.use('/api/banner',bannerRouter)
 
 connectDB().then(()=>{
     app.listen(PORT,()=>{
         console.log("Server is running",PORT)
     })
-})
 
