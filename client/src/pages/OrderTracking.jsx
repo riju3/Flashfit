@@ -8,7 +8,7 @@ import SummaryApi from '../common/SummaryApi'
 import toast from 'react-hot-toast'
 import AxiosToastError from '../utils/AxiosToastError'
 import { FaCheck, FaBoxOpen, FaMotorcycle, FaHome, FaTimesCircle, FaStar } from 'react-icons/fa'
-import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage, FiZap, FiClock, FiExternalLink, FiX, FiAlertTriangle, FiCheckCircle, FiHelpCircle } from 'react-icons/fi'
+import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage, FiZap, FiClock, FiExternalLink, FiX, FiAlertTriangle, FiCheckCircle, FiHelpCircle, FiTag } from 'react-icons/fi'
 import { valideURLConvert } from '../utils/valideURLConvert'
 import CustomerSupportModal from '../components/CustomerSupportModal'
 
@@ -479,13 +479,46 @@ const OrderTracking = () => {
               )}
             </div>
 
-            <div>
-              <h2 className="text-xs font-extrabold text-fashion-dark mb-1 uppercase tracking-wider border-b pb-1 flex items-center gap-2">
-                <FiCreditCard className="text-green-500" /> Payment Details
+            <div className="border-t border-gray-100 pt-3 space-y-2">
+              <h2 className="text-xs font-extrabold text-fashion-dark mb-1 uppercase tracking-wider border-b pb-1.5 flex items-center gap-2">
+                <FiCreditCard className="text-green-500" /> Payment & Price Breakdown
               </h2>
-              <p className="text-xs font-semibold text-fashion-dark">
-                Status: <span className="text-green-600 font-bold">{currentOrder?.payment_status || 'PAID / CONFIRMED'}</span>
-              </p>
+              
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between text-fashion-gray">
+                  <span>Payment Status</span>
+                  <span className="text-green-600 font-extrabold">{currentOrder?.payment_status || 'PAID / CONFIRMED'}</span>
+                </div>
+
+                <div className="flex justify-between text-fashion-gray">
+                  <span>Actual Price (Subtotal)</span>
+                  <span className="font-bold text-fashion-dark">{DisplayPriceInRupees(currentOrder?.subTotalAmt || currentOrder?.totalAmt || 0)}</span>
+                </div>
+
+                {currentOrder?.couponCode ? (
+                  <div className="flex justify-between text-green-700 bg-green-50 p-2 rounded-xl border border-green-200 font-bold">
+                    <span className="flex items-center gap-1">
+                      <FiTag className="text-orange-500" size={13} /> Coupon Applied ({currentOrder.couponCode})
+                    </span>
+                    <span>- {DisplayPriceInRupees(Math.max(0, (currentOrder?.subTotalAmt || 0) - (currentOrder?.totalAmt || 0)))}</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between text-fashion-gray">
+                    <span>Coupon Discount</span>
+                    <span className="text-gray-400 font-medium">No Coupon Used</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-fashion-gray">
+                  <span>Delivery Charge</span>
+                  <span className="text-green-600 font-bold">FREE</span>
+                </div>
+
+                <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-sm font-extrabold text-fashion-dark">
+                  <span>Final Price Paid</span>
+                  <span className="text-base text-orange-600 font-black">{DisplayPriceInRupees(currentOrder?.totalAmt || 0)}</span>
+                </div>
+              </div>
             </div>
 
             {user?.role !== 'ADMIN' && (
