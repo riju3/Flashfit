@@ -7,8 +7,8 @@ import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import toast from 'react-hot-toast'
 import AxiosToastError from '../utils/AxiosToastError'
-import { FaCheck, FaBoxOpen, FaMotorcycle, FaHome, FaTimesCircle } from 'react-icons/fa'
-import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage, FiZap, FiClock, FiExternalLink, FiX, FiAlertTriangle } from 'react-icons/fi'
+import { FaCheck, FaBoxOpen, FaMotorcycle, FaHome, FaTimesCircle, FaStar } from 'react-icons/fa'
+import { FiChevronLeft, FiMapPin, FiCreditCard, FiPackage, FiZap, FiClock, FiExternalLink, FiX, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi'
 import { valideURLConvert } from '../utils/valideURLConvert'
 
 const CANCEL_REASONS = [
@@ -31,6 +31,13 @@ const OrderTracking = () => {
   const [customReason, setCustomReason] = useState('')
   const [cancelling, setCancelling] = useState(false)
 
+  // ── Review & Rating State ──
+  const [userReview, setUserReview] = useState(null)
+  const [rating, setRating] = useState(5)
+  const [hoverRating, setHoverRating] = useState(0)
+  const [comment, setComment] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
+
   useEffect(() => {
     if (fetchOrder) fetchOrder()
   }, [])
@@ -45,6 +52,59 @@ const OrderTracking = () => {
       }
     }
   }, [orderId, orderList])
+
+  const fetchOrderReview = async (oId) => {
+    if (!oId) return
+    try {
+      const res = await Axios({
+        url: `${SummaryApi.getOrderReview.url}/${oId}`,
+        method: SummaryApi.getOrderReview.method
+      })
+      if (res.data?.success && res.data?.data) {
+        setUserReview(res.data.data)
+      }
+    } catch (_) {}
+  }
+
+  useEffect(() => {
+    if (currentOrder?._id) {
+      fetchOrderReview(currentOrder._id)
+    }
+  }, [currentOrder])
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault()
+    if (!comment.trim()) {
+      toast.error("Please write a review comment")
+      return
+    }
+
+    if (!targetProductId) {
+      toast.error("Product information missing")
+      return
+    }
+
+    try {
+      setSubmittingReview(true)
+      const res = await Axios({
+        ...SummaryApi.addReview,
+        data: {
+          productId: targetProductId,
+          orderId: currentOrder?._id,
+          rating,
+          comment: comment.trim()
+        }
+      })
+      if (res.data?.success) {
+        toast.success("Review submitted successfully!")
+        setUserReview(res.data.data)
+      }
+    } catch (error) {
+      AxiosToastError(error)
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
 
   // Update clock every second for precise real-time countdown calculation
   useEffect(() => {
@@ -416,6 +476,84 @@ const OrderTracking = () => {
           </div>
 
         </div>
+
+        {/* DELIVERED ORDER REVIEW CARD */}
+        {isDelivered && !isCancelled && (
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-orange-100 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h2 className="text-sm font-extrabold text-fashion-dark flex items-center gap-2">
+                <FaStar className="text-amber-400" size={16} /> Rate & Review Delivered Product
+              </h2>
+              <span className="text-xs font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">
+                Verified Purchase
+              </span>
+            </div>
+
+            {userReview ? (
+              <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <FaStar
+                        key={star}
+                        size={16}
+                        className={star <= userReview.rating ? 'text-amber-400 fill-amber-400 text-amber-400' : 'text-gray-300'}
+                      />
+                    ))}
+                    <span className="text-xs font-bold text-fashion-dark ml-2">({userReview.rating}/5 Stars)</span>
+                  </div>
+                  <span className="text-xs font-bold text-green-600 flex items-center gap-1">
+                    <FiCheckCircle size={14} /> Review Published
+                  </span>
+                </div>
+                <p className="text-xs text-fashion-dark font-medium italic">"{userReview.comment}"</p>
+                <p className="text-[10px] text-fashion-gray">Thank you! Your review is now visible on the product page.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleReviewSubmit} className="space-y-4">
+                <div>
+                  <p className="text-xs font-bold text-fashion-gray mb-1.5">Your Rating:</p>
+                  <div className="flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        type="button"
+                        key={star}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setRating(star)}
+                        className="p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer"
+                      >
+                        <FaStar size={24} className={star <= (hoverRating || rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'} />
+                      </button>
+                    ))}
+                    <span className="text-xs font-bold text-fashion-dark ml-2">
+                      {hoverRating || rating} Star{(hoverRating || rating) > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <textarea
+                    rows={3}
+                    placeholder="How was the product quality, fit, and delivery experience? Write your review here..."
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    className="w-full p-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-200"
+                    required
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="py-2.5 px-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {submittingReview ? 'Publishing Review...' : 'Submit Product Review'}
+                </button>
+              </form>
+            )}
+          </div>
+        )}
 
         {/* CANCEL YOUR ORDER WHITE BOX AT THE VERY BOTTOM */}
         {!isCancelled && !isDelivered && (

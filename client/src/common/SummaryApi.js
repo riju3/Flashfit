@@ -172,6 +172,18 @@ const SummaryApi = {
     adminUpdateOrderStatus : {
         url : '/api/order/admin-update-order-status',
         method : 'put'
+    },
+    addReview : {
+        url : '/api/review/add',
+        method : 'post'
+    },
+    getProductReviews : {
+        url : '/api/review/product',
+        method : 'get'
+    },
+    getOrderReview : {
+        url : '/api/review/order',
+        method : 'get'
     }
 }
 
