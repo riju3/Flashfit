@@ -116,21 +116,21 @@ const HeroSection = () => {
           </div>
         </div>
 
-        {/* Right Section: Expanded 60% Width Edge-to-Edge Auto-Playing Video */}
-        <div className="w-full lg:w-[60%] min-h-[380px] lg:min-h-[600px] relative z-20 overflow-hidden bg-black flex items-center justify-center">
+        {/* Right Section: Mobile-Optimized 100% Full-Width Fitting Video Banner */}
+        <div className="w-full lg:w-[60%] aspect-video sm:aspect-video lg:aspect-none min-h-[220px] sm:min-h-[350px] lg:min-h-[600px] relative z-20 overflow-hidden bg-black flex items-center justify-center">
           <video
             src={fashionVideo}
             autoPlay
             loop
             muted
             playsInline
-            className="w-full h-full object-cover opacity-100"
+            className="w-full h-full object-contain sm:object-cover lg:object-cover opacity-100"
           />
 
           {/* Transparent FlashFit Logo + Tagline Watermark at Bottom of Video */}
-          <div className="absolute bottom-6 right-6 bg-transparent flex flex-col items-center text-center z-10 select-none filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)]">
-            <div className="flex items-center gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 56" width="22" height="30">
+          <div className="absolute bottom-3 right-3 sm:bottom-6 sm:right-6 bg-transparent flex flex-col items-center text-center z-10 select-none filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]">
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 56" className="w-4 h-6 sm:w-5 sm:h-8">
                 <defs>
                   <linearGradient id="videoBoltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#FF4D00" />
@@ -139,12 +139,12 @@ const HeroSection = () => {
                 </defs>
                 <polygon points="22,2 8,24 18,24 10,54 34,20 22,20 28,2" fill="url(#videoBoltGrad)" />
               </svg>
-              <span className="font-black text-xl tracking-tight leading-none">
+              <span className="font-black text-base sm:text-xl tracking-tight leading-none">
                 <span className="text-white">Flash</span>
                 <span style={{background:'linear-gradient(135deg,#FF4D00,#E94560)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>Fit</span>
               </span>
             </div>
-            <span className="text-xs text-white font-bold tracking-wide mt-1.5 drop-shadow-md">
+            <span className="text-[10px] sm:text-xs text-white font-bold tracking-wide mt-0.5 sm:mt-1.5 drop-shadow-md">
               Get your product in just 15 min...
             </span>
           </div>
