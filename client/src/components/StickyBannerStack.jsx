@@ -36,7 +36,7 @@ const StickyBannerStack = () => {
   if (loading || banners.length === 0) return null
 
   return (
-    <section className="my-12 px-4 max-w-4xl mx-auto relative">
+    <section className="my-10 px-4 max-w-4xl mx-auto relative z-20">
       {banners.map((banner, index) => {
         const gradientClass = GRADIENT_MAP[banner.gradientTheme] || GRADIENT_MAP.orange
         const isLast = index === banners.length - 1
@@ -44,14 +44,14 @@ const StickyBannerStack = () => {
         return (
           <div
             key={banner._id || index}
-            className="sticky transition-all duration-300 ease-out"
+            className="sticky transition-all duration-300 ease-out will-change-transform"
             style={{
-              top: `${75 + index * 18}px`,
-              zIndex: 10 + index,
-              marginBottom: isLast ? '24px' : '64px'
+              top: `${80 + index * 20}px`,
+              zIndex: 50 - index,
+              marginBottom: isLast ? '32px' : '56px'
             }}
           >
-            <div className={`rounded-[32px] p-6 sm:p-10 shadow-2xl text-white bg-gradient-to-br ${gradientClass} border border-white/20 overflow-hidden relative group backdrop-blur-md`}>
+            <div className={`rounded-[32px] p-6 sm:p-10 shadow-2xl text-white bg-gradient-to-br ${gradientClass} border border-white/20 overflow-hidden relative group backdrop-blur-md transition-transform hover:scale-[1.01]`}>
               {/* Subtle Graphic Shimmer Overlay */}
               <div className="absolute right-[-40px] top-[-40px] w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700"></div>
 
