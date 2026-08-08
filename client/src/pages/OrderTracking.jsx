@@ -244,20 +244,20 @@ const OrderTracking = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Purchased Product */}
-          <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+          <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-gray-100 space-y-4 w-full overflow-hidden">
             <h2 className="text-xs font-extrabold text-fashion-dark uppercase tracking-wider border-b pb-2 flex items-center gap-2">
               <FiPackage className="text-orange-500" /> Express Order Item
             </h2>
 
             {product?.name ? (
-              <div className="flex gap-4 items-center">
+              <div className="flex gap-3 sm:gap-4 items-center w-full min-w-0">
                 <img
                   src={product.image?.[0] || '/favicon.png'}
                   alt={product.name}
-                  className="w-18 h-18 object-cover rounded-2xl border border-gray-100 shadow-sm"
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-2xl border border-gray-100 shadow-sm shrink-0"
                 />
-                <div>
-                  <h3 className="text-sm font-extrabold text-fashion-dark line-clamp-2">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-fashion-dark leading-snug line-clamp-2 break-words">
                     {product.name}
                   </h3>
                   <p className="text-xs text-fashion-gray font-semibold mt-1">
