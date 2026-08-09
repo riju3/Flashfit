@@ -3,14 +3,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_SECRET_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.log("ℹ️ Supabase credentials (SUPABASE_URL, SUPABASE_ANON_KEY) not found in .env. Falling back to local OTP / fallback email handler.");
+if (!supabaseUrl || !supabaseKey) {
+    console.log("ℹ️ Note: Add your SUPABASE_URL (e.g. https://your-project.supabase.co) in server/.env to complete live Supabase OTP sending.");
 }
 
-export const supabase = (supabaseUrl && supabaseAnonKey) 
-    ? createClient(supabaseUrl, supabaseAnonKey) 
+export const supabase = (supabaseUrl && supabaseKey) 
+    ? createClient(supabaseUrl, supabaseKey) 
     : null;
 
 export default supabase;
