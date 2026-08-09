@@ -38,9 +38,39 @@ const ProductDisplayPage = () => {
   const [reviewsData,    setReviewsData]    = useState({ reviews: [], averageRating: 0, totalReviews: 0 })
   const [showReviewsDropdown, setShowReviewsDropdown] = useState(false)
   const [openSizeModal, setOpenSizeModal] = useState(false)
+  const [openProductDetails, setOpenProductDetails] = useState(true)
   const [copiedLink, setCopiedLink] = useState(false)
   const [touchStart, setTouchStart] = useState(null)
   const [touchEnd,   setTouchEnd]   = useState(null)
+
+  const getProductSpecifications = () => {
+    const isFootwear = data?.category?.some(c => 
+      c.name?.toLowerCase().includes('footwear') || 
+      c.name?.toLowerCase().includes('shoe') || 
+      c.name?.toLowerCase().includes('sneaker')
+    ) || data?.name?.toLowerCase().includes('shoe') || data?.name?.toLowerCase().includes('sneaker');
+
+    const color = data?.colors?.[0] || (data?.name?.match(/(red|blue|white|black|green|yellow|pink|grey|orange|navy|purple|brown)/i)?.[0]) || 'White';
+
+    if (isFootwear) {
+      return [
+        { label: 'Sole Material', value: data?.more_details?.['Sole Material'] || 'Rubber' },
+        { label: 'Heel Type', value: data?.more_details?.['Heel Type'] || 'Flat' },
+        { label: 'Color Family', value: color.charAt(0).toUpperCase() + color.slice(1) },
+        { label: 'Heel Height', value: data?.more_details?.['Heel Height'] || '1' },
+        { label: 'Upper Material', value: data?.more_details?.['Upper Material'] || 'Synthetic' },
+        { label: 'Net Quantity', value: '1' },
+      ];
+    } else {
+      return [
+        { label: 'Fabric / Material', value: data?.more_details?.['Fabric'] || 'Premium Breathable Cotton' },
+        { label: 'Pattern', value: data?.more_details?.['Pattern'] || 'Solid Design' },
+        { label: 'Color Family', value: color.charAt(0).toUpperCase() + color.slice(1) },
+        { label: 'Fit Type', value: data?.more_details?.['Fit'] || 'Regular Comfort Fit' },
+        { label: 'Net Quantity', value: '1' },
+      ];
+    }
+  };
 
   const handleShareProduct = async () => {
     const shareData = {
@@ -446,11 +476,11 @@ const ProductDisplayPage = () => {
             </div>
 
             {/* Delivery Address Selector Box */}
-            <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100">
-              <div className="flex items-center justify-between mb-2">
+            <div className="bg-white rounded-2xl p-4 shadow-card border border-gray-100 space-y-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-fashion-dark font-bold text-sm">
                   <FiMapPin className="text-primary-200" size={16} />
-                  <span>Delivery Address</span>
+                  <span>Delivery Location</span>
                 </div>
                 <button
                   onClick={() => setShowAddressModal(true)}
@@ -461,27 +491,31 @@ const ProductDisplayPage = () => {
               </div>
 
               {activeAddress ? (
-                <div className="text-xs text-fashion-charcoal space-y-0.5 bg-fashion-light p-2.5 rounded-xl">
-                  <p className="font-semibold text-fashion-dark">{activeAddress.address_line}</p>
+                <div className="text-xs text-fashion-charcoal space-y-1 bg-fashion-light p-3 rounded-xl border border-gray-100">
+                  <p className="font-bold text-fashion-dark">{activeAddress.address_line || 'Home Address'}</p>
                   <p className="text-fashion-gray">{activeAddress.city}, {activeAddress.state} - {activeAddress.pincode}</p>
-                  <p className="text-green-600 font-semibold mt-1">⚡ Express Delivery by Tomorrow</p>
+                  <p className="text-green-600 font-extrabold flex items-center gap-1.5 pt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    ⚡ 30-Min Express Darkstore Delivery
+                  </p>
                 </div>
               ) : (
-                <div className="flex items-center justify-between text-xs bg-fashion-light p-2.5 rounded-xl">
-                  <span className="text-fashion-gray">Deliver to: Select or add your location</span>
-                  <button onClick={() => setShowAddressModal(true)} className="text-primary-200 font-semibold">Select</button>
+                <div className="flex items-center justify-between text-xs bg-fashion-light p-3 rounded-xl border border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span className="text-fashion-dark font-semibold">⚡ 30-Min Express Delivery Available</span>
+                  </div>
+                  <button onClick={() => setShowAddressModal(true)} className="text-primary-200 font-bold hover:underline">Select Address</button>
                 </div>
               )}
             </div>
 
-
-
-            {/* Size Selector */}
+            {/* Size Selector (Image 2) */}
             {data.sizes?.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold text-fashion-dark">Select Size</p>
-                  <button onClick={() => setOpenSizeModal(true)} className="text-xs text-primary-200 font-semibold hover:underline cursor-pointer">Size Guide</button>
+                  <p className="text-sm font-bold text-fashion-dark">Select Size</p>
+                  <button onClick={() => setOpenSizeModal(true)} className="text-xs text-primary-200 font-extrabold hover:underline cursor-pointer">Size Guide</button>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {data.sizes.map(({ size: s, stock: st }) => {
@@ -493,11 +527,11 @@ const ProductDisplayPage = () => {
                         disabled={soldOut}
                         title={soldOut ? 'Sold Out' : `${st} left`}
                         onClick={() => !soldOut && setSelectedSize(s)}
-                        className={`relative size-chip text-xs transition-all select-none
-                          ${soldOut
+                        className={`relative size-chip text-xs transition-all select-none font-bold px-3.5 py-2 rounded-xl border ${
+                          soldOut
                             ? 'opacity-40 cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400'
-                            : isSelected ? '' : 'hover:border-primary-200'
-                          }`}
+                            : isSelected ? '' : 'bg-white text-fashion-dark border-gray-200 hover:border-primary-200'
+                        }`}
                         style={!soldOut && isSelected ? {background:'linear-gradient(135deg,#FF4D00,#E94560)',borderColor:'#FF4D00',color:'#fff'} : {}}
                       >
                         {s}
@@ -516,7 +550,7 @@ const ProductDisplayPage = () => {
               </div>
             )}
 
-            {/* Add to Cart & Buy Now */}
+            {/* Add to Cart & Buy Now (Image 2) */}
             <div className="pt-2">
               {data.stock === 0 ? (
                 <div className="bg-gray-100 rounded-2xl p-4 text-center">
@@ -530,7 +564,7 @@ const ProductDisplayPage = () => {
                   <button
                     onClick={handleBuyNow}
                     disabled={buying}
-                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-bold py-2.5 px-4 rounded-xl text-fashion-dark transition-all hover:shadow-gold hover:scale-[1.02] active:scale-95 border border-gold-200"
+                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-bold py-3 px-4 rounded-xl text-fashion-dark transition-all hover:shadow-gold hover:scale-[1.02] active:scale-95 border border-gold-200 cursor-pointer"
                     style={{ background: 'linear-gradient(135deg,#C9A84C,#E8C97A)' }}
                   >
                     <FiZap size={14} />
@@ -540,10 +574,10 @@ const ProductDisplayPage = () => {
               )}
             </div>
 
-            {/* Share Button with Web Share API and Clipboard Copy Feedback */}
+            {/* Share Product Button */}
             <button
               onClick={handleShareProduct}
-              className={`flex items-center gap-2 text-xs font-bold px-3.5 py-2 rounded-xl border transition-all cursor-pointer w-fit ${
+              className={`flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl border transition-all cursor-pointer w-fit ${
                 copiedLink
                   ? 'bg-green-50 text-green-700 border-green-200 shadow-sm'
                   : 'bg-gray-50 text-fashion-dark hover:bg-orange-50 hover:border-orange-200 border-gray-200'
@@ -560,20 +594,85 @@ const ProductDisplayPage = () => {
               )}
             </button>
 
-            {/* Specifications */}
-            {data?.more_details && Object.keys(data.more_details).length > 0 && (
-              <div className="pt-2">
-                <p className="text-sm font-bold text-fashion-dark mb-2">Specifications</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.keys(data.more_details).map(key => (
-                    <div key={key} className="bg-white rounded-xl p-3 border border-gray-100">
-                      <p className="text-[10px] text-fashion-gray uppercase tracking-wider">{key}</p>
-                      <p className="text-xs font-semibold text-fashion-dark mt-0.5">{data.more_details[key]}</p>
-                    </div>
-                  ))}
+            {/* 30-Min Express & Trust Badges */}
+            <div className="grid grid-cols-2 gap-2 pt-2 text-xs">
+              <div className="bg-orange-50/60 p-3 rounded-2xl border border-orange-100 flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0">
+                  <FiZap size={16} />
+                </div>
+                <div>
+                  <p className="font-extrabold text-fashion-dark text-[11px]">30-Min Delivery</p>
+                  <p className="text-[10px] text-fashion-gray">Express Darkstore Dispatch</p>
                 </div>
               </div>
-            )}
+
+              <div className="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-100 flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                  <FiRefreshCw size={16} />
+                </div>
+                <div>
+                  <p className="font-extrabold text-fashion-dark text-[11px]">7-Day Easy Returns</p>
+                  <p className="text-[10px] text-fashion-gray">Hassle-Free Exchange</p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Product Details Accordion (Matching Image 1) ── */}
+            <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-card border border-gray-100 space-y-4">
+              <button
+                onClick={() => setOpenProductDetails(prev => !prev)}
+                className="w-full flex items-center justify-between text-left cursor-pointer group"
+              >
+                <h3 className="text-base sm:text-lg font-bold text-fashion-dark group-hover:text-orange-600 transition-colors">
+                  Product Details
+                </h3>
+                <span className="text-fashion-dark group-hover:text-orange-600 transition-colors">
+                  {openProductDetails ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
+                </span>
+              </button>
+
+              {openProductDetails && (
+                <div className="space-y-5 pt-1 border-t border-gray-100 animate-fade-in-up">
+                  {/* Detailed Description Paragraph (Matching Image 1) */}
+                  <p className="text-xs sm:text-sm text-fashion-gray leading-relaxed font-normal">
+                    {data?.description || `Obtain this high-performance fashion pair from FlashFit that is constructed with fine technology and futuristic design to uplift your style game. Its premium synthetic upper optimally encases the foot, while the rubber outsole ensures strong traction to avoid slippages. It can be teamed with a pair of jeans and a top.`}
+                  </p>
+
+                  {/* Attribute Specifications Table (Matching Image 1 Teal Badges) */}
+                  <div className="space-y-2.5 max-w-lg">
+                    {getProductSpecifications().map((spec, idx) => (
+                      <div key={idx} className="grid grid-cols-2 items-center gap-3 text-xs sm:text-sm">
+                        <div>
+                          <span className="inline-block bg-[#E0F7FA] text-[#00695C] font-semibold px-3 py-1.5 rounded-lg text-xs tracking-wide border border-[#B2EBF2]/60">
+                            {spec.label}
+                          </span>
+                        </div>
+                        <div className="text-fashion-dark font-medium truncate">
+                          {spec.value}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Additional custom keys if provided */}
+                    {data?.more_details && Object.keys(data.more_details).map(key => {
+                      if (['Sole Material', 'Heel Type', 'Upper Material', 'Heel Height'].includes(key)) return null;
+                      return (
+                        <div key={key} className="grid grid-cols-2 items-center gap-3 text-xs sm:text-sm">
+                          <div>
+                            <span className="inline-block bg-[#E0F7FA] text-[#00695C] font-semibold px-3 py-1.5 rounded-lg text-xs tracking-wide border border-[#B2EBF2]/60">
+                              {key}
+                            </span>
+                          </div>
+                          <div className="text-fashion-dark font-medium truncate">
+                            {data.more_details[key]}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
 
           </div>
         </div>
