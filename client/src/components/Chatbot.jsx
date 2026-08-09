@@ -45,8 +45,6 @@ const Chatbot = () => {
         pathname.includes('/reset-password') ||
         pathname.includes('/otp-verification') ||
         pathname.includes('/user');
-
-    if (isHiddenPath || isCartDrawerOpen) return null;
     const [messages, setMessages] = useState([
         {
             sender: 'bot',
@@ -200,6 +198,8 @@ const Chatbot = () => {
             );
         });
     };
+
+    if (isHiddenPath || isCartDrawerOpen) return null;
 
     return (
         <div className="fixed right-5 bottom-5 z-50 flex flex-col items-end">
