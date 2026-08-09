@@ -195,6 +195,7 @@ export async function chatbotController(req, res) {
                         { name: typeRegex },
                         { category_name: typeRegex },
                         { tags: typeRegex },
+                        { keywords: typeRegex },
                         { description: typeRegex }
                     ]
                 });
@@ -209,6 +210,7 @@ export async function chatbotController(req, res) {
                         { colors: colorRegex },
                         { name: colorRegex },
                         { tags: colorRegex },
+                        { keywords: colorRegex },
                         { description: colorRegex }
                     ]
                 });
@@ -221,6 +223,7 @@ export async function chatbotController(req, res) {
                     $or: [
                         { brand: brandRegex },
                         { name: brandRegex },
+                        { keywords: brandRegex },
                         { description: brandRegex }
                     ]
                 });
@@ -239,7 +242,12 @@ export async function chatbotController(req, res) {
 
             // Tag filtering
             if (targetTag) {
-                andConditions.push({ tags: targetTag });
+                andConditions.push({
+                    $or: [
+                        { tags: targetTag },
+                        { keywords: targetTag }
+                    ]
+                });
             }
 
             // General keyword search if no specific attributes detected
@@ -256,6 +264,7 @@ export async function chatbotController(req, res) {
                             { name: { $in: regexes } },
                             { description: { $in: regexes } },
                             { tags: { $in: regexes } },
+                            { keywords: { $in: regexes } },
                             { brand: { $in: regexes } },
                             { category_name: { $in: regexes } }
                         ]

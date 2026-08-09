@@ -33,7 +33,19 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
     more_details: propsData.more_details || {},
     sizes: propsData.sizes || [],
     tags: propsData.tags || [],
+    keywords: propsData.keywords || [],
   })
+  const [keywordInput, setKeywordInput] = useState('')
+
+  const addKeyword = () => {
+    const trimmed = keywordInput.trim().toLowerCase()
+    if (!trimmed || (data.keywords && data.keywords.includes(trimmed))) return
+    setData(p => ({ ...p, keywords: [...(p.keywords || []), trimmed] }))
+    setKeywordInput('')
+  }
+  const removeKeyword = (kw) => {
+    setData(p => ({ ...p, keywords: (p.keywords || []).filter(k => k !== kw) }))
+  }
   const [imageLoading, setImageLoading] = useState(false)
   const [ViewImageURL, setViewImageURL] = useState("")
   const allCategory = useSelector(state => state.product.allCategory)
@@ -537,6 +549,37 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* ── AI Search Keywords (Hidden from store customers) ── */}
+              <div className='grid gap-2 mt-2 p-3 bg-blue-50 rounded-lg border'>
+                <label className='font-semibold text-sm'>AI Search Keywords / Hidden Tags <span className='text-xs font-normal text-gray-500'>(Press Enter to Add)</span></label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={keywordInput}
+                    onChange={e => setKeywordInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
+                    placeholder="Type keyword (e.g. white, leather, round neck, partywear) and press Enter"
+                    className="bg-white p-2 outline-none border focus-within:border-primary-200 rounded flex-1 text-xs"
+                  />
+                  <button type="button" onClick={addKeyword} className="px-3 py-1.5 text-xs font-bold rounded bg-primary-200 text-white hover:bg-primary-100 transition-colors">
+                    + Add
+                  </button>
+                </div>
+                {(data.keywords && data.keywords.length > 0) && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {data.keywords.map(kw => (
+                      <span key={kw} className="inline-flex items-center gap-1 bg-white text-gray-800 text-xs font-medium px-2.5 py-1 rounded-full border border-gray-300">
+                        #{kw}
+                        <button type="button" onClick={() => removeKeyword(kw)} className="text-gray-400 hover:text-red-500">
+                          <IoClose size={14}/>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[10px] text-gray-500">💡 These keywords are hidden from customers on the product page, but help the AI Chatbot find exact matches.</p>
               </div>
 
               <div onClick={() => setOpenAddField(true)} className=' hover:bg-primary-200 bg-white py-1 px-3 w-32 text-center font-semibold border border-primary-200 hover:text-neutral-900 cursor-pointer rounded'>

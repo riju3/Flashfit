@@ -34,8 +34,19 @@ const UploadProduct = () => {
   const [data, setData] = useState({
     name: '', image: [], category: [], subCategory: [],
     unit: '', stock: '', price: '', discount: '', description: '',
-    more_details: {}, sizes: [], colors: [], tags: [],
+    more_details: {}, sizes: [], colors: [], tags: [], keywords: [],
   })
+  const [keywordInput, setKeywordInput] = useState('')
+
+  const addKeyword = () => {
+    const trimmed = keywordInput.trim().toLowerCase()
+    if (!trimmed || (data.keywords && data.keywords.includes(trimmed))) return
+    setData(p => ({ ...p, keywords: [...(p.keywords || []), trimmed] }))
+    setKeywordInput('')
+  }
+  const removeKeyword = (kw) => {
+    setData(p => ({ ...p, keywords: (p.keywords || []).filter(k => k !== kw) }))
+  }
   const [imageLoading, setImageLoading] = useState(false)
   const [ViewImageURL, setViewImageURL]  = useState('')
   const [urlInput, setUrlInput]          = useState('')
@@ -450,6 +461,36 @@ const UploadProduct = () => {
                   </button>
                 ))}
               </div>
+            </FieldGroup>
+
+            {/* AI Search Keywords (Hidden from store customers) */}
+            <FieldGroup label="AI Search Keywords / Hidden Tags (Press Enter to Add)">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={keywordInput}
+                  onChange={e => setKeywordInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
+                  placeholder="Type keyword (e.g. white, leather, round neck, partywear) and press Enter"
+                  className="admin-input flex-1 text-xs"
+                />
+                <button type="button" onClick={addKeyword} className="px-3 py-1.5 text-xs font-bold rounded-lg bg-primary-200 text-white hover:bg-primary-100 transition-colors">
+                  + Add
+                </button>
+              </div>
+              {(data.keywords && data.keywords.length > 0) && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {data.keywords.map(kw => (
+                    <span key={kw} className="inline-flex items-center gap-1 bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-1 rounded-full border border-gray-200">
+                      #{kw}
+                      <button type="button" onClick={() => removeKeyword(kw)} className="text-gray-400 hover:text-red-500">
+                        <IoClose size={14}/>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <p className="text-[11px] text-gray-400 mt-1">💡 These keywords are hidden from customers on the product page, but help the AI Chatbot find exact matches.</p>
             </FieldGroup>
           </div>
 

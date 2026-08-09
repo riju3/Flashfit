@@ -70,6 +70,10 @@ const productSchema = new mongoose.Schema({
         type : [String],
         default : []
     },
+    keywords : {
+        type : [String],
+        default : []
+    },
     tags : {
         type : [String],
         default : [],
