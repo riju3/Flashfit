@@ -14,7 +14,8 @@ import successAlert from '../utils/SuccessAlert'
 import { BsCheckCircleFill } from 'react-icons/bs'
 import { FiPlus } from 'react-icons/fi'
 
-const SIZE_OPTIONS   = ['XS','S','M','L','XL','XXL','XXXL','Free Size']
+const APPAREL_SIZES  = ['XS','S','M','L','XL','XXL','XXXL','Free Size']
+const FOOTWEAR_SIZES = ['UK 5','UK 6','UK 7','UK 8','UK 9','UK 10','UK 11']
 const TAG_OPTIONS    = [
   { value: 'new-arrival',  label: 'New Arrival', color: '#22C55E' },
   { value: 'trending',     label: 'Trending',    color: '#FF4D00' },
@@ -83,11 +84,18 @@ const UploadProduct = () => {
   }
 
   // Sizes
+  const [customSizeInput, setCustomSizeInput] = useState('')
   const toggleSize = (s) => {
     setData(p => ({
       ...p,
       sizes: p.sizes.includes(s) ? p.sizes.filter(x => x !== s) : [...p.sizes, s]
     }))
+  }
+  const addCustomSize = () => {
+    const trimmed = customSizeInput.trim().toUpperCase()
+    if (!trimmed || data.sizes.includes(trimmed)) return
+    setData(p => ({ ...p, sizes: [...p.sizes, trimmed] }))
+    setCustomSizeInput('')
   }
 
   // Colors
@@ -329,9 +337,11 @@ const UploadProduct = () => {
             <h2 className="text-sm font-bold uppercase tracking-wider text-fashion-gray border-b border-gray-100 pb-2">Fashion Attributes</h2>
 
             {/* Sizes */}
-            <FieldGroup label="Available Sizes">
-              <div className="flex flex-wrap gap-2">
-                {SIZE_OPTIONS.map(s => (
+            <FieldGroup label="Available Sizes (Optional — select for Apparel or Footwear)">
+              {/* Apparel sizes */}
+              <p className="text-[11px] font-bold text-fashion-gray uppercase tracking-widest mb-1">👕 Apparel</p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {APPAREL_SIZES.map(s => (
                   <button
                     key={s} type="button" onClick={() => toggleSize(s)}
                     className={`size-chip text-xs transition-all`}
@@ -341,6 +351,65 @@ const UploadProduct = () => {
                   </button>
                 ))}
               </div>
+              {/* Footwear sizes */}
+              <p className="text-[11px] font-bold text-fashion-gray uppercase tracking-widest mb-1">👟 Footwear (UK)</p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {FOOTWEAR_SIZES.map(s => (
+                  <button
+                    key={s} type="button" onClick={() => toggleSize(s)}
+                    className={`size-chip text-xs transition-all`}
+                    style={data.sizes.includes(s) ? {background:'linear-gradient(135deg,#6366F1,#8B5CF6)',borderColor:'#6366F1',color:'#fff'} : {}}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              {/* Custom size input */}
+              <div className="flex gap-2 mt-1">
+                <input
+                  type="text"
+                  value={customSizeInput}
+                  onChange={e => setCustomSizeInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomSize())}
+                  placeholder="Add custom size (e.g. EU 42, 32W)"
+                  className="admin-input flex-1 text-xs"
+                />
+                <button type="button" onClick={addCustomSize}
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg bg-fashion-charcoal text-white hover:bg-fashion-dark transition-colors">
+                  + Add
+                </button>
+              </div>
+              {/* Selected sizes pills */}
+              {data.sizes.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {data.sizes.map(s => (
+                    <span key={s} className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full text-white" style={{background:'linear-gradient(135deg,#FF4D00,#E94560)'}}>
+                      {s}
+                      <button type="button" onClick={() => toggleSize(s)} className="ml-0.5 opacity-80 hover:opacity-100">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </FieldGroup>
+
+            {/* Availability Toggle */}
+            <FieldGroup label="Stock Availability">
+              <div className="flex gap-3">
+                {['In Stock', 'Out of Stock'].map(opt => (
+                  <button
+                    key={opt} type="button"
+                    onClick={() => setData(p => ({ ...p, stock: opt === 'In Stock' ? (p.stock > 0 ? p.stock : 1) : 0 }))}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold border-2 transition-all ${
+                      (opt === 'In Stock' ? (data.stock > 0 || data.stock === null || data.stock === undefined || data.stock === '') : data.stock === 0)
+                        ? 'border-green-500 bg-green-50 text-green-700'
+                        : 'border-gray-200 bg-white text-fashion-gray hover:border-gray-300'
+                    }`}
+                  >
+                    {opt === 'In Stock' ? '✅ In Stock' : '❌ Out of Stock'}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-fashion-gray mt-1">You can still set exact stock quantity in the Stock field above.</p>
             </FieldGroup>
 
 

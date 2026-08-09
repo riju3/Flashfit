@@ -13,6 +13,9 @@ export const createProductController = async(request,response)=>{
             discount,
             description,
             more_details,
+            sizes,
+            colors,
+            tags
         } = request.body 
 
         if(!name || !image[0] || !category[0] || !subCategory[0] || !unit || !price || !description ){
@@ -34,6 +37,9 @@ export const createProductController = async(request,response)=>{
             discount,
             description,
             more_details,
+            sizes: sizes || [],
+            colors: colors || [],
+            tags: tags || []
         })
         const saveProduct = await product.save()
 
@@ -1493,6 +1499,55 @@ export const seedProductsController = async (request, response) => {
             success: true,
             error: false,
             totalProductsSeeded: productsToInsert.length
+        });
+
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+
+export const updateAllProductSizesController = async (request, response) => {
+    try {
+        const products = await ProductModel.find({}).populate('category subCategory');
+        let updatedCount = 0;
+
+        for (const prod of products) {
+            const catName = (prod.category?.[0]?.name || '').toLowerCase();
+            const subCatName = (prod.subCategory?.[0]?.name || '').toLowerCase();
+            const prodName = (prod.name || '').toLowerCase();
+
+            let newSizes = prod.sizes || [];
+
+            // Check if product is Footwear (Shoes, Sneakers, Heels, Sandals, Boots)
+            if (
+                catName.includes('shoe') || catName.includes('footwear') || catName.includes('sneaker') ||
+                subCatName.includes('shoe') || subCatName.includes('footwear') || subCatName.includes('sneaker') ||
+                prodName.includes('shoe') || prodName.includes('sneaker') || prodName.includes('boot') || prodName.includes('heel') || prodName.includes('sandal') || prodName.includes('slide') || prodName.includes('loafer')
+            ) {
+                newSizes = ['UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'];
+            }
+            // Check if product is Apparel (Dresses, Shirts, Tops, T-shirts, Jackets, Pants, Kurti, Saree)
+            else if (
+                catName.includes('men') || catName.includes('women') || catName.includes('dress') || catName.includes('top') || catName.includes('shirt') || catName.includes('wear') || catName.includes('fashion') || catName.includes('kid') ||
+                subCatName.includes('top') || subCatName.includes('dress') || subCatName.includes('pant') || subCatName.includes('jean') || subCatName.includes('shirt') || subCatName.includes('jacket') ||
+                prodName.includes('dress') || prodName.includes('shirt') || prodName.includes('t-shirt') || prodName.includes('top') || prodName.includes('jean') || prodName.includes('pant') || prodName.includes('jacket') || prodName.includes('hoodie') || prodName.includes('kurti') || prodName.includes('saree') || prodName.includes('suit') || prodName.includes('frock') || prodName.includes('skirt')
+            ) {
+                newSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+            }
+
+            await ProductModel.updateOne({ _id: prod._id }, { sizes: newSizes });
+            updatedCount++;
+        }
+
+        return response.json({
+            message: `Successfully updated ${updatedCount} products with appropriate size choices!`,
+            success: true,
+            error: false,
+            updatedCount
         });
 
     } catch (error) {

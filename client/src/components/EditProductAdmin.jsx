@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaCloudUploadAlt } from "react-icons/fa";
 import uploadImage from '../utils/UploadImage';
 import Loading from '../components/Loading';
@@ -11,7 +11,10 @@ import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import AxiosToastError from '../utils/AxiosToastError';
 import successAlert from '../utils/SuccessAlert';
-import { useEffect } from 'react';
+
+const APPAREL_SIZES  = ['XS','S','M','L','XL','XXL','XXXL','Free Size']
+const FOOTWEAR_SIZES = ['UK 5','UK 6','UK 7','UK 8','UK 9','UK 10','UK 11']
+
 
 const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
   const [data, setData] = useState({
@@ -26,6 +29,8 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
     discount: propsData.discount,
     description: propsData.description,
     more_details: propsData.more_details || {},
+    sizes: propsData.sizes || [],
+    tags: propsData.tags || [],
   })
   const [imageLoading, setImageLoading] = useState(false)
   const [ViewImageURL, setViewImageURL] = useState("")
@@ -36,6 +41,17 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
 
   const [openAddField, setOpenAddField] = useState(false)
   const [fieldName, setFieldName] = useState("")
+  const [customSizeInput, setCustomSizeInput] = useState('')
+
+  const toggleSize = (s) => {
+    setData(p => ({ ...p, sizes: p.sizes.includes(s) ? p.sizes.filter(x => x !== s) : [...p.sizes, s] }))
+  }
+  const addCustomSize = () => {
+    const trimmed = customSizeInput.trim().toUpperCase()
+    if (!trimmed || data.sizes.includes(trimmed)) return
+    setData(p => ({ ...p, sizes: [...p.sizes, trimmed] }))
+    setCustomSizeInput('')
+  }
 
 
   const handleChange = (e) => {
@@ -408,6 +424,74 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                   )
                 })
               }
+
+              {/* ── Sizes ── */}
+              <div className='grid gap-2 mt-4 p-3 bg-blue-50 rounded-lg border'>
+                <label className='font-semibold text-sm'>Available Sizes <span className='text-xs font-normal text-gray-500'>(Optional)</span></label>
+
+                <p className='text-[11px] font-bold text-gray-500 uppercase tracking-widest'>👕 Apparel</p>
+                <div className='flex flex-wrap gap-2'>
+                  {APPAREL_SIZES.map(s => (
+                    <button key={s} type='button' onClick={() => toggleSize(s)}
+                      className='px-3 py-1.5 text-xs font-semibold rounded-lg border-2 transition-all'
+                      style={data.sizes.includes(s)
+                        ? {background:'linear-gradient(135deg,#FF4D00,#E94560)',borderColor:'#FF4D00',color:'#fff'}
+                        : {background:'#fff',borderColor:'#e5e7eb',color:'#374151'}}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+
+                <p className='text-[11px] font-bold text-gray-500 uppercase tracking-widest'>👟 Footwear (UK)</p>
+                <div className='flex flex-wrap gap-2'>
+                  {FOOTWEAR_SIZES.map(s => (
+                    <button key={s} type='button' onClick={() => toggleSize(s)}
+                      className='px-3 py-1.5 text-xs font-semibold rounded-lg border-2 transition-all'
+                      style={data.sizes.includes(s)
+                        ? {background:'linear-gradient(135deg,#6366F1,#8B5CF6)',borderColor:'#6366F1',color:'#fff'}
+                        : {background:'#fff',borderColor:'#e5e7eb',color:'#374151'}}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+
+                <div className='flex gap-2'>
+                  <input type='text' value={customSizeInput} onChange={e => setCustomSizeInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomSize())}
+                    placeholder='Custom size (e.g. EU 42, 32W)'
+                    className='bg-white border rounded px-2 py-1.5 text-xs flex-1 outline-none focus:border-primary-200' />
+                  <button type='button' onClick={addCustomSize}
+                    className='px-3 py-1.5 text-xs font-bold rounded bg-gray-800 text-white hover:bg-gray-900'>+ Add</button>
+                </div>
+
+                {data.sizes.length > 0 && (
+                  <div className='flex flex-wrap gap-1.5 mt-1'>
+                    {data.sizes.map(s => (
+                      <span key={s} className='flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full text-white' style={{background:'linear-gradient(135deg,#FF4D00,#E94560)'}}>
+                        {s}
+                        <button type='button' onClick={() => toggleSize(s)} className='opacity-80 hover:opacity-100'>×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* ── Availability Toggle ── */}
+              <div className='grid gap-2 mt-2 p-3 bg-blue-50 rounded-lg border'>
+                <label className='font-semibold text-sm'>Stock Availability</label>
+                <div className='flex gap-3'>
+                  {['In Stock', 'Out of Stock'].map(opt => (
+                    <button key={opt} type='button'
+                      onClick={() => setData(p => ({ ...p, stock: opt === 'In Stock' ? (p.stock > 0 ? p.stock : 1) : 0 }))}
+                      className='px-4 py-2 rounded-lg text-xs font-bold border-2 transition-all'
+                      style={(opt === 'In Stock' ? (data.stock > 0 || data.stock === null || data.stock === '') : data.stock === 0)
+                        ? {borderColor:'#22c55e',background:'#f0fdf4',color:'#15803d'}
+                        : {borderColor:'#e5e7eb',background:'#fff',color:'#6b7280'}}>
+                      {opt === 'In Stock' ? '✅ In Stock' : '❌ Out of Stock'}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <div onClick={() => setOpenAddField(true)} className=' hover:bg-primary-200 bg-white py-1 px-3 w-32 text-center font-semibold border border-primary-200 hover:text-neutral-900 cursor-pointer rounded'>
                 Add Fields

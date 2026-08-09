@@ -54,6 +54,20 @@ const ProductAdmin = () => {
     finally { setLoading(false) }
   }
 
+  const [sizesUpdating, setSizesUpdating] = useState(false)
+  const handleUpdateAllSizes = async () => {
+    try {
+      setSizesUpdating(true)
+      const response = await Axios({ ...SummaryApi.updateAllSizes })
+      const { data: responseData } = response
+      if (responseData.success) {
+        toast.success(`Updated ${responseData.updatedCount} products with sizes!`)
+        fetchProductData()
+      }
+    } catch (error) { AxiosToastError(error) }
+    finally { setSizesUpdating(false) }
+  }
+
   useEffect(() => { fetchProductData() }, [page])
 
   useEffect(() => {
@@ -114,16 +128,26 @@ const ProductAdmin = () => {
             <h1 className="text-lg font-bold text-fashion-dark" style={{fontFamily:'Playfair Display,serif'}}>Product Inventory</h1>
             <p className="text-xs text-fashion-gray">{productData.length} products total</p>
           </div>
-          {/* Search */}
-          <div className="flex items-center gap-2 bg-fashion-light border border-gray-200 rounded-xl px-3 py-2 w-full sm:w-64 focus-within:border-primary-200 transition-colors">
-            <IoSearchOutline size={16} className="text-fashion-gray flex-shrink-0"/>
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="bg-transparent outline-none text-sm w-full text-fashion-dark placeholder-fashion-gray"
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(1) }}
-            />
+          {/* Search + Update Sizes Button */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 bg-fashion-light border border-gray-200 rounded-xl px-3 py-2 w-full sm:w-64 focus-within:border-primary-200 transition-colors">
+              <IoSearchOutline size={16} className="text-fashion-gray flex-shrink-0"/>
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="bg-transparent outline-none text-sm w-full text-fashion-dark placeholder-fashion-gray"
+                value={search}
+                onChange={e => { setSearch(e.target.value); setPage(1) }}
+              />
+            </div>
+            <button
+              onClick={handleUpdateAllSizes}
+              disabled={sizesUpdating}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60"
+              style={{background:'linear-gradient(135deg,#6366F1,#8B5CF6)'}}
+            >
+              {sizesUpdating ? '⏳ Updating...' : '📐 Update All Sizes'}
+            </button>
           </div>
         </div>
       </div>

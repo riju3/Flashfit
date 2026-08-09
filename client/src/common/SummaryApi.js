@@ -109,6 +109,10 @@ const SummaryApi = {
         url : '/api/product/search-product',
         method : 'post'
     },
+    updateAllSizes : {
+        url : '/api/product/update-all-sizes',
+        method : 'post'
+    },
     addTocart : {
         url : "/api/cart/create",
         method : 'post'
