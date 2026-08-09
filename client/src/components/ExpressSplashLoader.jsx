@@ -6,7 +6,7 @@ const ExpressSplashLoader = () => {
   // 0: Man steps ahead to van with parcel (0s - 0.8s)
   // 1: Man puts parcel inside truck (0.8s - 1.8s)
   // 2: Man steps back a little (1.8s - 2.6s)
-  // 3: Truck accelerates fast right (2.6s - 3.5s)
+  // 3: Truck ONLY accelerates fast right (2.6s - 3.5s)
   // 4: Fade out overlay (3.5s - 4.0s)
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const ExpressSplashLoader = () => {
         setStage(2)
       }, 1800)
 
-      // Stage 3: Truck accelerates fast right at 2.6s
+      // Stage 3: ONLY TRUCK accelerates fast right at 2.6s
       const accelTimer = setTimeout(() => {
         setStage(3)
       }, 2600)
@@ -68,16 +68,6 @@ const ExpressSplashLoader = () => {
         {/* Stage Container */}
         <div className="relative w-full max-w-4xl">
 
-          {/* Speed Motion Streaks when truck accelerates (Stage 3) */}
-          {stage === 3 && (
-            <div className="absolute left-[-80px] top-1/2 -translate-y-1/2 flex flex-col gap-2.5 opacity-100 transition-opacity z-10">
-              <div className="w-36 h-2 bg-gradient-to-r from-transparent via-orange-500 to-amber-400 rounded-full animate-pulse" />
-              <div className="w-48 h-2 bg-gradient-to-r from-transparent via-amber-400 to-orange-500 rounded-full animate-pulse delay-75" />
-              <div className="w-40 h-2 bg-gradient-to-r from-transparent via-orange-600 to-rose-500 rounded-full animate-pulse delay-150" />
-              <div className="w-28 h-2 bg-gradient-to-r from-transparent via-rose-500 to-amber-300 rounded-full animate-pulse" />
-            </div>
-          )}
-
           {/* Expanded Full Canvas Widescreen SVG */}
           <svg viewBox="0 0 800 320" className="w-full h-auto filter drop-shadow-[0_25px_45px_rgba(249,115,22,0.4)]">
             <defs>
@@ -102,16 +92,14 @@ const ExpressSplashLoader = () => {
             {/* GROUND LINE */}
             <line x1="20" y1="240" x2="780" y2="240" stroke="#3F3F46" strokeWidth="4" strokeLinecap="round" />
 
-            {/* ── DELIVERY MAN SILHOUETTE (Stage 0: Step ahead -> Stage 1: Put parcel -> Stage 2: Step back) ── */}
+            {/* ── DELIVERY MAN SILHOUETTE (Stays standing on ground when truck speeds away!) ── */}
             <g
               className={`transition-all duration-500 ease-out ${
                 stage === 0
                   ? 'translate-x-[140px] opacity-100' // Starts right next to van, stepping ahead
                   : stage === 1
                   ? 'translate-x-[170px] opacity-100' // Steps ahead right at van opening to put parcel
-                  : stage >= 2
-                  ? 'translate-x-[115px] opacity-90'  // Stepped back a little safely!
-                  : 'opacity-0'
+                  : 'translate-x-[110px] opacity-100'  // Stepped back & stays standing on ground!
               }`}
             >
               {/* Delivery Executive Silhouette */}
@@ -126,11 +114,9 @@ const ExpressSplashLoader = () => {
                 <path d="M 8 54 L 32 54 L 30 100 L 10 100 Z" fill="#1C1917" stroke="#F97316" strokeWidth="2.5" />
                 
                 {/* Leg Positioning */}
-                {/* Left Leg */}
                 <line x1="14" y1="100" x2="8" y2="138" stroke="#18181B" strokeWidth="7" strokeLinecap="round" />
                 <path d="M 3 138 L 13 138 L 13 144 L 3 144 Z" fill="#F97316" />
                 
-                {/* Right Leg */}
                 <line x1="26" y1="100" x2="32" y2="138" stroke="#18181B" strokeWidth="7" strokeLinecap="round" />
                 <path d="M 27 138 L 37 138 L 37 144 L 27 144 Z" fill="#F97316" />
 
@@ -161,12 +147,21 @@ const ExpressSplashLoader = () => {
               </g>
             </g>
 
-            {/* ── TRUCK CONTAINER & CAB GROUP (Accelerates Right in Stage 3) ── */}
+            {/* ── ONLY TRUCK CONTAINER & CAB GROUP ACCELERATES FAST TO THE RIGHT IN STAGE 3 ── */}
             <g
               className={`transition-all duration-900 cubic-bezier(0.4, 0, 0.2, 1) ${
-                stage === 3 ? 'translate-x-[200vw] opacity-90' : 'translate-x-0'
+                stage === 3 ? 'translate-x-[220vw] opacity-90' : 'translate-x-0'
               }`}
             >
+              {/* Speed Motion Streaks trailing behind ONLY the truck when accelerating */}
+              {stage === 3 && (
+                <g transform="translate(200, 120)">
+                  <line x1="-80" y1="-30" x2="0" y2="-30" stroke="#F97316" strokeWidth="4" strokeLinecap="round" opacity="0.8" />
+                  <line x1="-120" y1="0" x2="-10" y2="0" stroke="#F59E0B" strokeWidth="5" strokeLinecap="round" opacity="0.9" />
+                  <line x1="-90" y1="30" x2="0" y2="30" stroke="#EF4444" strokeWidth="4" strokeLinecap="round" opacity="0.8" />
+                </g>
+              )}
+
               {/* PARCEL SAFE INSIDE TRUCK CONTAINER (Visible after Stage >= 1) */}
               {stage >= 1 && (
                 <g className="animate-bounce-once">
@@ -272,7 +267,7 @@ const ExpressSplashLoader = () => {
               ? '⚡ PARCEL LOADED INTO EXPRESS CONTAINER!'
               : stage === 2
               ? '✅ RIDER STEPPED BACK! STARTING ENGINE...'
-              : '🚀 SPEEDING TO YOUR DOORSTEP IN 30 MINS!'}
+              : '🚀 TRUCK SPEEDING TO YOUR DOORSTEP IN 30 MINS!'}
           </p>
           <p className="text-xs text-neutral-400 font-semibold tracking-wide">
             {stage === 0
@@ -281,7 +276,7 @@ const ExpressSplashLoader = () => {
               ? 'Putting FlashFit parcel safely inside the express container'
               : stage === 2
               ? 'Rider stepped back to clear the road for departure'
-              : 'Express truck accelerating to deliver your order fast'}
+              : 'Express truck accelerating fast to deliver your order'}
           </p>
         </div>
 
