@@ -64,21 +64,21 @@ export async function registerUserController(request,response){
         console.log("==========================================")
 
         // --------------------------------------------------------
-        // 🚀 SUPABASE AUTH EMAIL OTP (Zero SMTP config required!)
+        // 🚀 SUPABASE AUTH EMAIL OTP (Sends 6-digit OTP token!)
         // --------------------------------------------------------
         let supabaseSent = false;
         if (supabase) {
             try {
-                const { data, error } = await supabase.auth.signUp({
+                const { data, error } = await supabase.auth.signInWithOtp({
                     email: email,
-                    password: password,
                     options: {
+                        shouldCreateUser: true,
                         data: { name: name }
                     }
                 })
                 if (!error) {
                     supabaseSent = true;
-                    console.log(`[SUPABASE AUTH OTP SENT TO ${email}]`);
+                    console.log(`[SUPABASE 6-DIGIT OTP SENT TO ${email}]`);
                 } else {
                     console.log(`[SUPABASE AUTH ERROR]:`, error.message);
                 }
@@ -276,13 +276,12 @@ export async function resendRegisterOtpController(request, response) {
         let supabaseSent = false;
         if (supabase) {
             try {
-                const { error } = await supabase.auth.resend({
-                    type: 'signup',
+                const { error } = await supabase.auth.signInWithOtp({
                     email: email
                 });
                 if (!error) {
                     supabaseSent = true;
-                    console.log(`[SUPABASE RESEND OTP SENT TO ${email}]`);
+                    console.log(`[SUPABASE 6-DIGIT RESEND OTP SENT TO ${email}]`);
                 }
             } catch (sbErr) {
                 console.log('[SUPABASE RESEND EXCEPTION]:', sbErr);
