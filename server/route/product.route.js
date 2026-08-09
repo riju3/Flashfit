@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import auth from '../middleware/auth.js'
-import { createProductController, deleteProductDetails, getProductByCategory, getProductByCategoryAndSubCategory, getProductController, getProductDetails, searchProduct, seedProductsController, updateAllProductSizesController, updateProductDetails } from '../controllers/product.controller.js'
+import { createProductController, deleteProductDetails, getProductByCategory, getProductByCategoryAndSubCategory, getProductController, getProductDetails, searchProduct, seedProductsController, updateAllProductSizesController, updateProductDetails, bulkDeleteProductsController, bulkPublishProductsController } from '../controllers/product.controller.js'
 import { admin } from '../middleware/Admin.js'
 
 const productRouter = Router()
@@ -17,9 +17,11 @@ productRouter.post('/get-product-details',getProductDetails)
 
 //update product
 productRouter.put('/update-product-details',auth,admin,updateProductDetails)
+productRouter.post('/bulk-publish',auth,admin,bulkPublishProductsController)
 
 //delete product
 productRouter.delete('/delete-product',auth,admin,deleteProductDetails)
+productRouter.post('/bulk-delete',auth,admin,bulkDeleteProductsController)
 
 //search product 
 productRouter.post('/search-product',searchProduct)

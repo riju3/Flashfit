@@ -528,6 +528,84 @@ export const updateAllProductSizesController = async (request, response) => {
             }
 
             if (newSizes) {
+export const updateAllProductSizesController = async (request, response) => {
+    try {
+        // Fetch raw documents to detect old string-format sizes
+        const products = await ProductModel.find({}).populate('category subCategory').lean();
+        let updatedCount = 0;
+        let skippedCount = 0;
+
+        // Random stock between 5 and 50
+        const randStock = () => Math.floor(Math.random() * 46) + 5;
+
+        // Convert a string array to {size, stock} objects
+        const fromStrings = (arr) => arr.map(s => ({ size: s, stock: randStock() }));
+
+        // Build a {size, stock} array for a given size list
+        const toSizeStock = (arr) => arr.map(s => ({ size: s, stock: randStock() }));
+
+        // Check if value is a plain string (old format)
+        const isStringArray = (arr) =>
+            Array.isArray(arr) && arr.length > 0 && typeof arr[0] === 'string';
+
+        // Check if value is already properly formatted {size, stock}
+        const isStockArray = (arr) =>
+            Array.isArray(arr) && arr.length > 0 && typeof arr[0] === 'object' && arr[0].size !== undefined;
+
+        const isFootwear = (cat, sub, name) =>
+            cat.includes('shoe') || cat.includes('footwear') || cat.includes('sneaker') ||
+            sub.includes('shoe') || sub.includes('footwear') || sub.includes('sneaker') ||
+            name.includes('shoe') || name.includes('sneaker') || name.includes('boot') ||
+            name.includes('heel') || name.includes('sandal') || name.includes('slide') || name.includes('loafer');
+
+        const isApparel = (cat, sub, name) =>
+            cat.includes('men') || cat.includes('women') || cat.includes('dress') ||
+            cat.includes('top') || cat.includes('shirt') || cat.includes('wear') ||
+            cat.includes('fashion') || cat.includes('kid') || cat.includes('cloth') ||
+            sub.includes('top') || sub.includes('dress') || sub.includes('pant') ||
+            sub.includes('jean') || sub.includes('shirt') || sub.includes('jacket') || sub.includes('tshirt') ||
+            name.includes('dress') || name.includes('shirt') || name.includes('t-shirt') ||
+            name.includes('top') || name.includes('jean') || name.includes('pant') ||
+            name.includes('jacket') || name.includes('hoodie') || name.includes('kurti') ||
+            name.includes('saree') || name.includes('suit') || name.includes('frock') || name.includes('skirt') ||
+            name.includes('kurta') || name.includes('legging') || name.includes('trouser') || name.includes('blouse');
+
+        for (const prod of products) {
+            const cat  = (prod.category?.[0]?.name    || '').toLowerCase();
+            const sub  = (prod.subCategory?.[0]?.name || '').toLowerCase();
+            const name = (prod.name || '').toLowerCase();
+            const existingSizes = prod.sizes || [];
+
+            let newSizes = null;
+
+            if (isStringArray(existingSizes)) {
+                // OLD STRING FORMAT → migrate to {size, stock} with random stock
+                newSizes = fromStrings(existingSizes);
+
+            } else if (isStockArray(existingSizes)) {
+                // Already in correct format — just ensure no size has stock=0 from migration (set to random if 0)
+                const hasZeroStock = existingSizes.some(x => x.stock === 0);
+                if (hasZeroStock) {
+                    newSizes = existingSizes.map(x => ({ ...x, stock: x.stock === 0 ? randStock() : x.stock }));
+                } else {
+                    skippedCount++;
+                    continue; // Already properly set, skip
+                }
+
+            } else {
+                // EMPTY sizes — classify and assign
+                if (isFootwear(cat, sub, name)) {
+                    newSizes = toSizeStock(['UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11']);
+                } else if (isApparel(cat, sub, name)) {
+                    newSizes = toSizeStock(['S', 'M', 'L', 'XL', 'XXL']);
+                } else {
+                    // Non-clothing product (watch, bag, wallet, etc.) — no sizes needed
+                    skippedCount++;
+                    continue;
+                }
+            }
+
+            if (newSizes) {
                 await ProductModel.updateOne({ _id: prod._id }, { $set: { sizes: newSizes } });
                 updatedCount++;
             }
@@ -541,6 +619,67 @@ export const updateAllProductSizesController = async (request, response) => {
             skippedCount
         });
 
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+};
+
+// Bulk Delete Products
+export const bulkDeleteProductsController = async (request, response) => {
+    try {
+        const { ids } = request.body;
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return response.status(400).json({
+                message: "Provide array of product IDs to delete",
+                error: true,
+                success: false
+            });
+        }
+
+        const deleteResult = await ProductModel.deleteMany({ _id: { $in: ids } });
+
+        return response.json({
+            message: `Successfully deleted ${deleteResult.deletedCount} products`,
+            deletedCount: deleteResult.deletedCount,
+            error: false,
+            success: true
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+};
+
+// Bulk Update Publish Status
+export const bulkPublishProductsController = async (request, response) => {
+    try {
+        const { ids, publish } = request.body;
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return response.status(400).json({
+                message: "Provide array of product IDs to update",
+                error: true,
+                success: false
+            });
+        }
+
+        const updateResult = await ProductModel.updateMany(
+            { _id: { $in: ids } },
+            { $set: { publish: Boolean(publish) } }
+        );
+
+        return response.json({
+            message: `Successfully updated ${updateResult.modifiedCount} products`,
+            modifiedCount: updateResult.modifiedCount,
+            error: false,
+            success: true
+        });
     } catch (error) {
         return response.status(500).json({
             message: error.message || error,

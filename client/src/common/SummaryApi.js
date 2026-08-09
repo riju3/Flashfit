@@ -121,6 +121,14 @@ const SummaryApi = {
         url : '/api/product/update-all-sizes',
         method : 'post'
     },
+    bulkDeleteProducts : {
+        url : '/api/product/bulk-delete',
+        method : 'post'
+    },
+    bulkPublishProducts : {
+        url : '/api/product/bulk-publish',
+        method : 'post'
+    },
     addTocart : {
         url : "/api/cart/create",
         method : 'post'

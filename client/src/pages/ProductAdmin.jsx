@@ -5,10 +5,10 @@ import Axios from '../utils/Axios'
 import Loading from '../components/Loading'
 import { IoSearchOutline } from "react-icons/io5"
 import EditProductAdmin from '../components/EditProductAdmin'
-import { MdEdit, MdDelete, MdInventory } from 'react-icons/md'
+import { MdEdit, MdDelete, MdInventory, MdCheckCircle, MdCancel } from 'react-icons/md'
 import { DisplayPriceInRupees } from '../utils/DisplayPriceInRupees'
 import { pricewithDiscount } from '../utils/PriceWithDiscount'
-import { FiArrowUp, FiArrowDown, FiPackage, FiAlertTriangle } from 'react-icons/fi'
+import { FiArrowUp, FiArrowDown, FiPackage, FiAlertTriangle, FiTrash2 } from 'react-icons/fi'
 import { BsToggleOn, BsToggleOff, BsBagCheck, BsCurrencyDollar } from 'react-icons/bs'
 import CofirmBox from '../components/CofirmBox'
 import toast from 'react-hot-toast'
@@ -32,6 +32,11 @@ const ProductAdmin = () => {
   const [search,      setSearch]      = useState('')
   const [editProduct, setEditProduct] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+
+  // Selection state for Bulk Actions
+  const [selectedIds, setSelectedIds] = useState([])
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false)
+  const [bulkActionLoading, setBulkActionLoading] = useState(false)
 
   // Sort / Filter
   const [sortCol,    setSortCol]    = useState('date')
@@ -75,23 +80,62 @@ const ProductAdmin = () => {
     return () => clearTimeout(t)
   }, [search])
 
+  // Single delete
   const handleDelete = async () => {
     try {
       const res = await Axios({ ...SummaryApi.deleteProduct, data: { _id: deleteTarget._id } })
       if (res.data.success) {
         toast.success('Product deleted')
         setDeleteTarget(null)
+        setSelectedIds(prev => prev.filter(id => id !== deleteTarget._id))
         fetchProductData()
       }
     } catch (err) { AxiosToastError(err) }
   }
+
+  // Bulk Delete
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    try {
+      setBulkActionLoading(true);
+      const res = await Axios({
+        ...SummaryApi.bulkDeleteProducts,
+        data: { ids: selectedIds }
+      });
+      if (res.data.success) {
+        toast.success(`🗑️ Deleted ${res.data.deletedCount} products`);
+        setSelectedIds([]);
+        setBulkDeleteConfirm(false);
+        fetchProductData();
+      }
+    } catch (err) { AxiosToastError(err); }
+    finally { setBulkActionLoading(false); }
+  };
+
+  // Bulk Publish / Unpublish
+  const handleBulkPublishStatus = async (publishStatus) => {
+    if (selectedIds.length === 0) return;
+    try {
+      setBulkActionLoading(true);
+      const res = await Axios({
+        ...SummaryApi.bulkPublishProducts,
+        data: { ids: selectedIds, publish: publishStatus }
+      });
+      if (res.data.success) {
+        toast.success(`✨ Updated publish status for ${selectedIds.length} products`);
+        setSelectedIds([]);
+        fetchProductData();
+      }
+    } catch (err) { AxiosToastError(err); }
+    finally { setBulkActionLoading(false); }
+  };
 
   const handleSort = (col) => {
     if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortCol(col); setSortDir('asc') }
   }
 
-  // Computed
+  // Computed display data
   const displayData = useMemo(() => {
     let arr = [...productData]
     if (filterStatus === 'in-stock')    arr = arr.filter(p => p.stock > 5)
@@ -109,6 +153,28 @@ const ProductAdmin = () => {
     return arr
   }, [productData, sortCol, sortDir, filterStatus])
 
+  // Select all / toggle row selections
+  const isAllSelected = useMemo(() => {
+    if (displayData.length === 0) return false;
+    return displayData.every(p => selectedIds.includes(p._id));
+  }, [displayData, selectedIds]);
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      const currentIds = displayData.map(p => p._id);
+      setSelectedIds(prev => prev.filter(id => !currentIds.includes(id)));
+    } else {
+      const currentIds = displayData.map(p => p._id);
+      setSelectedIds(prev => Array.from(new Set([...prev, ...currentIds])));
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
   // Summary stats
   const totalStock = productData.reduce((s, p) => s + (p.stock || 0), 0)
   const totalValue = productData.reduce((s, p) => s + (p.price || 0) * (p.stock || 0), 0)
@@ -120,7 +186,7 @@ const ProductAdmin = () => {
       : <FiArrowDown size={11} className="text-gray-300"/>
 
   return (
-    <section className="bg-fashion-light min-h-screen">
+    <section className="bg-fashion-light min-h-screen relative pb-20">
       {/* ── Header ── */}
       <div className="bg-white border-b border-gray-100 px-4 py-4 sticky top-0 z-20 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -194,6 +260,15 @@ const ProductAdmin = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-fashion-light">
+                    <th className="px-4 py-3 text-left w-10">
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 accent-primary-200 cursor-pointer rounded"
+                        title="Select All / Deselect All"
+                      />
+                    </th>
                     <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-fashion-gray">Product</th>
                     {[
                       { label: 'Category', col: null },
@@ -218,7 +293,20 @@ const ProductAdmin = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {displayData.map((p, i) => (
-                    <tr key={p._id + i} className="hover:bg-fashion-light transition-colors group">
+                    <tr
+                      key={p._id + i}
+                      className={`hover:bg-fashion-light transition-colors group ${selectedIds.includes(p._id) ? 'bg-orange-50/50' : ''}`}
+                    >
+                      {/* Checkbox */}
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(p._id)}
+                          onChange={() => toggleSelectOne(p._id)}
+                          className="w-4 h-4 accent-primary-200 cursor-pointer rounded"
+                        />
+                      </td>
+
                       {/* Product */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3 min-w-48">
@@ -329,18 +417,93 @@ const ProductAdmin = () => {
         )}
       </div>
 
+      {/* ── Floating Action Bar for Selected Products ── */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-fashion-dark text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 border border-gray-700 animate-slideUp">
+          <div className="flex items-center gap-2 pr-2 border-r border-gray-700">
+            <span className="w-6 h-6 rounded-full bg-primary-200 text-white text-xs font-bold flex items-center justify-center">
+              {selectedIds.length}
+            </span>
+            <span className="text-xs font-semibold">Selected</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleBulkPublishStatus(true)}
+              disabled={bulkActionLoading}
+              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+            >
+              <MdCheckCircle size={14}/> Publish
+            </button>
+
+            <button
+              onClick={() => handleBulkPublishStatus(false)}
+              disabled={bulkActionLoading}
+              className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+            >
+              <MdCancel size={14}/> Unpublish
+            </button>
+
+            <button
+              onClick={() => setBulkDeleteConfirm(true)}
+              disabled={bulkActionLoading}
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+            >
+              <FiTrash2 size={14}/> Delete Selected
+            </button>
+          </div>
+
+          <button
+            onClick={() => setSelectedIds([])}
+            className="text-xs text-gray-400 hover:text-white underline pl-2"
+          >
+            Deselect
+          </button>
+        </div>
+      )}
+
       {/* Edit modal */}
       {editProduct && (
         <EditProductAdmin data={editProduct} close={() => setEditProduct(null)} fetchProductData={fetchProductData} />
       )}
 
-      {/* Delete confirm */}
+      {/* Single Delete confirm */}
       {deleteTarget && (
         <CofirmBox
           close={() => setDeleteTarget(null)}
           cancel={() => setDeleteTarget(null)}
           confirm={handleDelete}
         />
+      )}
+
+      {/* Bulk Delete confirm modal */}
+      {bulkDeleteConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 animate-scaleUp">
+            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+              <FiTrash2 size={24} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-fashion-dark">Delete {selectedIds.length} Products?</h3>
+              <p className="text-xs text-fashion-gray mt-1">This action cannot be undone. Are you sure you want to delete these products permanently?</p>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setBulkDeleteConfirm(false)}
+                className="flex-1 py-2 rounded-xl text-xs font-bold border border-gray-200 text-fashion-gray hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkActionLoading}
+                className="flex-1 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50"
+              >
+                {bulkActionLoading ? 'Deleting...' : 'Yes, Delete All'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   )
