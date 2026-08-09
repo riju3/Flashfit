@@ -77,7 +77,7 @@ const ProductListPage = () => {
   useEffect(() => { fetchProductdata() }, [params])
 
   useEffect(() => {
-    const sub = AllSubCategory.filter(s => s.category.some(el => el._id === categoryId))
+    const sub = AllSubCategory.filter(s => s.category?.some(el => el && el._id === categoryId))
     setDisplaySubCategory(sub)
   }, [params, AllSubCategory])
 

@@ -42,7 +42,7 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
   const handleScrollLeft  = () => { containerRef.current.scrollLeft -= 220 }
 
   const getRedirectUrl = () => {
-    const sub = subCategoryData.find(s => s.category.some(c => c._id === id))
+    const sub = subCategoryData.find(s => s.category?.some(c => c && c._id === id))
     if (!sub) return '/'
     return `/${valideURLConvert(name)}-${id}/${valideURLConvert(sub.name)}-${sub._id}`
   }

@@ -64,10 +64,10 @@ const AddToCartButton = ({ data, selectedSize }) => {
 
     // Checking if item is in cart
     useEffect(() => {
-        const checkingitem = cartItem.some(item => item.productId._id === data?._id)
+        const checkingitem = cartItem.some(item => item?.productId?._id === data?._id)
         setIsAvailableCart(checkingitem)
 
-        const product = cartItem.find(item => item.productId._id === data?._id)
+        const product = cartItem.find(item => item?.productId?._id === data?._id)
         setQty(product?.quantity)
         setCartItemsDetails(product)
     }, [data, cartItem])

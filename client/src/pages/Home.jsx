@@ -470,7 +470,7 @@ const Home = () => {
   useEffect(() => { fetchTaggedProducts() }, [])
 
   const handleCategoryClick = (id, name) => {
-    const sub = subCategoryData.find(s => s.category.some(c => c._id === id))
+    const sub = subCategoryData.find(s => s.category?.some(c => c && c._id === id))
     if (sub) {
       navigate(`/${valideURLConvert(name)}-${id}/${valideURLConvert(sub.name)}-${sub._id}`)
     }

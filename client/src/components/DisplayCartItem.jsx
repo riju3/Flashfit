@@ -67,7 +67,7 @@ const DisplayCartItem = ({close}) => {
                             <div className='bg-white rounded-lg p-4 grid gap-5 overflow-auto'>
                                     {
                                         cartItem[0] && (
-                                            cartItem.map((item,index)=>{
+                                            cartItem.filter(item => item && item.productId).map((item,index)=>{
                                                 return(
                                                     <div key={item?._id+"cartItemDisplay"} className='flex  w-full gap-4'>
                                                         <div className='w-16 h-16 min-h-16 min-w-16 bg-red-500 border rounded'>

@@ -80,19 +80,21 @@ const GlobalProvider = ({children}) => {
 
     useEffect(()=>{
       const qty = cartItem.reduce((preve,curr)=>{
-          return preve + curr.quantity
+          return preve + (curr?.quantity || 0)
       },0)
       setTotalQty(qty)
       
       const tPrice = cartItem.reduce((preve,curr)=>{
-          const priceAfterDiscount = pricewithDiscount(curr?.productId?.price,curr?.productId?.discount)
+          if (!curr?.productId) return preve;
+          const priceAfterDiscount = pricewithDiscount(curr?.productId?.price || 0, curr?.productId?.discount || 0)
 
-          return preve + (priceAfterDiscount * curr.quantity)
+          return preve + (priceAfterDiscount * (curr.quantity || 1))
       },0)
       setTotalPrice(tPrice)
 
       const notDiscountPrice = cartItem.reduce((preve,curr)=>{
-        return preve + (curr?.productId?.price * curr.quantity)
+        if (!curr?.productId) return preve;
+        return preve + ((curr?.productId?.price || 0) * (curr.quantity || 1))
       },0)
       setNotDiscountTotalPrice(notDiscountPrice)
   },[cartItem])
