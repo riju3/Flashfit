@@ -9,7 +9,6 @@ import uploadImageClodinary from '../utils/uploadImageClodinary.js'
 import generatedOtp from '../utils/generatedOtp.js'
 import forgotPasswordTemplate from '../utils/forgotPasswordTemplate.js'
 import jwt from 'jsonwebtoken'
-import supabase from '../config/supabaseClient.js'
 
 export async function registerUserController(request,response){
     try {
@@ -36,7 +35,7 @@ export async function registerUserController(request,response){
         const salt = await bcryptjs.genSalt(10)
         const hashPassword = await bcryptjs.hash(password,salt)
         const otp = generatedOtp()
-        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+        const otpExpiry = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes validity as requested
 
         if (existingUser && !existingUser.verify_email) {
             existingUser.name = name
@@ -63,48 +62,22 @@ export async function registerUserController(request,response){
         console.log(`🔑 REGISTER OTP FOR [${email}]: ${otp}`)
         console.log("==========================================")
 
-        // --------------------------------------------------------
-        // 🚀 SUPABASE AUTH EMAIL OTP (Sends 6-digit OTP token!)
-        // --------------------------------------------------------
-        let supabaseSent = false;
-        if (supabase) {
-            try {
-                const { data, error } = await supabase.auth.signInWithOtp({
-                    email: email,
-                    options: {
-                        shouldCreateUser: true,
-                        data: { name: name }
-                    }
+        // Send OTP email using Resend
+        try {
+            await sendEmail({
+                sendTo : email,
+                subject : "Your OTP Code - FlashFit Verification",
+                html : registerOtpTemplate({
+                    name,
+                    otp
                 })
-                if (!error) {
-                    supabaseSent = true;
-                    console.log(`[SUPABASE 6-DIGIT OTP SENT TO ${email}]`);
-                } else {
-                    console.log(`[SUPABASE AUTH ERROR]:`, error.message);
-                }
-            } catch (sbErr) {
-                console.log(`[SUPABASE AUTH EXCEPTION]:`, sbErr?.message || sbErr);
-            }
-        }
-
-        // Fallback email sender if Supabase not configured or skipped
-        if (!supabaseSent) {
-            try {
-                await sendEmail({
-                    sendTo : email,
-                    subject : "Verify your email - FlashFit OTP",
-                    html : registerOtpTemplate({
-                        name,
-                        otp
-                    })
-                })
-            } catch(emailErr) {
-                console.log("Register OTP email error:", emailErr?.message || emailErr)
-            }
+            })
+        } catch(emailErr) {
+            console.log("Register OTP email error:", emailErr?.message || emailErr)
         }
 
         return response.json({
-            message : "OTP sent to your email. Please verify to complete registration.",
+            message : "OTP sent to your email! (Valid for 5 minutes)",
             error : false,
             success : true,
             email : email
@@ -150,76 +123,34 @@ export async function verifyRegisterOtpController(request, response) {
             })
         }
 
-        let verified = false;
-
-        // 🚀 1. Attempt Supabase Auth OTP verification if Supabase is enabled
-        if (supabase) {
-            try {
-                const { data, error } = await supabase.auth.verifyOtp({
-                    email: email,
-                    token: otp,
-                    type: 'signup'
-                });
-
-                if (!error && data?.user) {
-                    verified = true;
-                    console.log(`[SUPABASE OTP VERIFIED SUCCESSFULLY FOR ${email}]`);
-                } else {
-                    // Try type 'email' fallback for signInWithOtp
-                    const res2 = await supabase.auth.verifyOtp({
-                        email: email,
-                        token: otp,
-                        type: 'email'
-                    });
-                    if (!res2.error && res2.data?.user) {
-                        verified = true;
-                    }
-                }
-            } catch (sbErr) {
-                console.log('[SUPABASE VERIFY OTP EXCEPTION]:', sbErr?.message || sbErr);
-            }
-        }
-
-        // 🚀 2. Fallback to MongoDB stored OTP if Supabase verification was not triggered or used
-        if (!verified) {
-            if (user.register_otp !== otp) {
-                return response.status(400).json({
-                    message: "Invalid OTP code",
-                    error: true,
-                    success: false
-                })
-            }
-
-            const currentTime = new Date().getTime()
-            const otpExpiryTime = new Date(user.register_otp_expiry).getTime()
-
-            if (currentTime > otpExpiryTime) {
-                return response.status(400).json({
-                    message: "OTP has expired. Please request a new OTP.",
-                    error: true,
-                    success: false
-                })
-            }
-            verified = true;
-        }
-
-        if (verified) {
-            user.verify_email = true
-            user.register_otp = null
-            user.register_otp_expiry = null
-            await user.save()
-
-            return response.json({
-                message: "Email verified successfully! Registration complete.",
-                success: true,
-                error: false
+        if (user.register_otp !== String(otp)) {
+            return response.status(400).json({
+                message: "Invalid OTP code",
+                error: true,
+                success: false
             })
         }
 
-        return response.status(400).json({
-            message: "Verification failed.",
-            error: true,
-            success: false
+        const currentTime = new Date().getTime()
+        const otpExpiryTime = new Date(user.register_otp_expiry).getTime()
+
+        if (currentTime > otpExpiryTime) {
+            return response.status(400).json({
+                message: "OTP has expired. Please request a new OTP.",
+                error: true,
+                success: false
+            })
+        }
+
+        user.verify_email = true
+        user.register_otp = null
+        user.register_otp_expiry = null
+        await user.save()
+
+        return response.json({
+            message: "Verified! Email verification complete.",
+            success: true,
+            error: false
         })
 
     } catch (error) {
@@ -263,7 +194,7 @@ export async function resendRegisterOtpController(request, response) {
         }
 
         const otp = generatedOtp()
-        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000)
+        const otpExpiry = new Date(Date.now() + 5 * 60 * 1000)
 
         user.register_otp = otp
         user.register_otp_expiry = otpExpiry
@@ -273,34 +204,17 @@ export async function resendRegisterOtpController(request, response) {
         console.log(`🔑 RESEND REGISTER OTP FOR [${email}]: ${otp}`)
         console.log("==========================================")
 
-        let supabaseSent = false;
-        if (supabase) {
-            try {
-                const { error } = await supabase.auth.signInWithOtp({
-                    email: email
-                });
-                if (!error) {
-                    supabaseSent = true;
-                    console.log(`[SUPABASE 6-DIGIT RESEND OTP SENT TO ${email}]`);
-                }
-            } catch (sbErr) {
-                console.log('[SUPABASE RESEND EXCEPTION]:', sbErr);
-            }
-        }
-
-        if (!supabaseSent) {
-            try {
-                await sendEmail({
-                    sendTo: email,
-                    subject: "Verify your email - FlashFit New OTP",
-                    html: registerOtpTemplate({
-                        name: user.name,
-                        otp
-                    })
+        try {
+            await sendEmail({
+                sendTo: email,
+                subject: "Your New OTP Code - FlashFit Verification",
+                html: registerOtpTemplate({
+                    name: user.name,
+                    otp
                 })
-            } catch (emailErr) {
-                console.log("Resend OTP email error:", emailErr?.message || emailErr)
-            }
+            })
+        } catch (emailErr) {
+            console.log("Resend OTP email error:", emailErr?.message || emailErr)
         }
 
         return response.json({
