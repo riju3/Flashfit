@@ -80,10 +80,12 @@ const Footer = () => {
       setOpenFaqModal(true)
     } else if (linkName === 'Privacy Policy') {
       setOpenPrivacyModal(true)
+    } else if (linkName === 'Returns & Exchange') {
+      setOpenSupportModal(true)
+    } else if (linkName === 'Contact Us') {
+      setOpenSupportModal(true)
     } else {
-      if (user?.role !== 'ADMIN') {
-        setOpenSupportModal(true)
-      }
+      setOpenSupportModal(true)
     }
   }
 
