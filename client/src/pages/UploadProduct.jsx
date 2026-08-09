@@ -179,6 +179,23 @@ const UploadProduct = () => {
               />
             </FieldGroup>
 
+            <div className="grid grid-cols-2 gap-4">
+              <FieldGroup label="Brand (Optional)">
+                <input
+                  id="brand" type="text" name="brand" value={data.brand || ''}
+                  onChange={handleChange} placeholder="e.g. Woodland, Nike, ZARA, Levi's"
+                  className="admin-input"
+                />
+              </FieldGroup>
+              <FieldGroup label="Color (Optional)">
+                <input
+                  id="color" type="text" name="color" value={data.color || ''}
+                  onChange={handleChange} placeholder="e.g. Red, Black, Olive Green, White"
+                  className="admin-input"
+                />
+              </FieldGroup>
+            </div>
+
             <FieldGroup label="Description *">
               <textarea
                 id="description" name="description" value={data.description}

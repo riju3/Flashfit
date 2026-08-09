@@ -36,7 +36,7 @@ export async function chatbotController(req, res) {
             const welcomeText = `😊 Hello${namePart}! Welcome to FlashFit! I'm here to help you with anything you need.\n\n` +
                 `Are you looking for some new fashion inspiration, or do you have a specific question about our products or services?\n\n` +
                 `You can ask me about:\n` +
-                `* **Products**: Get recommendations on our latest collections (Shoes, Shirts, Hoodies & More)\n` +
+                `* **Products**: Get recommendations on our latest collections (Shoes, Shirts, Dresses, Hoodies & More)\n` +
                 `* **Orders**: Track your order status or get help with returns/exchanges\n` +
                 `* **Shipping**: Get info on our 30-minute express delivery options\n\n` +
                 `What's on your mind? 🤔`;
@@ -85,11 +85,13 @@ export async function chatbotController(req, res) {
             });
         }
 
-        // 5. Strict Product Discovery Engine
+        // 5. Advanced Product Matching Engine (Brand, Color, Type, Size Extraction)
         let targetType = null;
         let targetColor = null;
+        let targetBrand = null;
+        let targetSize = null;
 
-        // Detect target product category/type
+        // Detect Category/Type
         if (/dress/i.test(queryText)) targetType = 'dress';
         else if (/hoodie|sweatshirt/i.test(queryText)) targetType = 'hoodie';
         else if (/t-shirt|tshirt|tee/i.test(queryText)) targetType = 't-shirt';
@@ -100,12 +102,20 @@ export async function chatbotController(req, res) {
         else if (/jeans|pant|trouser/i.test(queryText)) targetType = 'jeans';
         else if (/jacket|coat/i.test(queryText)) targetType = 'jacket';
 
-        // Detect target color
-        const colorMatch = queryText.match(/\b(red|blue|black|white|green|yellow|pink|brown|purple|grey|gray|orange)\b/i);
+        // Detect Color
+        const colorMatch = queryText.match(/\b(red|blue|black|white|green|yellow|pink|brown|purple|grey|gray|orange|olive|navy)\b/i);
         if (colorMatch) targetColor = colorMatch[1].toLowerCase();
 
+        // Detect Brand
+        const brandMatch = queryText.match(/\b(woodland|nike|adidas|puma|zara|mango|vans|casio|levis|levi|tommy|polo|raymond|arrow|mufti|forever 21|vero moda|cover story|lavie|roadster|hrx|allen solly)\b/i);
+        if (brandMatch) targetBrand = brandMatch[1].toLowerCase();
+
+        // Detect Size
+        const sizeMatch = queryText.match(/\b(uk\s*\d+|xs|s|m|l|xl|xxl|xxxl)\b/i);
+        if (sizeMatch) targetSize = sizeMatch[1].toUpperCase();
+
         let matchingProducts = [];
-        const isProductQuery = targetType || /fashion|cloth|item|product|buy|price|under|find|recommend|show|look/i.test(queryText);
+        const isProductQuery = targetType || targetBrand || targetColor || targetSize || /fashion|cloth|item|product|buy|price|under|find|recommend|show|look/i.test(queryText);
 
         if (isProductQuery) {
             let andConditions = [{ publish: true }];
@@ -126,6 +136,8 @@ export async function chatbotController(req, res) {
                 const colorRegex = new RegExp(targetColor, 'i');
                 andConditions.push({
                     $or: [
+                        { color: colorRegex },
+                        { colors: colorRegex },
                         { name: colorRegex },
                         { tags: colorRegex },
                         { description: colorRegex }
@@ -133,7 +145,29 @@ export async function chatbotController(req, res) {
                 });
             }
 
-            if (!targetType && !targetColor) {
+            if (targetBrand) {
+                const brandRegex = new RegExp(targetBrand, 'i');
+                andConditions.push({
+                    $or: [
+                        { brand: brandRegex },
+                        { name: brandRegex },
+                        { description: brandRegex }
+                    ]
+                });
+            }
+
+            if (targetSize) {
+                const sizeRegex = new RegExp(targetSize, 'i');
+                andConditions.push({
+                    $or: [
+                        { "sizes.size": sizeRegex },
+                        { unit: sizeRegex }
+                    ]
+                });
+            }
+
+            // Fallback for general word search if no specific attributes detected
+            if (!targetType && !targetColor && !targetBrand && !targetSize) {
                 const words = queryText
                     .replace(/[^a-zA-Z0-9\s]/g, '')
                     .split(/\s+/)
@@ -159,13 +193,20 @@ export async function chatbotController(req, res) {
                 .lean();
         }
 
-        // 6. Formulate AI Response or fallback if products found/not found
+        // 6. Formulate AI Response Context
+        const searchedQuerySummary = [
+            targetBrand ? `brand "${targetBrand}"` : '',
+            targetColor ? `color "${targetColor}"` : '',
+            targetSize ? `size "${targetSize}"` : '',
+            targetType ? `type "${targetType}"` : 'products'
+        ].filter(Boolean).join(' ');
+
         let productContextStr = '';
         if (matchingProducts.length > 0) {
-            productContextStr = `\nEXACT MATCHING PRODUCTS FOUND IN FLASHFIT STORE:\n` +
-                matchingProducts.map(p => `- ${p.name} (Brand: ${p.brand || 'FlashFit'}, Price: ₹${p.price}, Stock: ${p.stock > 0 ? 'In Stock' : 'Out of Stock'})`).join('\n');
-        } else if (targetType) {
-            productContextStr = `\nNO PRODUCTS FOUND FOR TYPE: "${targetType}"${targetColor ? ` IN COLOR: "${targetColor}"` : ''}.\nState politely that we currently do not have ${targetColor ? targetColor + ' ' : ''}${targetType}s in stock. Do NOT suggest unrelated items like bags or watches.`;
+            productContextStr = `\nEXACT MATCHING PRODUCTS FOUND IN FLASHFIT STORE FOR (${searchedQuerySummary}):\n` +
+                matchingProducts.map(p => `- ${p.name} (Brand: ${p.brand || 'FlashFit'}, Color: ${p.color || 'N/A'}, Price: ₹${p.price}, Stock: ${p.stock > 0 ? 'In Stock' : 'Out of Stock'})`).join('\n');
+        } else if (targetType || targetBrand || targetColor) {
+            productContextStr = `\nNO PRODUCTS FOUND IN STORE MATCHING: "${searchedQuerySummary}".\nState politely that we currently do not have ${searchedQuerySummary} in stock right now. Do NOT recommend unrelated items like bags or watches.`;
         }
 
         let aiReply = '';
@@ -184,8 +225,8 @@ REAL STORE CONTACT DETAILS:
 - Delivery Time: Express 30 Minutes!
 
 CRITICAL PRODUCT MATCHING RULES:
-1. ONLY recommend products listed in the "EXACT MATCHING PRODUCTS FOUND" section.
-2. If NO products of the requested category are listed (or if targetType was not found), politely state that we currently do NOT have those items in stock.
+1. ONLY recommend products explicitly listed in the "EXACT MATCHING PRODUCTS FOUND" section.
+2. If NO products are listed in that section, politely state that we currently do NOT have ${searchedQuerySummary || 'those items'} in stock right now.
 3. NEVER suggest unrelated product types (for example, NEVER suggest bags or watches when the user asked for dresses, shirts, or shoes).
 `;
 
@@ -217,13 +258,12 @@ CRITICAL PRODUCT MATCHING RULES:
             }
         }
 
-        // Fallback generator if Groq fails or API offline
+        // Fallback generator if Groq fails or offline
         if (!aiReply) {
             if (matchingProducts.length > 0) {
-                aiReply = `Here are the matching ${targetColor ? targetColor + ' ' : ''}${targetType || 'items'} I found in our FlashFit collection for you! 👇`;
-            } else if (targetType) {
-                const requestedItem = `${targetColor ? targetColor + ' ' : ''}${targetType}s`;
-                aiReply = `🛍️ I searched our inventory for **${requestedItem}**, but we don't have any in stock right now. Feel free to check out our Shoes, Shirts, or Hoodies collections! 😊`;
+                aiReply = `Here are the matching ${searchedQuerySummary} I found in our FlashFit collection for you! 👇`;
+            } else if (targetType || targetBrand || targetColor) {
+                aiReply = `🛍️ I searched our inventory for **${searchedQuerySummary}**, but we don't have any in stock right now. Feel free to check our other collections! 😊`;
             } else {
                 aiReply = `Hello ${userName || ''}! How can I assist you with your FlashFit shopping today? 😊`;
             }
@@ -237,6 +277,7 @@ CRITICAL PRODUCT MATCHING RULES:
             discount: p.discount || 0,
             image: (p.image && p.image.length > 0) ? p.image[0] : '',
             brand: p.brand || 'FlashFit',
+            color: p.color || '',
             size_stock: p.size_stock || []
         }));
 

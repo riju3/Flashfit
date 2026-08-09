@@ -28,6 +28,8 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
     price: propsData.price,
     discount: propsData.discount,
     description: propsData.description,
+    brand: propsData.brand || "",
+    color: propsData.color || "",
     more_details: propsData.more_details || {},
     sizes: propsData.sizes || [],
     tags: propsData.tags || [],
@@ -197,6 +199,32 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                   required
                   className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
                 />
+              </div>
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='grid gap-1'>
+                  <label htmlFor='brand' className='font-medium text-xs'>Brand (Optional)</label>
+                  <input
+                    id='brand'
+                    type='text'
+                    placeholder='e.g. Woodland, Nike, ZARA'
+                    name='brand'
+                    value={data.brand}
+                    onChange={handleChange}
+                    className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded text-xs'
+                  />
+                </div>
+                <div className='grid gap-1'>
+                  <label htmlFor='color' className='font-medium text-xs'>Color (Optional)</label>
+                  <input
+                    id='color'
+                    type='text'
+                    placeholder='e.g. Red, Black, White, Olive'
+                    name='color'
+                    value={data.color}
+                    onChange={handleChange}
+                    className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded text-xs'
+                  />
+                </div>
               </div>
               <div className='grid gap-1'>
                 <label htmlFor='description' className='font-medium'>Description</label>
