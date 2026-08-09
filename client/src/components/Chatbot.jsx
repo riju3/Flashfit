@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { IoSend, IoClose, IoChatbubbleEllipsesSharp, IoRefreshOutline, IoBagAddOutline } from 'react-icons/io5';
 import { FaRobot, FaPhoneAlt, FaTruck, FaUndo, FaTag, FaShoePrints } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import chatbotIcon from '../assets/chatbot_icon.png';
 import Axios from '../utils/Axios';
@@ -12,8 +12,41 @@ import toast from 'react-hot-toast';
 const Chatbot = () => {
     const user = useSelector(state => state.user);
     const userName = user?.name || '';
+    const location = useLocation();
 
     const [isOpen, setIsOpen] = useState(false);
+    const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+
+    // Check if Cart Drawer overlay is active in DOM
+    useEffect(() => {
+        const checkCartDrawer = () => {
+            const cartModal = document.querySelector('section.fixed.top-0.bottom-0.right-0.left-0');
+            setIsCartDrawerOpen(!!cartModal);
+        };
+        checkCartDrawer();
+        const interval = setInterval(checkCartDrawer, 300);
+        return () => clearInterval(interval);
+    }, []);
+
+    const pathname = (location.pathname || '').toLowerCase();
+
+    // Hide chatbot on checkout, cart, payment, tracking, profile, admin, and auth pages
+    const isHiddenPath = 
+        pathname.includes('/checkout') ||
+        pathname.includes('/cart') ||
+        pathname.includes('/order-tracking') ||
+        pathname.includes('/order-success') ||
+        pathname.includes('/success') ||
+        pathname.includes('/cancel') ||
+        pathname.includes('/dashboard') ||
+        pathname.includes('/login') ||
+        pathname.includes('/register') ||
+        pathname.includes('/forgot-password') ||
+        pathname.includes('/reset-password') ||
+        pathname.includes('/otp-verification') ||
+        pathname.includes('/user');
+
+    if (isHiddenPath || isCartDrawerOpen) return null;
     const [messages, setMessages] = useState([
         {
             sender: 'bot',
