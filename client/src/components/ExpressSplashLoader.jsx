@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react'
 const ExpressSplashLoader = () => {
   const [show, setShow] = useState(false)
   const [stage, setStage] = useState(0) 
-  // 0: Man walking carrying parcel (0s - 2.5s)
-  // 1: Man puts parcel into truck (2.5s - 3.5s)
-  // 2: Man steps back a little (3.5s - 4.3s)
-  // 3: Truck accelerates fast right (4.3s - 5.3s)
-  // 4: Fade out overlay (5.3s - 6.0s)
+  // 0: Man steps ahead to van with parcel (0s - 0.8s)
+  // 1: Man puts parcel inside truck (0.8s - 1.8s)
+  // 2: Man steps back a little (1.8s - 2.6s)
+  // 3: Truck accelerates fast right (2.6s - 3.5s)
+  // 4: Fade out overlay (3.5s - 4.0s)
 
   useEffect(() => {
     // Check if splash animation has already been shown in this browser session
@@ -15,31 +15,31 @@ const ExpressSplashLoader = () => {
     if (!hasSeen) {
       setShow(true)
 
-      // Stage 1: Put parcel into truck at 2.5s
+      // Stage 1: Put parcel into truck at 0.8s
       const putTimer = setTimeout(() => {
         setStage(1)
-      }, 2500)
+      }, 800)
 
-      // Stage 2: Man steps back a little at 3.5s
+      // Stage 2: Man steps back a little at 1.8s
       const stepBackTimer = setTimeout(() => {
         setStage(2)
-      }, 3500)
+      }, 1800)
 
-      // Stage 3: Truck accelerates fast right at 4.3s
+      // Stage 3: Truck accelerates fast right at 2.6s
       const accelTimer = setTimeout(() => {
         setStage(3)
-      }, 4300)
+      }, 2600)
 
-      // Stage 4: Fade out overlay at 5.3s
+      // Stage 4: Fade out overlay at 3.5s
       const fadeTimer = setTimeout(() => {
         setStage(4)
-      }, 5300)
+      }, 3500)
 
-      // End & unmount at 6.0s
+      // End & unmount at 4.0s
       const endTimer = setTimeout(() => {
         setShow(false)
         sessionStorage.setItem('flashfit_splash_shown', 'true')
-      }, 6000)
+      }, 4000)
 
       return () => {
         clearTimeout(putTimer)
@@ -55,7 +55,7 @@ const ExpressSplashLoader = () => {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] bg-gradient-to-b from-neutral-950 via-neutral-900 to-black flex flex-col items-center justify-center overflow-hidden select-none transition-opacity duration-700 ${
+      className={`fixed inset-0 z-[9999] bg-gradient-to-b from-neutral-950 via-neutral-900 to-black flex flex-col items-center justify-center overflow-hidden select-none transition-opacity duration-600 ${
         stage === 4 ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
@@ -102,15 +102,15 @@ const ExpressSplashLoader = () => {
             {/* GROUND LINE */}
             <line x1="20" y1="240" x2="780" y2="240" stroke="#3F3F46" strokeWidth="4" strokeLinecap="round" />
 
-            {/* ── HIGH-DEFINITION DELIVERY MAN SILHOUETTE (Stage 0: Walks -> Stage 1: Puts -> Stage 2: Steps Back) ── */}
+            {/* ── DELIVERY MAN SILHOUETTE (Stage 0: Step ahead -> Stage 1: Put parcel -> Stage 2: Step back) ── */}
             <g
-              className={`transition-all duration-1000 ease-in-out ${
+              className={`transition-all duration-500 ease-out ${
                 stage === 0
-                  ? 'translate-x-[40px] opacity-100' // Man walks from left across ground
+                  ? 'translate-x-[140px] opacity-100' // Starts right next to van, stepping ahead
                   : stage === 1
-                  ? 'translate-x-[165px] opacity-100' // Man reaches truck rear and loads parcel
+                  ? 'translate-x-[170px] opacity-100' // Steps ahead right at van opening to put parcel
                   : stage >= 2
-                  ? 'translate-x-[110px] opacity-90' // Man stepped back a little safely!
+                  ? 'translate-x-[115px] opacity-90'  // Stepped back a little safely!
                   : 'opacity-0'
               }`}
             >
@@ -125,17 +125,14 @@ const ExpressSplashLoader = () => {
                 {/* Body Jacket / Uniform */}
                 <path d="M 8 54 L 32 54 L 30 100 L 10 100 Z" fill="#1C1917" stroke="#F97316" strokeWidth="2.5" />
                 
-                {/* Leg Strides (Walks in Stage 0, stands still in Stage >= 1) */}
+                {/* Leg Positioning */}
                 {/* Left Leg */}
-                <g className={stage === 0 ? "animate-leg-left" : ""}>
-                  <line x1="14" y1="100" x2="8" y2="138" stroke="#18181B" strokeWidth="7" strokeLinecap="round" />
-                  <path d="M 3 138 L 13 138 L 13 144 L 3 144 Z" fill="#F97316" />
-                </g>
+                <line x1="14" y1="100" x2="8" y2="138" stroke="#18181B" strokeWidth="7" strokeLinecap="round" />
+                <path d="M 3 138 L 13 138 L 13 144 L 3 144 Z" fill="#F97316" />
+                
                 {/* Right Leg */}
-                <g className={stage === 0 ? "animate-leg-right" : ""}>
-                  <line x1="26" y1="100" x2="32" y2="138" stroke="#18181B" strokeWidth="7" strokeLinecap="round" />
-                  <path d="M 27 138 L 37 138 L 37 144 L 27 144 Z" fill="#F97316" />
-                </g>
+                <line x1="26" y1="100" x2="32" y2="138" stroke="#18181B" strokeWidth="7" strokeLinecap="round" />
+                <path d="M 27 138 L 37 138 L 37 144 L 27 144 Z" fill="#F97316" />
 
                 {/* Arms Holding Parcel in Stage 0 */}
                 {stage === 0 && (
@@ -158,7 +155,6 @@ const ExpressSplashLoader = () => {
                     <rect x="0" y="0" width="42" height="34" rx="6" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="2.5" />
                     <line x1="21" y1="0" x2="21" y2="34" stroke="#B45309" strokeWidth="3.5" />
                     <line x1="0" y1="17" x2="42" y2="17" stroke="#B45309" strokeWidth="3.5" />
-                    {/* Lightning Bolt Logo on Box */}
                     <polygon points="21,7 16,17 21,17 19,27 26,14 21,14" fill="#FFFFFF" />
                   </g>
                 )}
@@ -167,7 +163,7 @@ const ExpressSplashLoader = () => {
 
             {/* ── TRUCK CONTAINER & CAB GROUP (Accelerates Right in Stage 3) ── */}
             <g
-              className={`transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) ${
+              className={`transition-all duration-900 cubic-bezier(0.4, 0, 0.2, 1) ${
                 stage === 3 ? 'translate-x-[200vw] opacity-90' : 'translate-x-0'
               }`}
             >
@@ -271,16 +267,16 @@ const ExpressSplashLoader = () => {
         <div className="mt-8 text-center space-y-1.5">
           <p className="text-sm font-black tracking-widest text-orange-400 uppercase animate-pulse">
             {stage === 0
-              ? '🚶 EXPRESS RIDER WALKING TO TRUCK...'
+              ? '📦 STEPPING AHEAD TO LOAD PARCEL...'
               : stage === 1
-              ? '📦 LOADING PARCEL INTO EXPRESS CONTAINER...'
+              ? '⚡ PARCEL LOADED INTO EXPRESS CONTAINER!'
               : stage === 2
-              ? '✅ PARCEL LOADED! RIDER STEPPED BACK...'
+              ? '✅ RIDER STEPPED BACK! STARTING ENGINE...'
               : '🚀 SPEEDING TO YOUR DOORSTEP IN 30 MINS!'}
           </p>
           <p className="text-xs text-neutral-400 font-semibold tracking-wide">
             {stage === 0
-              ? 'Delivery executive walking carrying your FlashFit order'
+              ? 'Delivery executive stepping ahead to truck container'
               : stage === 1
               ? 'Putting FlashFit parcel safely inside the express container'
               : stage === 2
