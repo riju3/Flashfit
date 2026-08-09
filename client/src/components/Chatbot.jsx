@@ -384,16 +384,14 @@ const Chatbot = () => {
                 </div>
             )}
 
-            {/* Floating Chat Trigger Button (Apple-Style Glassmorphism Effect) */}
+            {/* Floating Chat Trigger Button (Crystal Glossy Glass Effect) */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative group p-3 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-xl"
+                className="relative group p-3 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 cursor-pointer"
                 style={{
-                    background: 'rgba(255, 255, 255, 0.28)',
-                    backdropFilter: 'blur(10px) saturate(100%)',
-                    WebkitBackdropFilter: 'blur(10px) saturate(100%)',
-                    border: '1.5px solid rgba(255, 255, 255, 0.75)',
-                    boxShadow: '0 10px 35px 0 rgba(255, 77, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.5)'
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 100%)',
+                    border: '1.5px solid rgba(255, 255, 255, 0.85)',
+                    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15), inset 0 2px 6px rgba(255, 255, 255, 0.9), inset 0 -2px 6px rgba(0, 0, 0, 0.05)'
                 }}
                 title="FlashFit AI Assistant"
             >
