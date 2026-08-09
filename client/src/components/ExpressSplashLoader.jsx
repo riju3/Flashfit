@@ -135,13 +135,14 @@ const ExpressSplashLoader = () => {
                   <path d="M 10 62 L 6 90" fill="none" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
                 )}
 
-                {/* FLASHFIT PARCEL BOX CARRIED BY MAN (Stage 0 only) */}
+                {/* BOLD FLASHFIT PARCEL BOX CARRIED BY MAN (Stage 0 only) */}
                 {stage === 0 && (
-                  <g transform="translate(10, 52)">
-                    <rect x="0" y="0" width="42" height="34" rx="6" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="2.5" />
-                    <line x1="21" y1="0" x2="21" y2="34" stroke="#B45309" strokeWidth="3.5" />
-                    <line x1="0" y1="17" x2="42" y2="17" stroke="#B45309" strokeWidth="3.5" />
-                    <polygon points="21,7 16,17 21,17 19,27 26,14 21,14" fill="#FFFFFF" />
+                  <g transform="translate(10, 46)">
+                    <rect x="0" y="0" width="48" height="38" rx="6" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="3" />
+                    <line x1="24" y1="0" x2="24" y2="38" stroke="#FFFFFF" strokeWidth="4" />
+                    <line x1="0" y1="19" x2="48" y2="19" stroke="#FFFFFF" strokeWidth="4" />
+                    {/* White Glowing Lightning Bolt */}
+                    <polygon points="24,7 18,19 24,19 22,31 30,15 24,15" fill="#FFFFFF" />
                   </g>
                 )}
               </g>
@@ -159,16 +160,6 @@ const ExpressSplashLoader = () => {
                   <line x1="-80" y1="-30" x2="0" y2="-30" stroke="#F97316" strokeWidth="4" strokeLinecap="round" opacity="0.8" />
                   <line x1="-120" y1="0" x2="-10" y2="0" stroke="#F59E0B" strokeWidth="5" strokeLinecap="round" opacity="0.9" />
                   <line x1="-90" y1="30" x2="0" y2="30" stroke="#EF4444" strokeWidth="4" strokeLinecap="round" opacity="0.8" />
-                </g>
-              )}
-
-              {/* PARCEL SAFE INSIDE TRUCK CONTAINER (Visible after Stage >= 1) */}
-              {stage >= 1 && (
-                <g className="animate-bounce-once">
-                  <rect x="290" y="150" width="42" height="34" rx="6" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="2.5" />
-                  <line x1="311" y1="150" x2="311" y2="184" stroke="#B45309" strokeWidth="3.5" />
-                  <line x1="290" y1="167" x2="332" y2="167" stroke="#B45309" strokeWidth="3.5" />
-                  <polygon points="311,157 306,167 311,167 309,177 316,164 311,164" fill="#FFFFFF" />
                 </g>
               )}
 
@@ -197,6 +188,16 @@ const ExpressSplashLoader = () => {
                   30 MIN EXPRESS
                 </text>
               </g>
+
+              {/* ── PARCEL SAFE INSIDE REAR TRUCK DOOR (Rendered AFTER container so it is 100% VISIBLE!) ── */}
+              {stage >= 1 && (
+                <g className="animate-bounce-once" transform="translate(235, 135)">
+                  <rect x="0" y="0" width="48" height="38" rx="6" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="3" />
+                  <line x1="24" y1="0" x2="24" y2="38" stroke="#FFFFFF" strokeWidth="4" />
+                  <line x1="0" y1="19" x2="48" y2="19" stroke="#FFFFFF" strokeWidth="4" />
+                  <polygon points="24,7 18,19 24,19 22,31 30,15 24,15" fill="#FFFFFF" />
+                </g>
+              )}
 
               {/* Front Cabin */}
               <path d="M 580 70 L 685 70 Q 740 80 750 135 L 750 210 L 580 210 Z" fill="url(#cabinGrad)" stroke="#F97316" strokeWidth="3.5" />
@@ -262,7 +263,7 @@ const ExpressSplashLoader = () => {
         <div className="mt-8 text-center space-y-1.5">
           <p className="text-sm font-black tracking-widest text-orange-400 uppercase animate-pulse">
             {stage === 0
-              ? '📦 STEPPING AHEAD TO LOAD PARCEL...'
+              ? '📦 STEPPING AHEAD WITH FLASHFIT PARCEL...'
               : stage === 1
               ? '⚡ PARCEL LOADED INTO EXPRESS CONTAINER!'
               : stage === 2
@@ -271,7 +272,7 @@ const ExpressSplashLoader = () => {
           </p>
           <p className="text-xs text-neutral-400 font-semibold tracking-wide">
             {stage === 0
-              ? 'Delivery executive stepping ahead to truck container'
+              ? 'Delivery executive carrying golden FlashFit order package'
               : stage === 1
               ? 'Putting FlashFit parcel safely inside the express container'
               : stage === 2
