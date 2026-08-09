@@ -62,17 +62,19 @@ export async function registerUserController(request,response){
         console.log(`🔑 REGISTER OTP FOR [${email}]: ${otp}`)
         console.log("==========================================")
 
-        // Send OTP email in background so user receives instant response
-        sendEmail({
-            sendTo : email,
-            subject : "Your OTP Code - FlashFit Verification",
-            html : registerOtpTemplate({
-                name,
-                otp
+        // Await sendEmail so Nodemailer finishes SMTP delivery before responding
+        try {
+            await sendEmail({
+                sendTo : email,
+                subject : "Your OTP Code - FlashFit Verification",
+                html : registerOtpTemplate({
+                    name,
+                    otp
+                })
             })
-        }).catch(emailErr => {
+        } catch(emailErr) {
             console.log("Register OTP email error:", emailErr?.message || emailErr)
-        });
+        }
 
         return response.json({
             message : "OTP sent to your email! (Valid for 5 minutes)",
@@ -202,16 +204,18 @@ export async function resendRegisterOtpController(request, response) {
         console.log(`🔑 RESEND REGISTER OTP FOR [${email}]: ${otp}`)
         console.log("==========================================")
 
-        sendEmail({
-            sendTo: email,
-            subject: "Your New OTP Code - FlashFit Verification",
-            html: registerOtpTemplate({
-                name: user.name,
-                otp
+        try {
+            await sendEmail({
+                sendTo: email,
+                subject: "Your New OTP Code - FlashFit Verification",
+                html: registerOtpTemplate({
+                    name: user.name,
+                    otp
+                })
             })
-        }).catch(emailErr => {
+        } catch (emailErr) {
             console.log("Resend OTP email error:", emailErr?.message || emailErr)
-        });
+        }
 
         return response.json({
             message: "New OTP sent to your email.",
