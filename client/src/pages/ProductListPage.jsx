@@ -110,6 +110,7 @@ const ProductListPage = () => {
               <Link
                 to={link}
                 key={s._id}
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 className={`flex flex-col lg:flex-row items-center lg:gap-3 p-3 border-b border-gray-50 transition-all group
                   ${isActive ? 'bg-primary-50 border-l-2 border-l-primary-200' : 'hover:bg-fashion-light'}`}
               >

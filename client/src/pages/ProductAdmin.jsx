@@ -264,8 +264,11 @@ const ProductAdmin = () => {
           {FILTER_STATUS.map(s => (
             <button
               key={s}
-              onClick={() => setFilterStatus(s)}
-              className={`flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border capitalize transition-all
+              onClick={() => {
+                setFilterStatus(s);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className={`flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border capitalize transition-all cursor-pointer
                 ${filterStatus === s ? 'text-white border-transparent shadow-orange' : 'border-gray-200 text-fashion-charcoal bg-white hover:border-primary-100'}`}
               style={filterStatus === s ? {background:'linear-gradient(135deg,#FF4D00,#E94560)'} : {}}
             >

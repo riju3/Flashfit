@@ -101,7 +101,10 @@ const AdminOrders = () => {
           return (
             <button
               key={tab.id}
-              onClick={() => setFilter(tab.id)}
+              onClick={() => {
+                setFilter(tab.id);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className={`px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl transition-all flex items-center gap-1 cursor-pointer text-[11px] sm:text-xs ${
                 filter === tab.id
                   ? 'bg-orange-500 text-white shadow-xs font-extrabold'
