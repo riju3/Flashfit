@@ -43,13 +43,22 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
   const [fieldName, setFieldName] = useState("")
   const [customSizeInput, setCustomSizeInput] = useState('')
 
+  const isSizeSelected = (s) => data.sizes.some(x => x.size === s)
   const toggleSize = (s) => {
-    setData(p => ({ ...p, sizes: p.sizes.includes(s) ? p.sizes.filter(x => x !== s) : [...p.sizes, s] }))
+    setData(p => ({
+      ...p,
+      sizes: isSizeSelected(s)
+        ? p.sizes.filter(x => x.size !== s)
+        : [...p.sizes, { size: s, stock: 1 }]
+    }))
+  }
+  const setSizeStock = (s, qty) => {
+    setData(p => ({ ...p, sizes: p.sizes.map(x => x.size === s ? { ...x, stock: Number(qty) } : x) }))
   }
   const addCustomSize = () => {
     const trimmed = customSizeInput.trim().toUpperCase()
-    if (!trimmed || data.sizes.includes(trimmed)) return
-    setData(p => ({ ...p, sizes: [...p.sizes, trimmed] }))
+    if (!trimmed || isSizeSelected(trimmed)) return
+    setData(p => ({ ...p, sizes: [...p.sizes, { size: trimmed, stock: 1 }] }))
     setCustomSizeInput('')
   }
 
@@ -434,7 +443,7 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                   {APPAREL_SIZES.map(s => (
                     <button key={s} type='button' onClick={() => toggleSize(s)}
                       className='px-3 py-1.5 text-xs font-semibold rounded-lg border-2 transition-all'
-                      style={data.sizes.includes(s)
+                      style={isSizeSelected(s)
                         ? {background:'linear-gradient(135deg,#FF4D00,#E94560)',borderColor:'#FF4D00',color:'#fff'}
                         : {background:'#fff',borderColor:'#e5e7eb',color:'#374151'}}>
                       {s}
@@ -447,7 +456,7 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                   {FOOTWEAR_SIZES.map(s => (
                     <button key={s} type='button' onClick={() => toggleSize(s)}
                       className='px-3 py-1.5 text-xs font-semibold rounded-lg border-2 transition-all'
-                      style={data.sizes.includes(s)
+                      style={isSizeSelected(s)
                         ? {background:'linear-gradient(135deg,#6366F1,#8B5CF6)',borderColor:'#6366F1',color:'#fff'}
                         : {background:'#fff',borderColor:'#e5e7eb',color:'#374151'}}>
                       {s}
@@ -465,13 +474,22 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                 </div>
 
                 {data.sizes.length > 0 && (
-                  <div className='flex flex-wrap gap-1.5 mt-1'>
-                    {data.sizes.map(s => (
-                      <span key={s} className='flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full text-white' style={{background:'linear-gradient(135deg,#FF4D00,#E94560)'}}>
-                        {s}
-                        <button type='button' onClick={() => toggleSize(s)} className='opacity-80 hover:opacity-100'>×</button>
-                      </span>
-                    ))}
+                  <div className='mt-2 space-y-2'>
+                    <p className='text-[11px] font-bold text-gray-500 uppercase tracking-widest'>Set Stock per Size</p>
+                    <div className='grid grid-cols-2 gap-2'>
+                      {data.sizes.map(({ size: s, stock: st }) => (
+                        <div key={s} className='flex items-center gap-2 bg-white border rounded-lg px-2.5 py-1.5'>
+                          <span className='text-xs font-bold text-gray-800 flex-1'>{s}</span>
+                          <input type='number' min='0' value={st}
+                            onChange={e => setSizeStock(s, e.target.value)}
+                            className='w-14 text-center text-xs font-semibold border rounded px-1 py-0.5 outline-none focus:border-primary-200' />
+                          <button type='button' onClick={() => toggleSize(s)} className='text-gray-400 hover:text-red-500'>
+                            <IoClose size={14}/>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <p className='text-[10px] text-gray-500'>💡 Set stock to <strong>0</strong> to mark a size as <em>sold out</em> for customers.</p>
                   </div>
                 )}
               </div>

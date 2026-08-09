@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 
+const sizeStockSchema = new mongoose.Schema({
+    size  : { type: String, required: true },
+    stock : { type: Number, default: 0 }
+}, { _id: false })
+
 const productSchema = new mongoose.Schema({
     name : {
         type : String,
@@ -48,9 +53,9 @@ const productSchema = new mongoose.Schema({
         type : Boolean,
         default : true
     },
-    // Fashion-specific fields
+    // Fashion-specific fields (all optional)
     sizes : {
-        type : [String],
+        type : [sizeStockSchema],
         default : []
     },
     colors : {
@@ -78,4 +83,4 @@ productSchema.index({
 
 const ProductModel = mongoose.model('product',productSchema)
 
-export default ProductModel
+export default ProductModel

@@ -23,7 +23,6 @@ const TAG_LABELS = {
   'best-seller': { label: 'Best Seller', className: 'text-fashion-dark', style:{background:'linear-gradient(135deg,#C9A84C,#E8C97A)'} },
 }
 
-const SIZE_OPTIONS = ['XS','S','M','L','XL','XXL','XXXL','Free Size']
 
 const ProductDisplayPage = () => {
   const params = useParams()
@@ -466,21 +465,35 @@ const ProductDisplayPage = () => {
                   <button onClick={() => setOpenSizeModal(true)} className="text-xs text-primary-200 font-semibold hover:underline cursor-pointer">Size Guide</button>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {SIZE_OPTIONS.map(s => {
-                    const available = data.sizes.includes(s)
+                  {data.sizes.map(({ size: s, stock: st }) => {
+                    const soldOut = st === 0
+                    const isSelected = selectedSize === s
                     return (
                       <button
                         key={s}
-                        disabled={!available}
-                        onClick={() => available && setSelectedSize(s)}
-                        className={`size-chip ${!available ? 'unavailable' : selectedSize === s ? 'selected' : ''}`}
-                        style={selectedSize === s ? {background:'linear-gradient(135deg,#FF4D00,#E94560)',borderColor:'#FF4D00',color:'#fff'} : {}}
+                        disabled={soldOut}
+                        title={soldOut ? 'Sold Out' : `${st} left`}
+                        onClick={() => !soldOut && setSelectedSize(s)}
+                        className={`relative size-chip text-xs transition-all select-none
+                          ${soldOut
+                            ? 'opacity-40 cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400'
+                            : isSelected ? '' : 'hover:border-primary-200'
+                          }`}
+                        style={!soldOut && isSelected ? {background:'linear-gradient(135deg,#FF4D00,#E94560)',borderColor:'#FF4D00',color:'#fff'} : {}}
                       >
                         {s}
+                        {soldOut && (
+                          <span className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden rounded-lg">
+                            <span className="block w-full h-px bg-gray-400 rotate-[-35deg] absolute opacity-60"/>
+                          </span>
+                        )}
                       </button>
                     )
                   })}
                 </div>
+                {data.sizes.some(x => x.stock === 0) && (
+                  <p className="text-[10px] text-fashion-gray mt-1.5">Greyed sizes are currently sold out.</p>
+                )}
               </div>
             )}
 

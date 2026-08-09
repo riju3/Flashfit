@@ -83,18 +83,30 @@ const UploadProduct = () => {
     setData(p => ({ ...p, subCategory: p.subCategory.filter((_, i) => i !== index) }))
   }
 
-  // Sizes
+  // Sizes — stored as [{size, stock}] objects
   const [customSizeInput, setCustomSizeInput] = useState('')
+
+  const isSizeSelected = (s) => data.sizes.some(x => x.size === s)
+  const getSizeStock   = (s) => data.sizes.find(x => x.size === s)?.stock ?? 1
+
   const toggleSize = (s) => {
     setData(p => ({
       ...p,
-      sizes: p.sizes.includes(s) ? p.sizes.filter(x => x !== s) : [...p.sizes, s]
+      sizes: isSizeSelected(s)
+        ? p.sizes.filter(x => x.size !== s)
+        : [...p.sizes, { size: s, stock: 1 }]
+    }))
+  }
+  const setSizeStock = (s, qty) => {
+    setData(p => ({
+      ...p,
+      sizes: p.sizes.map(x => x.size === s ? { ...x, stock: Number(qty) } : x)
     }))
   }
   const addCustomSize = () => {
     const trimmed = customSizeInput.trim().toUpperCase()
-    if (!trimmed || data.sizes.includes(trimmed)) return
-    setData(p => ({ ...p, sizes: [...p.sizes, trimmed] }))
+    if (!trimmed || isSizeSelected(trimmed)) return
+    setData(p => ({ ...p, sizes: [...p.sizes, { size: trimmed, stock: 1 }] }))
     setCustomSizeInput('')
   }
 
@@ -345,7 +357,7 @@ const UploadProduct = () => {
                   <button
                     key={s} type="button" onClick={() => toggleSize(s)}
                     className={`size-chip text-xs transition-all`}
-                    style={data.sizes.includes(s) ? {background:'linear-gradient(135deg,#FF4D00,#E94560)',borderColor:'#FF4D00',color:'#fff'} : {}}
+                    style={isSizeSelected(s) ? {background:'linear-gradient(135deg,#FF4D00,#E94560)',borderColor:'#FF4D00',color:'#fff'} : {}}
                   >
                     {s}
                   </button>
@@ -358,7 +370,7 @@ const UploadProduct = () => {
                   <button
                     key={s} type="button" onClick={() => toggleSize(s)}
                     className={`size-chip text-xs transition-all`}
-                    style={data.sizes.includes(s) ? {background:'linear-gradient(135deg,#6366F1,#8B5CF6)',borderColor:'#6366F1',color:'#fff'} : {}}
+                    style={isSizeSelected(s) ? {background:'linear-gradient(135deg,#6366F1,#8B5CF6)',borderColor:'#6366F1',color:'#fff'} : {}}
                   >
                     {s}
                   </button>
@@ -379,37 +391,30 @@ const UploadProduct = () => {
                   + Add
                 </button>
               </div>
-              {/* Selected sizes pills */}
+
+              {/* Selected sizes with per-size stock inputs */}
               {data.sizes.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {data.sizes.map(s => (
-                    <span key={s} className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full text-white" style={{background:'linear-gradient(135deg,#FF4D00,#E94560)'}}>
-                      {s}
-                      <button type="button" onClick={() => toggleSize(s)} className="ml-0.5 opacity-80 hover:opacity-100">×</button>
-                    </span>
-                  ))}
+                <div className="mt-3 space-y-2">
+                  <p className="text-[11px] font-bold text-fashion-gray uppercase tracking-widest">Set Stock per Size</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {data.sizes.map(({ size: s, stock: st }) => (
+                      <div key={s} className="flex items-center gap-2 bg-fashion-light border border-gray-200 rounded-xl px-3 py-2">
+                        <span className="text-xs font-bold text-fashion-dark flex-1">{s}</span>
+                        <input
+                          type="number" min="0"
+                          value={st}
+                          onChange={e => setSizeStock(s, e.target.value)}
+                          className="w-14 text-center text-xs font-semibold border rounded-lg px-1.5 py-1 outline-none focus:border-primary-200 bg-white"
+                        />
+                        <button type="button" onClick={() => toggleSize(s)} className="text-gray-400 hover:text-red-500 transition-colors">
+                          <IoClose size={14}/>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-fashion-gray">💡 Set stock to <strong>0</strong> to show the size as <em>sold out</em> to customers.</p>
                 </div>
               )}
-            </FieldGroup>
-
-            {/* Availability Toggle */}
-            <FieldGroup label="Stock Availability">
-              <div className="flex gap-3">
-                {['In Stock', 'Out of Stock'].map(opt => (
-                  <button
-                    key={opt} type="button"
-                    onClick={() => setData(p => ({ ...p, stock: opt === 'In Stock' ? (p.stock > 0 ? p.stock : 1) : 0 }))}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold border-2 transition-all ${
-                      (opt === 'In Stock' ? (data.stock > 0 || data.stock === null || data.stock === undefined || data.stock === '') : data.stock === 0)
-                        ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 bg-white text-fashion-gray hover:border-gray-300'
-                    }`}
-                  >
-                    {opt === 'In Stock' ? '✅ In Stock' : '❌ Out of Stock'}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[11px] text-fashion-gray mt-1">You can still set exact stock quantity in the Stock field above.</p>
             </FieldGroup>
 
 
