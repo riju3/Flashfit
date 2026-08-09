@@ -13,6 +13,7 @@ import SummaryApi from './common/SummaryApi';
 import GlobalProvider from './provider/GlobalProvider';
 import ExpressSplashLoader from './components/ExpressSplashLoader';
 import Chatbot from './components/Chatbot';
+import ScrollToTopButton from './components/ScrollToTopButton';
 
 // Disable success toast popups globally across the application
 toast.success = () => {};
@@ -62,6 +63,11 @@ function App() {
     fetchSubCategory()
   }, [])
 
+  // Auto scroll to top on route change or search query change
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname, location.search]);
+
   return (
     <GlobalProvider>
       <ExpressSplashLoader />
@@ -91,6 +97,7 @@ function App() {
           }}
         />
         <Chatbot />
+        <ScrollToTopButton />
       </div>
     </GlobalProvider>
   )

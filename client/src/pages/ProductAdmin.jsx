@@ -484,9 +484,12 @@ const ProductAdmin = () => {
             {totalPageCount > 1 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
                 <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  onClick={() => {
+                    setPage(p => Math.max(1, p - 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   disabled={page === 1}
-                  className="px-4 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 disabled:opacity-40 hover:border-primary-200 hover:text-primary-200 transition-all"
+                  className="px-4 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 disabled:opacity-40 hover:border-primary-200 hover:text-primary-200 transition-all cursor-pointer"
                 >
                   Previous
                 </button>
@@ -494,9 +497,12 @@ const ProductAdmin = () => {
                   Page <span className="font-bold text-fashion-dark">{page}</span> of <span className="font-bold text-fashion-dark">{totalPageCount}</span>
                 </span>
                 <button
-                  onClick={() => setPage(p => Math.min(totalPageCount, p + 1))}
+                  onClick={() => {
+                    setPage(p => Math.min(totalPageCount, p + 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   disabled={page === totalPageCount}
-                  className="px-4 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 disabled:opacity-40 hover:border-primary-200 hover:text-primary-200 transition-all"
+                  className="px-4 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 disabled:opacity-40 hover:border-primary-200 hover:text-primary-200 transition-all cursor-pointer"
                 >
                   Next
                 </button>
