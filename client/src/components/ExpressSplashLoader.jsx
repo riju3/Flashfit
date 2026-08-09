@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react'
 const ExpressSplashLoader = () => {
   const [show, setShow] = useState(false)
   const [stage, setStage] = useState(0) 
-  // 0: Man steps ahead to van with parcel (0s - 0.8s)
-  // 1: Man puts parcel inside truck (0.8s - 1.8s)
-  // 2: Man steps back a little (1.8s - 2.6s)
-  // 3: Truck ONLY accelerates fast right (2.6s - 3.5s)
-  // 4: Fade out overlay (3.5s - 4.0s)
+  // 0: Man holding parcel in hand (0s - 2.0s)
+  // 1: Man drops/loads parcel into truck (2.0s - 4.0s)
+  // 2: Man steps back a little (4.0s - 5.2s)
+  // 3: Truck ONLY accelerates fast right (5.2s - 6.6s)
+  // 4: Fade out overlay (6.6s - 7.2s)
 
   useEffect(() => {
     // Check if splash animation has already been shown in this browser session
@@ -15,34 +15,34 @@ const ExpressSplashLoader = () => {
     if (!hasSeen) {
       setShow(true)
 
-      // Stage 1: Put parcel into truck at 0.8s
-      const putTimer = setTimeout(() => {
+      // Stage 1: Man drops parcel into truck at 2.0s
+      const dropTimer = setTimeout(() => {
         setStage(1)
-      }, 800)
+      }, 2000)
 
-      // Stage 2: Man steps back a little at 1.8s
+      // Stage 2: Man steps back a little at 4.0s
       const stepBackTimer = setTimeout(() => {
         setStage(2)
-      }, 1800)
+      }, 4000)
 
-      // Stage 3: ONLY TRUCK accelerates fast right at 2.6s
+      // Stage 3: ONLY TRUCK accelerates fast right at 5.2s
       const accelTimer = setTimeout(() => {
         setStage(3)
-      }, 2600)
+      }, 5200)
 
-      // Stage 4: Fade out overlay at 3.5s
+      // Stage 4: Fade out overlay at 6.6s
       const fadeTimer = setTimeout(() => {
         setStage(4)
-      }, 3500)
+      }, 6600)
 
-      // End & unmount at 4.0s
+      // End & unmount at 7.2s
       const endTimer = setTimeout(() => {
         setShow(false)
         sessionStorage.setItem('flashfit_splash_shown', 'true')
-      }, 4000)
+      }, 7200)
 
       return () => {
-        clearTimeout(putTimer)
+        clearTimeout(dropTimer)
         clearTimeout(stepBackTimer)
         clearTimeout(accelTimer)
         clearTimeout(fadeTimer)
@@ -55,12 +55,12 @@ const ExpressSplashLoader = () => {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] bg-gradient-to-b from-neutral-950 via-neutral-900 to-black flex flex-col items-center justify-center overflow-hidden select-none transition-opacity duration-600 ${
+      className={`fixed inset-0 z-[9999] bg-gradient-to-b from-neutral-950 via-neutral-900 to-black flex flex-col items-center justify-center overflow-hidden select-none transition-opacity duration-700 ${
         stage === 4 ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
       {/* Background Ambient Glow */}
-      <div className="absolute w-[800px] h-[800px] bg-orange-500/15 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute w-[850px] h-[850px] bg-orange-500/15 rounded-full blur-[140px] pointer-events-none" />
 
       {/* FULL SCREEN ANIMATION CONTAINER */}
       <div className="relative w-full max-w-6xl h-screen flex flex-col items-center justify-center px-4 sm:px-8">
@@ -92,14 +92,14 @@ const ExpressSplashLoader = () => {
             {/* GROUND LINE */}
             <line x1="20" y1="240" x2="780" y2="240" stroke="#3F3F46" strokeWidth="4" strokeLinecap="round" />
 
-            {/* ── DELIVERY MAN SILHOUETTE (Stays standing on ground when truck speeds away!) ── */}
+            {/* ── DELIVERY MAN SILHOUETTE (Holds Parcel in Hand -> Drops into Truck -> Steps Back) ── */}
             <g
-              className={`transition-all duration-500 ease-out ${
+              className={`transition-all duration-700 ease-in-out ${
                 stage === 0
-                  ? 'translate-x-[140px] opacity-100' // Starts right next to van, stepping ahead
+                  ? 'translate-x-[150px] opacity-100' // Standing holding parcel in hands
                   : stage === 1
-                  ? 'translate-x-[170px] opacity-100' // Steps ahead right at van opening to put parcel
-                  : 'translate-x-[110px] opacity-100'  // Stepped back & stays standing on ground!
+                  ? 'translate-x-[175px] opacity-100' // Extending arms to drop parcel inside truck
+                  : 'translate-x-[110px] opacity-100'  // Stepped back & standing on ground!
               }`}
             >
               {/* Delivery Executive Silhouette */}
@@ -135,13 +135,12 @@ const ExpressSplashLoader = () => {
                   <path d="M 10 62 L 6 90" fill="none" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
                 )}
 
-                {/* BOLD FLASHFIT PARCEL BOX CARRIED BY MAN (Stage 0 only) */}
+                {/* BOLD FLASHFIT PARCEL BOX HELD IN MAN'S HANDS (Stage 0 only) */}
                 {stage === 0 && (
-                  <g transform="translate(10, 46)">
+                  <g transform="translate(10, 46)" className="animate-pulse">
                     <rect x="0" y="0" width="48" height="38" rx="6" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="3" />
                     <line x1="24" y1="0" x2="24" y2="38" stroke="#FFFFFF" strokeWidth="4" />
                     <line x1="0" y1="19" x2="48" y2="19" stroke="#FFFFFF" strokeWidth="4" />
-                    {/* White Glowing Lightning Bolt */}
                     <polygon points="24,7 18,19 24,19 22,31 30,15 24,15" fill="#FFFFFF" />
                   </g>
                 )}
@@ -150,7 +149,7 @@ const ExpressSplashLoader = () => {
 
             {/* ── ONLY TRUCK CONTAINER & CAB GROUP ACCELERATES FAST TO THE RIGHT IN STAGE 3 ── */}
             <g
-              className={`transition-all duration-900 cubic-bezier(0.4, 0, 0.2, 1) ${
+              className={`transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) ${
                 stage === 3 ? 'translate-x-[220vw] opacity-90' : 'translate-x-0'
               }`}
             >
@@ -189,7 +188,7 @@ const ExpressSplashLoader = () => {
                 </text>
               </g>
 
-              {/* ── PARCEL SAFE INSIDE REAR TRUCK DOOR (Rendered AFTER container so it is 100% VISIBLE!) ── */}
+              {/* ── PARCEL SAFE INSIDE REAR TRUCK CONTAINER (100% VISIBLE AFTER MAN DROPS IT IN STAGE >= 1) ── */}
               {stage >= 1 && (
                 <g className="animate-bounce-once" transform="translate(235, 135)">
                   <rect x="0" y="0" width="48" height="38" rx="6" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="3" />
@@ -263,20 +262,20 @@ const ExpressSplashLoader = () => {
         <div className="mt-8 text-center space-y-1.5">
           <p className="text-sm font-black tracking-widest text-orange-400 uppercase animate-pulse">
             {stage === 0
-              ? '📦 STEPPING AHEAD WITH FLASHFIT PARCEL...'
+              ? '📦 HOLDING FLASHFIT PARCEL IN HANDS...'
               : stage === 1
-              ? '⚡ PARCEL LOADED INTO EXPRESS CONTAINER!'
+              ? '⚡ DROPPING PARCEL INTO TRUCK CONTAINER!'
               : stage === 2
               ? '✅ RIDER STEPPED BACK! STARTING ENGINE...'
               : '🚀 TRUCK SPEEDING TO YOUR DOORSTEP IN 30 MINS!'}
           </p>
           <p className="text-xs text-neutral-400 font-semibold tracking-wide">
             {stage === 0
-              ? 'Delivery executive carrying golden FlashFit order package'
+              ? 'Delivery executive holding FlashFit package ready for loading'
               : stage === 1
-              ? 'Putting FlashFit parcel safely inside the express container'
+              ? 'Dropping parcel safely inside the express truck container'
               : stage === 2
-              ? 'Rider stepped back to clear the road for departure'
+              ? 'Rider stepped back onto the ground to clear the departure path'
               : 'Express truck accelerating fast to deliver your order'}
           </p>
         </div>
