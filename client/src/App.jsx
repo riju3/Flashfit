@@ -12,6 +12,7 @@ import Axios from './utils/Axios';
 import SummaryApi from './common/SummaryApi';
 import GlobalProvider from './provider/GlobalProvider';
 import ExpressSplashLoader from './components/ExpressSplashLoader';
+import Chatbot from './components/Chatbot';
 
 // Disable success toast popups globally across the application
 toast.success = () => {};
@@ -89,6 +90,7 @@ function App() {
             },
           }}
         />
+        <Chatbot />
       </div>
     </GlobalProvider>
   )

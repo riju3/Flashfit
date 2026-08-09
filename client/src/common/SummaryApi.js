@@ -236,6 +236,10 @@ const SummaryApi = {
     deleteBanner : {
         url : '/api/banner/delete',
         method : 'delete'
+    },
+    chatbot : {
+        url : '/api/chatbot/chat',
+        method : 'post'
     }
 }
 
