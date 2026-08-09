@@ -5,6 +5,14 @@ const SummaryApi = {
         url : '/api/user/register',
         method : 'post'
     },
+    verify_register_otp : {
+        url : '/api/user/verify-register-otp',
+        method : 'post'
+    },
+    resend_register_otp : {
+        url : '/api/user/resend-register-otp',
+        method : 'post'
+    },
     login : {
         url : '/api/user/login',
         method : 'post'

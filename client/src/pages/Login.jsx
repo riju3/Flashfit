@@ -5,14 +5,15 @@ import toast from 'react-hot-toast';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import AxiosToastError from '../utils/AxiosToastError';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import fetchUserDetails from '../utils/fetchUserDetails';
 import { useDispatch } from 'react-redux';
 import { setUserDetails } from '../store/userSlice';
 
 const Login = () => {
+    const location = useLocation()
     const [data, setData] = useState({
-        email: "",
+        email: location?.state?.email || "",
         password: "",
     })
     const [showPassword, setShowPassword] = useState(false)

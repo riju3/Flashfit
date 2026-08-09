@@ -2,6 +2,7 @@ import sendEmail from '../config/sendEmail.js'
 import UserModel from '../models/user.model.js'
 import bcryptjs from 'bcryptjs'
 import verifyEmailTemplate from '../utils/verifyEmailTemplate.js'
+import registerOtpTemplate from '../utils/registerOtpTemplate.js'
 import generatedAccessToken from '../utils/generatedAccessToken.js'
 import genertedRefreshToken from '../utils/generatedRefreshToken.js'
 import uploadImageClodinary from '../utils/uploadImageClodinary.js'
@@ -15,17 +16,17 @@ export async function registerUserController(request,response){
 
         if(!name || !email || !password){
             return response.status(400).json({
-                message : "provide email, name, password",
+                message : "Provide email, name, password",
                 error : true,
                 success : false
             })
         }
 
-        const user = await UserModel.findOne({ email })
+        const existingUser = await UserModel.findOne({ email })
 
-        if(user){
-            return response.json({
-                message : "Already register email",
+        if(existingUser && existingUser.verify_email){
+            return response.status(400).json({
+                message : "Already registered email. Please login.",
                 error : true,
                 success : false
             })
@@ -33,38 +34,52 @@ export async function registerUserController(request,response){
 
         const salt = await bcryptjs.genSalt(10)
         const hashPassword = await bcryptjs.hash(password,salt)
+        const otp = generatedOtp()
+        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-        const payload = {
-            name,
-            email,
-            password : hashPassword,
-            role : "USER",
-            verify_email : true,
-            status : "Active"
+        if (existingUser && !existingUser.verify_email) {
+            existingUser.name = name
+            existingUser.password = hashPassword
+            existingUser.register_otp = otp
+            existingUser.register_otp_expiry = otpExpiry
+            await existingUser.save()
+        } else {
+            const payload = {
+                name,
+                email,
+                password : hashPassword,
+                role : "USER",
+                verify_email : false,
+                status : "Active",
+                register_otp : otp,
+                register_otp_expiry : otpExpiry
+            }
+            const newUser = new UserModel(payload)
+            await newUser.save()
         }
 
-        const newUser = new UserModel(payload)
-        const save = await newUser.save()
+        console.log("==========================================")
+        console.log(`🔑 REGISTER OTP FOR [${email}]: ${otp}`)
+        console.log("==========================================")
 
         try {
-            const VerifyEmailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`
             await sendEmail({
                 sendTo : email,
-                subject : "Verify email from FlashFit",
-                html : verifyEmailTemplate({
+                subject : "Verify your email - FlashFit OTP",
+                html : registerOtpTemplate({
                     name,
-                    url : VerifyEmailUrl
+                    otp
                 })
             })
         } catch(emailErr) {
-            console.log("Verify email error:", emailErr?.message || emailErr)
+            console.log("Register OTP email error:", emailErr?.message || emailErr)
         }
 
         return response.json({
-            message : "User register successfully",
+            message : "OTP sent to your email. Please verify to complete registration.",
             error : false,
             success : true,
-            data : save
+            email : email
         })
 
     } catch (error) {
@@ -72,6 +87,146 @@ export async function registerUserController(request,response){
             message : error.message || error,
             error : true,
             success : false
+        })
+    }
+}
+
+// Verify Registration OTP Controller
+export async function verifyRegisterOtpController(request, response) {
+    try {
+        const { email, otp } = request.body
+
+        if (!email || !otp) {
+            return response.status(400).json({
+                message: "Provide email and OTP",
+                error: true,
+                success: false
+            })
+        }
+
+        const user = await UserModel.findOne({ email })
+
+        if (!user) {
+            return response.status(400).json({
+                message: "User not found",
+                error: true,
+                success: false
+            })
+        }
+
+        if (user.verify_email) {
+            return response.json({
+                message: "Email is already verified. Please login.",
+                success: true,
+                error: false
+            })
+        }
+
+        if (user.register_otp !== otp) {
+            return response.status(400).json({
+                message: "Invalid OTP code",
+                error: true,
+                success: false
+            })
+        }
+
+        const currentTime = new Date().getTime()
+        const otpExpiryTime = new Date(user.register_otp_expiry).getTime()
+
+        if (currentTime > otpExpiryTime) {
+            return response.status(400).json({
+                message: "OTP has expired. Please request a new OTP.",
+                error: true,
+                success: false
+            })
+        }
+
+        user.verify_email = true
+        user.register_otp = null
+        user.register_otp_expiry = null
+        await user.save()
+
+        return response.json({
+            message: "Email verified successfully! Registration complete.",
+            success: true,
+            error: false
+        })
+
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        })
+    }
+}
+
+// Resend Registration OTP Controller
+export async function resendRegisterOtpController(request, response) {
+    try {
+        const { email } = request.body
+
+        if (!email) {
+            return response.status(400).json({
+                message: "Provide email address",
+                error: true,
+                success: false
+            })
+        }
+
+        const user = await UserModel.findOne({ email })
+
+        if (!user) {
+            return response.status(400).json({
+                message: "User not found",
+                error: true,
+                success: false
+            })
+        }
+
+        if (user.verify_email) {
+            return response.status(400).json({
+                message: "Email is already verified. Please login.",
+                error: true,
+                success: false
+            })
+        }
+
+        const otp = generatedOtp()
+        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000)
+
+        user.register_otp = otp
+        user.register_otp_expiry = otpExpiry
+        await user.save()
+
+        console.log("==========================================")
+        console.log(`🔑 RESEND REGISTER OTP FOR [${email}]: ${otp}`)
+        console.log("==========================================")
+
+        try {
+            await sendEmail({
+                sendTo: email,
+                subject: "Verify your email - FlashFit New OTP",
+                html: registerOtpTemplate({
+                    name: user.name,
+                    otp
+                })
+            })
+        } catch (emailErr) {
+            console.log("Resend OTP email error:", emailErr?.message || emailErr)
+        }
+
+        return response.json({
+            message: "New OTP sent to your email.",
+            success: true,
+            error: false
+        })
+
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
         })
     }
 }
@@ -126,9 +281,19 @@ export async function loginController(request,response){
 
         if(!user){
             return response.status(400).json({
-                message : "User not register",
+                message : "User not registered",
                 error : true,
                 success : false
+            })
+        }
+
+        if(!user.verify_email){
+            return response.status(400).json({
+                message : "Email is not verified. Please verify your email with OTP.",
+                error : true,
+                success : false,
+                unverified : true,
+                email : user.email
             })
         }
 
