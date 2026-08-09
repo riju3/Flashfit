@@ -36,9 +36,9 @@ export async function chatbotController(req, res) {
             const welcomeText = `😊 Hello${namePart}! Welcome to FlashFit! I'm here to help you with anything you need.\n\n` +
                 `Are you looking for some new fashion inspiration, or do you have a specific question about our products or services?\n\n` +
                 `You can ask me about:\n` +
-                `* **Products**: Get recommendations on our latest collections (Shoes, Dresses, Tops & More)\n` +
+                `* **Products**: Get recommendations on our latest collections (Shoes, Shirts, Hoodies & More)\n` +
                 `* **Orders**: Track your order status or get help with returns/exchanges\n` +
-                `* **Shipping**: Get info on our delivery options and timelines\n\n` +
+                `* **Shipping**: Get info on our 30-minute express delivery options\n\n` +
                 `What's on your mind? 🤔`;
 
             return res.json({
@@ -68,14 +68,14 @@ export async function chatbotController(req, res) {
             });
         }
 
-        // 4. Direct Handler for Shipping & Delivery Information
-        const isShippingQuery = /ship|delivery|track|order status|timeline|when will i get/i.test(queryText);
+        // 4. Direct Handler for 30-Minute Express Delivery & Shipping Information
+        const isShippingQuery = /ship|delivery|track|order status|timeline|when will i get|how long/i.test(queryText);
         if (isShippingQuery) {
-            const shippingText = `🚚 **Shipping & Delivery Information**:\n\n` +
-                `• **Free Standard Delivery**: On all orders over ₹499.\n` +
-                `• **Delivery Timelines**: 3-5 business days across India.\n` +
-                `• **Order Tracking**: You can view real-time order tracking under **My Profile → My Orders**.\n\n` +
-                `For urgent queries, feel free to contact customer care at **${supportPhone}**! 😊`;
+            const shippingText = `⚡ **FlashFit Express 30-Minute Delivery**:\n\n` +
+                `• **Express 30-Min Delivery**: Delivered to your doorstep in just **30 minutes**!\n` +
+                `• **Free Express Shipping**: On all orders over ₹499.\n` +
+                `• **Real-Time Live Order Tracking**: Track your delivery rider in real time under **My Profile → My Orders**.\n\n` +
+                `For any urgent delivery assistance, call customer care at **${supportPhone}**! 🚀`;
 
             return res.json({
                 message: shippingText,
@@ -85,64 +85,108 @@ export async function chatbotController(req, res) {
             });
         }
 
-        // 5. Search DB for matching products if query looks product-related
+        // 5. Strict Product Discovery Engine
+        let targetType = null;
+        let targetColor = null;
+
+        // Detect target product category/type
+        if (/dress/i.test(queryText)) targetType = 'dress';
+        else if (/hoodie|sweatshirt/i.test(queryText)) targetType = 'hoodie';
+        else if (/t-shirt|tshirt|tee/i.test(queryText)) targetType = 't-shirt';
+        else if (/shirt/i.test(queryText)) targetType = 'shirt';
+        else if (/shoe|sneaker|footwear|heel|boot/i.test(queryText)) targetType = 'shoe';
+        else if (/bag|tote|handbag|backpack/i.test(queryText)) targetType = 'bag';
+        else if (/watch/i.test(queryText)) targetType = 'watch';
+        else if (/jeans|pant|trouser/i.test(queryText)) targetType = 'jeans';
+        else if (/jacket|coat/i.test(queryText)) targetType = 'jacket';
+
+        // Detect target color
+        const colorMatch = queryText.match(/\b(red|blue|black|white|green|yellow|pink|brown|purple|grey|gray|orange)\b/i);
+        if (colorMatch) targetColor = colorMatch[1].toLowerCase();
+
         let matchingProducts = [];
-        const isProductQuery = /shoe|shirt|dress|t-shirt|pant|jeans|jacket|coat|watch|bag|wallet|sneaker|heel|boot|kid|men|women|fashion|cloth|item|product|buy|price|under|find|recommend|show|look/i.test(queryText);
+        const isProductQuery = targetType || /fashion|cloth|item|product|buy|price|under|find|recommend|show|look/i.test(queryText);
 
         if (isProductQuery) {
-            const words = queryText
-                .replace(/[^a-zA-Z0-9\s]/g, '')
-                .split(/\s+/)
-                .filter(w => w.length > 2 && !['the', 'and', 'for', 'with', 'under', 'show', 'find', 'give', 'need', 'want', 'some', 'looking'].includes(w));
+            let andConditions = [{ publish: true }];
 
-            let filter = { publish: true };
-            if (words.length > 0) {
-                const regexes = words.map(w => new RegExp(w, 'i'));
-                filter.$or = [
-                    { name: { $in: regexes } },
-                    { description: { $in: regexes } },
-                    { tags: { $in: regexes } },
-                    { brand: { $in: regexes } },
-                    { category_name: { $in: regexes } }
-                ];
+            if (targetType) {
+                const typeRegex = new RegExp(targetType, 'i');
+                andConditions.push({
+                    $or: [
+                        { name: typeRegex },
+                        { category_name: typeRegex },
+                        { tags: typeRegex },
+                        { description: typeRegex }
+                    ]
+                });
             }
 
-            matchingProducts = await ProductModel.find(filter)
+            if (targetColor) {
+                const colorRegex = new RegExp(targetColor, 'i');
+                andConditions.push({
+                    $or: [
+                        { name: colorRegex },
+                        { tags: colorRegex },
+                        { description: colorRegex }
+                    ]
+                });
+            }
+
+            if (!targetType && !targetColor) {
+                const words = queryText
+                    .replace(/[^a-zA-Z0-9\s]/g, '')
+                    .split(/\s+/)
+                    .filter(w => w.length > 2 && !['the', 'and', 'for', 'with', 'under', 'show', 'find', 'give', 'need', 'want', 'some', 'looking'].includes(w));
+
+                if (words.length > 0) {
+                    const regexes = words.map(w => new RegExp(w, 'i'));
+                    andConditions.push({
+                        $or: [
+                            { name: { $in: regexes } },
+                            { description: { $in: regexes } },
+                            { tags: { $in: regexes } },
+                            { brand: { $in: regexes } },
+                            { category_name: { $in: regexes } }
+                        ]
+                    });
+                }
+            }
+
+            matchingProducts = await ProductModel.find({ $and: andConditions })
                 .populate('category subCategory')
                 .limit(6)
                 .lean();
         }
 
-        // Prepare product context string
+        // 6. Formulate AI Response or fallback if products found/not found
         let productContextStr = '';
         if (matchingProducts.length > 0) {
-            productContextStr = `\nAVAILABLE PRODUCTS IN STORE MATCHING USER QUERY:\n` +
+            productContextStr = `\nEXACT MATCHING PRODUCTS FOUND IN FLASHFIT STORE:\n` +
                 matchingProducts.map(p => `- ${p.name} (Brand: ${p.brand || 'FlashFit'}, Price: ₹${p.price}, Stock: ${p.stock > 0 ? 'In Stock' : 'Out of Stock'})`).join('\n');
+        } else if (targetType) {
+            productContextStr = `\nNO PRODUCTS FOUND FOR TYPE: "${targetType}"${targetColor ? ` IN COLOR: "${targetColor}"` : ''}.\nState politely that we currently do not have ${targetColor ? targetColor + ' ' : ''}${targetType}s in stock. Do NOT suggest unrelated items like bags or watches.`;
         }
 
         let aiReply = '';
 
-        // 6. Call Groq API with live store settings context
         if (groq) {
             try {
                 const dynamicSystemPrompt = `
-You are "FlashFit AI Assistant", the friendly, expert shopping assistant for FlashFit (online fashion & lifestyle store).
+You are "FlashFit AI Assistant", the friendly, expert shopping assistant for FlashFit.
+FlashFit is an EXPRESS 30-MINUTE DELIVERY fashion & lifestyle store.
 Current User's Name: ${userName || 'Customer'}
 
-REAL STORE CONTACT DETAILS (Fetched from database - use EXACTLY these when asked):
-- Customer Support Phone: ${supportPhone}
-- Support Email: ${supportEmail}
-- Store Address: ${storeAddress}
-- Hours: Mon-Sat, 9:00 AM - 8:00 PM IST
+REAL STORE CONTACT DETAILS:
+- Phone: ${supportPhone}
+- Email: ${supportEmail}
+- Address: ${storeAddress}
+- Delivery Time: Express 30 Minutes!
 
-POLICIES:
-- 7-Day Easy Return & Exchange policy on unworn items.
-- Free Shipping on orders over ₹499 (3-5 days delivery).
-
-INSTRUCTIONS:
-- Be polite, concise, and helpful. Use emojis!
-- When asked for contact or customer care, ALWAYS use phone: ${supportPhone} and email: ${supportEmail}.
-- Do NOT talk about coupons or discount codes.
+CRITICAL PRODUCT MATCHING RULES:
+1. ONLY recommend products listed in the "EXACT MATCHING PRODUCTS FOUND" section.
+2. If NO products of the requested category are listed (or if targetType was not found), politely state that we currently do NOT have those items in stock.
+3. NEVER suggest unrelated product types (for example, NEVER suggest bags or watches when the user asked for dresses, shirts, or shoes).
 `;
 
                 const messagesPayload = [
@@ -163,8 +207,8 @@ INSTRUCTIONS:
                 const chatCompletion = await groq.chat.completions.create({
                     messages: messagesPayload,
                     model: 'llama-3.3-70b-versatile',
-                    temperature: 0.7,
-                    max_tokens: 500,
+                    temperature: 0.5,
+                    max_tokens: 400,
                 });
 
                 aiReply = chatCompletion.choices[0]?.message?.content || '';
@@ -173,17 +217,15 @@ INSTRUCTIONS:
             }
         }
 
-        // Fallback response engine if Groq fails or offline
+        // Fallback generator if Groq fails or API offline
         if (!aiReply) {
-            if (/return|exchange|refund|cancel/i.test(queryText)) {
-                aiReply = `🔄 **Return & Refund Policy**:\n\n` +
-                    `• We offer a **7-Day Easy Return & Exchange** policy!\n` +
-                    `• Size exchanges are **100% FREE**.\n\n` +
-                    `👉 To start a return: Go to **My Profile -> My Orders** and click on "Return / Exchange".`;
-            } else if (matchingProducts.length > 0) {
-                aiReply = `Here are some great matching items I found in our FlashFit collection for you! 👇`;
+            if (matchingProducts.length > 0) {
+                aiReply = `Here are the matching ${targetColor ? targetColor + ' ' : ''}${targetType || 'items'} I found in our FlashFit collection for you! 👇`;
+            } else if (targetType) {
+                const requestedItem = `${targetColor ? targetColor + ' ' : ''}${targetType}s`;
+                aiReply = `🛍️ I searched our inventory for **${requestedItem}**, but we don't have any in stock right now. Feel free to check out our Shoes, Shirts, or Hoodies collections! 😊`;
             } else {
-                aiReply = `Hello ${userName || ''}! How can I assist you with your shopping at FlashFit today? 😊`;
+                aiReply = `Hello ${userName || ''}! How can I assist you with your FlashFit shopping today? 😊`;
             }
         }
 
