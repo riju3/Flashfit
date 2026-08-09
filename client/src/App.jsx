@@ -3,7 +3,7 @@ import './App.css'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import toast, { Toaster } from 'react-hot-toast';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import fetchUserDetails from './utils/fetchUserDetails';
 import { setUserDetails } from './store/userSlice';
 import { setAllCategory, setAllSubCategory, setLoadingCategory } from './store/productSlice';
@@ -62,10 +62,20 @@ function App() {
     fetchSubCategory()
   }, [])
 
-  // Auto scroll to top on route change or search query change
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-  }, [location.pathname, location.search]);
+  // Auto scroll to top on route change or search query change across all pages & mobile browsers
+  useLayoutEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    const scrollToTop = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    scrollToTop();
+    const rafId = requestAnimationFrame(scrollToTop);
+    return () => cancelAnimationFrame(rafId);
+  }, [location.pathname, location.search, location.hash]);
 
   return (
     <GlobalProvider>

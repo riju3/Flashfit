@@ -71,6 +71,12 @@ const CheckoutPage = () => {
     }
   }, [user, navigate])
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [step]);
+
   // Fetch UPI Merchant Settings
   useEffect(() => {
     const fetchSettings = async () => {

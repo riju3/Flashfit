@@ -29,6 +29,9 @@ const DisplayCartItem = ({close}) => {
     }
 
     const redirectToCheckoutPage = () => {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
         if (user?._id) {
             navigate("/checkout")
             if (close) {
