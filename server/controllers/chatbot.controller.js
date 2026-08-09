@@ -85,13 +85,43 @@ export async function chatbotController(req, res) {
             });
         }
 
-        // 5. Advanced Product Matching Engine (Brand, Color, Type, Size Extraction)
+        // 5. Advanced Natural Language NLP Constraint & Intent Parser
         let targetType = null;
         let targetColor = null;
         let targetBrand = null;
         let targetSize = null;
+        let targetGender = null;
+        let maxPrice = null;
+        let minPrice = null;
+        let targetTag = null;
 
-        // Detect Category/Type
+        // A. Extract Price Constraints (under 999, below 1000, less than 500, between 1000 and 3000, 1k, etc.)
+        const maxPriceMatch = queryText.match(/(?:under|below|less than|under rs\.?|under ₹)\s*(\d+)/i) ||
+                             queryText.match(/\b(\d+)\s*(?:rs|rupees|inr|\s*under|\s*below)\b/i) ||
+                             queryText.match(/under\s*(\d+)k/i);
+
+        if (maxPriceMatch) {
+            let val = parseInt(maxPriceMatch[1], 10);
+            if (queryText.includes('k') && val < 100) val *= 1000;
+            maxPrice = val;
+        }
+
+        const minPriceMatch = queryText.match(/(?:above|over|more than|greater than)\s*(\d+)/i);
+        if (minPriceMatch) {
+            minPrice = parseInt(minPriceMatch[1], 10);
+        }
+
+        const rangePriceMatch = queryText.match(/(?:between|from)\s*(\d+)\s*(?:and|to|-)\s*(\d+)/i);
+        if (rangePriceMatch) {
+            minPrice = parseInt(rangePriceMatch[1], 10);
+            maxPrice = parseInt(rangePriceMatch[2], 10);
+        }
+
+        // B. Extract Gender Intent
+        if (/\b(women|woman|female|ladies|lady|girl|girls)\b/i.test(queryText)) targetGender = 'women';
+        else if (/\b(men|man|male|gents|gentlemen|boy|boys)\b/i.test(queryText)) targetGender = 'men';
+
+        // C. Extract Category / Item Type
         if (/dress/i.test(queryText)) targetType = 'dress';
         else if (/hoodie|sweatshirt/i.test(queryText)) targetType = 'hoodie';
         else if (/t-shirt|tshirt|tee/i.test(queryText)) targetType = 't-shirt';
@@ -102,24 +132,62 @@ export async function chatbotController(req, res) {
         else if (/jeans|pant|trouser/i.test(queryText)) targetType = 'jeans';
         else if (/jacket|coat/i.test(queryText)) targetType = 'jacket';
 
-        // Detect Color
+        // D. Extract Color
         const colorMatch = queryText.match(/\b(red|blue|black|white|green|yellow|pink|brown|purple|grey|gray|orange|olive|navy)\b/i);
         if (colorMatch) targetColor = colorMatch[1].toLowerCase();
 
-        // Detect Brand
+        // E. Extract Brand
         const brandMatch = queryText.match(/\b(woodland|nike|adidas|puma|zara|mango|vans|casio|levis|levi|tommy|polo|raymond|arrow|mufti|forever 21|vero moda|cover story|lavie|roadster|hrx|allen solly)\b/i);
         if (brandMatch) targetBrand = brandMatch[1].toLowerCase();
 
-        // Detect Size
+        // F. Extract Size
         const sizeMatch = queryText.match(/\b(uk\s*\d+|xs|s|m|l|xl|xxl|xxxl)\b/i);
         if (sizeMatch) targetSize = sizeMatch[1].toUpperCase();
 
+        // G. Extract Tag Intent
+        if (/trending|popular/i.test(queryText)) targetTag = 'trending';
+        else if (/best seller|bestseller/i.test(queryText)) targetTag = 'best-seller';
+        else if (/new arrival|latest/i.test(queryText)) targetTag = 'new-arrival';
+        else if (/sale|discount/i.test(queryText)) targetTag = 'sale';
+
         let matchingProducts = [];
-        const isProductQuery = targetType || targetBrand || targetColor || targetSize || /fashion|cloth|item|product|buy|price|under|find|recommend|show|look/i.test(queryText);
+        const isProductQuery = targetType || targetBrand || targetColor || targetSize || targetGender || maxPrice !== null || minPrice !== null || targetTag || /fashion|cloth|item|product|buy|price|under|find|recommend|show|look/i.test(queryText);
 
         if (isProductQuery) {
             let andConditions = [{ publish: true }];
 
+            // Price filtering
+            if (maxPrice !== null || minPrice !== null) {
+                let priceCond = {};
+                if (maxPrice !== null) priceCond.$lte = maxPrice;
+                if (minPrice !== null) priceCond.$gte = minPrice;
+                andConditions.push({ price: priceCond });
+            }
+
+            // Gender filtering
+            if (targetGender === 'women') {
+                const genderRegex = /women|female|ladies|lady|dress|skirt|heel|tote/i;
+                andConditions.push({
+                    $or: [
+                        { name: genderRegex },
+                        { category_name: genderRegex },
+                        { description: genderRegex },
+                        { tags: genderRegex }
+                    ]
+                });
+            } else if (targetGender === 'men') {
+                const genderRegex = /men|male|gents|gentlemen|boy/i;
+                andConditions.push({
+                    $or: [
+                        { name: genderRegex },
+                        { category_name: genderRegex },
+                        { description: genderRegex },
+                        { tags: genderRegex }
+                    ]
+                });
+            }
+
+            // Category/Type filtering
             if (targetType) {
                 const typeRegex = new RegExp(targetType, 'i');
                 andConditions.push({
@@ -132,6 +200,7 @@ export async function chatbotController(req, res) {
                 });
             }
 
+            // Color filtering
             if (targetColor) {
                 const colorRegex = new RegExp(targetColor, 'i');
                 andConditions.push({
@@ -145,6 +214,7 @@ export async function chatbotController(req, res) {
                 });
             }
 
+            // Brand filtering
             if (targetBrand) {
                 const brandRegex = new RegExp(targetBrand, 'i');
                 andConditions.push({
@@ -156,6 +226,7 @@ export async function chatbotController(req, res) {
                 });
             }
 
+            // Size filtering
             if (targetSize) {
                 const sizeRegex = new RegExp(targetSize, 'i');
                 andConditions.push({
@@ -166,8 +237,13 @@ export async function chatbotController(req, res) {
                 });
             }
 
-            // Fallback for general word search if no specific attributes detected
-            if (!targetType && !targetColor && !targetBrand && !targetSize) {
+            // Tag filtering
+            if (targetTag) {
+                andConditions.push({ tags: targetTag });
+            }
+
+            // General keyword search if no specific attributes detected
+            if (!targetType && !targetColor && !targetBrand && !targetSize && !targetGender && maxPrice === null && minPrice === null && !targetTag) {
                 const words = queryText
                     .replace(/[^a-zA-Z0-9\s]/g, '')
                     .split(/\s+/)
@@ -189,24 +265,30 @@ export async function chatbotController(req, res) {
 
             matchingProducts = await ProductModel.find({ $and: andConditions })
                 .populate('category subCategory')
+                .sort({ price: 1 }) // Sort ascending by price so cheaper items show first for 'under X' queries
                 .limit(6)
                 .lean();
         }
 
-        // 6. Formulate AI Response Context
-        const searchedQuerySummary = [
+        // 6. Formulate AI Response Summary
+        const searchedQuerySummaryParts = [
+            targetGender ? `for ${targetGender}` : '',
             targetBrand ? `brand "${targetBrand}"` : '',
             targetColor ? `color "${targetColor}"` : '',
             targetSize ? `size "${targetSize}"` : '',
-            targetType ? `type "${targetType}"` : 'products'
-        ].filter(Boolean).join(' ');
+            maxPrice !== null ? `under ₹${maxPrice}` : '',
+            minPrice !== null ? `above ₹${minPrice}` : '',
+            targetType ? targetType : 'products'
+        ].filter(Boolean);
+
+        const searchedQuerySummary = searchedQuerySummaryParts.length > 0 ? searchedQuerySummaryParts.join(' ') : 'items';
 
         let productContextStr = '';
         if (matchingProducts.length > 0) {
             productContextStr = `\nEXACT MATCHING PRODUCTS FOUND IN FLASHFIT STORE FOR (${searchedQuerySummary}):\n` +
                 matchingProducts.map(p => `- ${p.name} (Brand: ${p.brand || 'FlashFit'}, Color: ${p.color || 'N/A'}, Price: ₹${p.price}, Stock: ${p.stock > 0 ? 'In Stock' : 'Out of Stock'})`).join('\n');
-        } else if (targetType || targetBrand || targetColor) {
-            productContextStr = `\nNO PRODUCTS FOUND IN STORE MATCHING: "${searchedQuerySummary}".\nState politely that we currently do not have ${searchedQuerySummary} in stock right now. Do NOT recommend unrelated items like bags or watches.`;
+        } else if (targetType || targetBrand || targetColor || maxPrice !== null) {
+            productContextStr = `\nNO PRODUCTS FOUND IN STORE MATCHING: "${searchedQuerySummary}".\nState politely that we currently do not have ${searchedQuerySummary} in stock right now. Do NOT recommend unrelated product categories.`;
         }
 
         let aiReply = '';
@@ -226,8 +308,8 @@ REAL STORE CONTACT DETAILS:
 
 CRITICAL PRODUCT MATCHING RULES:
 1. ONLY recommend products explicitly listed in the "EXACT MATCHING PRODUCTS FOUND" section.
-2. If NO products are listed in that section, politely state that we currently do NOT have ${searchedQuerySummary || 'those items'} in stock right now.
-3. NEVER suggest unrelated product types (for example, NEVER suggest bags or watches when the user asked for dresses, shirts, or shoes).
+2. If NO products are listed in that section, politely state that we currently do NOT have ${searchedQuerySummary} in stock right now.
+3. NEVER suggest unrelated product types (for example, NEVER suggest bags or watches when the user asked for dresses, shirts, shoes, or items under a specific price).
 `;
 
                 const messagesPayload = [
@@ -262,8 +344,8 @@ CRITICAL PRODUCT MATCHING RULES:
         if (!aiReply) {
             if (matchingProducts.length > 0) {
                 aiReply = `Here are the matching ${searchedQuerySummary} I found in our FlashFit collection for you! 👇`;
-            } else if (targetType || targetBrand || targetColor) {
-                aiReply = `🛍️ I searched our inventory for **${searchedQuerySummary}**, but we don't have any in stock right now. Feel free to check our other collections! 😊`;
+            } else if (targetType || targetBrand || targetColor || maxPrice !== null) {
+                aiReply = `🛍️ I searched our inventory for **${searchedQuerySummary}**, but we don't have any matching items in stock right now. Feel free to check our other collections! 😊`;
             } else {
                 aiReply = `Hello ${userName || ''}! How can I assist you with your FlashFit shopping today? 😊`;
             }
