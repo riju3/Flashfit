@@ -389,16 +389,22 @@ const Chatbot = () => {
                 onClick={() => setIsOpen(!isOpen)}
                 className="relative group p-3 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-xl"
                 style={{
-                    background: 'rgba(255, 255, 255, 0.35)',
-                    backdropFilter: 'blur(16px) saturate(180%)',
-                    WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-                    border: '1.5px solid rgba(255, 255, 255, 0.65)',
-                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.18)'
+                    background: 'rgba(255, 255, 255, 0.28)',
+                    backdropFilter: 'blur(20px) saturate(200%)',
+                    WebkitBackdropFilter: 'blur(20px) saturate(200%)',
+                    border: '1.5px solid rgba(255, 255, 255, 0.75)',
+                    boxShadow: '0 10px 35px 0 rgba(255, 77, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.5)'
                 }}
                 title="FlashFit AI Assistant"
             >
-                {/* Subtle Glass Glow Pulse Ring */}
-                <span className="absolute -inset-1 rounded-full bg-white/30 animate-ping opacity-60 group-hover:opacity-90 pointer-events-none"></span>
+                {/* Apple Glass Radiant Aura Pulse Ring */}
+                <span
+                    className="absolute -inset-1.5 rounded-full animate-ping opacity-70 group-hover:opacity-100 pointer-events-none"
+                    style={{
+                        background: 'linear-gradient(135deg, rgba(255, 77, 0, 0.45), rgba(233, 69, 96, 0.45), rgba(255, 255, 255, 0.7))',
+                        filter: 'blur(4px)'
+                    }}
+                ></span>
 
                 <img
                     src={chatbotIcon}
