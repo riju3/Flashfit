@@ -594,87 +594,101 @@ const ProductDisplayPage = () => {
               )}
             </button>
 
-            {/* 30-Min Express & Trust Badges */}
-            <div className="grid grid-cols-2 gap-2 pt-2 text-xs">
+            {/* 30-Min Express, Returns & COD Trust Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 text-xs">
               <div className="bg-orange-50/60 p-3 rounded-2xl border border-orange-100 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm">
                   <FiZap size={16} />
                 </div>
                 <div>
                   <p className="font-extrabold text-fashion-dark text-[11px]">30-Min Delivery</p>
-                  <p className="text-[10px] text-fashion-gray">Express Darkstore Dispatch</p>
+                  <p className="text-[10px] text-fashion-gray">Express Darkstore</p>
                 </div>
               </div>
 
               <div className="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-100 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
                   <FiRefreshCw size={16} />
                 </div>
                 <div>
-                  <p className="font-extrabold text-fashion-dark text-[11px]">7-Day Easy Returns</p>
+                  <p className="font-extrabold text-fashion-dark text-[11px]">7-Day Returns</p>
                   <p className="text-[10px] text-fashion-gray">Hassle-Free Exchange</p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50/60 p-3 rounded-2xl border border-blue-100 flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <FiShield size={16} />
+                </div>
+                <div>
+                  <p className="font-extrabold text-fashion-dark text-[11px]">COD Available</p>
+                  <p className="text-[10px] text-fashion-gray">Pay on Delivery</p>
                 </div>
               </div>
             </div>
 
-            {/* ── Product Details Accordion (Matching Image 1) ── */}
-            <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-card border border-gray-100 space-y-4">
-              <button
-                onClick={() => setOpenProductDetails(prev => !prev)}
-                className="w-full flex items-center justify-between text-left cursor-pointer group"
-              >
-                <h3 className="text-base sm:text-lg font-bold text-fashion-dark group-hover:text-orange-600 transition-colors">
-                  Product Details
-                </h3>
-                <span className="text-fashion-dark group-hover:text-orange-600 transition-colors">
-                  {openProductDetails ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
-                </span>
-              </button>
-
-              {openProductDetails && (
-                <div className="space-y-5 pt-1 border-t border-gray-100 animate-fade-in-up">
-                  {/* Detailed Description Paragraph (Matching Image 1) */}
-                  <p className="text-xs sm:text-sm text-fashion-gray leading-relaxed font-normal">
-                    {data?.description || `Obtain this high-performance fashion pair from FlashFit that is constructed with fine technology and futuristic design to uplift your style game. Its premium synthetic upper optimally encases the foot, while the rubber outsole ensures strong traction to avoid slippages. It can be teamed with a pair of jeans and a top.`}
-                  </p>
-
-                  {/* Attribute Specifications Table (Matching Image 1 Teal Badges) */}
-                  <div className="space-y-2.5 max-w-lg">
-                    {getProductSpecifications().map((spec, idx) => (
-                      <div key={idx} className="grid grid-cols-2 items-center gap-3 text-xs sm:text-sm">
-                        <div>
-                          <span className="inline-block bg-[#E0F7FA] text-[#00695C] font-semibold px-3 py-1.5 rounded-lg text-xs tracking-wide border border-[#B2EBF2]/60">
-                            {spec.label}
-                          </span>
-                        </div>
-                        <div className="text-fashion-dark font-medium truncate">
-                          {spec.value}
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* Additional custom keys if provided */}
-                    {data?.more_details && Object.keys(data.more_details).map(key => {
-                      if (['Sole Material', 'Heel Type', 'Upper Material', 'Heel Height'].includes(key)) return null;
-                      return (
-                        <div key={key} className="grid grid-cols-2 items-center gap-3 text-xs sm:text-sm">
-                          <div>
-                            <span className="inline-block bg-[#E0F7FA] text-[#00695C] font-semibold px-3 py-1.5 rounded-lg text-xs tracking-wide border border-[#B2EBF2]/60">
-                              {key}
-                            </span>
-                          </div>
-                          <div className="text-fashion-dark font-medium truncate">
-                            {data.more_details[key]}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
           </div>
+        </div>
+
+        {/* ── Product Details Section (Full-Width Accordion) ── */}
+        <div className="mt-10 bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-primary-200 mb-1">Specifications & Overview</p>
+              <h2 className="text-xl font-bold text-fashion-dark">Product Details</h2>
+            </div>
+            <button
+              onClick={() => setOpenProductDetails(prev => !prev)}
+              className="py-2.5 px-5 bg-fashion-dark hover:bg-black text-white font-extrabold text-xs rounded-2xl shadow-sm transition-all flex items-center gap-2 cursor-pointer w-fit"
+            >
+              <span>{openProductDetails ? 'Hide Product Details' : 'View Product Details'}</span>
+              {openProductDetails ? <FiChevronUp size={16} /> : <FiChevronDown size={16} />}
+            </button>
+          </div>
+
+          {openProductDetails && (
+            <div className="space-y-6 pt-4 border-t border-gray-100 animate-fade-in-up">
+              {/* Detailed Description Paragraph (Matching Image 1) */}
+              <div>
+                <p className="text-xs font-bold text-fashion-dark uppercase tracking-wider mb-2">Description</p>
+                <p className="text-xs sm:text-sm text-fashion-gray leading-relaxed font-normal bg-gray-50/60 p-4 rounded-2xl border border-gray-100">
+                  {data?.description || `Obtain this high-performance fashion pair from FlashFit that is constructed with fine technology and futuristic design to uplift your style game. Its premium synthetic upper optimally encases the foot, while the rubber outsole ensures strong traction to avoid slippages. It can be teamed with a pair of jeans and a top.`}
+                </p>
+              </div>
+
+              {/* Specifications Table (Matching Image 1 Teal Badges) */}
+              <div>
+                <p className="text-xs font-bold text-fashion-dark uppercase tracking-wider mb-3">Key Features & Specifications</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {getProductSpecifications().map((spec, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-gray-100 hover:border-teal-200 transition-colors shadow-2xs">
+                      <span className="inline-block bg-[#E0F7FA] text-[#00695C] font-semibold px-3 py-1.5 rounded-xl text-xs tracking-wide border border-[#B2EBF2]/60">
+                        {spec.label}
+                      </span>
+                      <span className="text-xs sm:text-sm text-fashion-dark font-bold">
+                        {spec.value}
+                      </span>
+                    </div>
+                  ))}
+
+                  {/* Additional custom keys if provided */}
+                  {data?.more_details && Object.keys(data.more_details).map(key => {
+                    if (['Sole Material', 'Heel Type', 'Upper Material', 'Heel Height'].includes(key)) return null;
+                    return (
+                      <div key={key} className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-gray-100 hover:border-teal-200 transition-colors shadow-2xs">
+                        <span className="inline-block bg-[#E0F7FA] text-[#00695C] font-semibold px-3 py-1.5 rounded-xl text-xs tracking-wide border border-[#B2EBF2]/60">
+                          {key}
+                        </span>
+                        <span className="text-xs sm:text-sm text-fashion-dark font-bold">
+                          {data.more_details[key]}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── Customer Ratings & Reviews Section (Dropdown Accordion) ── */}
