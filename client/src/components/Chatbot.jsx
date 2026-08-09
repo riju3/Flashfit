@@ -384,14 +384,21 @@ const Chatbot = () => {
                 </div>
             )}
 
-            {/* Floating Chat Trigger Button (Bottom Right Corner) */}
+            {/* Floating Chat Trigger Button (Apple-Style Glassmorphism Effect) */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative group bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white p-3 rounded-full shadow-2xl hover:shadow-orange-500/40 transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 cursor-pointer border-2 border-white/80"
+                className="relative group p-3 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-xl"
+                style={{
+                    background: 'rgba(255, 255, 255, 0.35)',
+                    backdropFilter: 'blur(16px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+                    border: '1.5px solid rgba(255, 255, 255, 0.65)',
+                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.18)'
+                }}
                 title="FlashFit AI Assistant"
             >
-                {/* Glowing Pulse Ring */}
-                <span className="absolute -inset-1 rounded-full bg-orange-500/40 animate-ping opacity-75 group-hover:opacity-100"></span>
+                {/* Subtle Glass Glow Pulse Ring */}
+                <span className="absolute -inset-1 rounded-full bg-white/30 animate-ping opacity-60 group-hover:opacity-90 pointer-events-none"></span>
 
                 <img
                     src={chatbotIcon}
