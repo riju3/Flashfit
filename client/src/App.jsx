@@ -13,7 +13,6 @@ import SummaryApi from './common/SummaryApi';
 import GlobalProvider from './provider/GlobalProvider';
 import ExpressSplashLoader from './components/ExpressSplashLoader';
 import Chatbot from './components/Chatbot';
-import ScrollToTopButton from './components/ScrollToTopButton';
 
 // Disable success toast popups globally across the application
 toast.success = () => {};
@@ -97,7 +96,6 @@ function App() {
           }}
         />
         <Chatbot />
-        <ScrollToTopButton />
       </div>
     </GlobalProvider>
   )
