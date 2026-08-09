@@ -303,3 +303,20 @@ body {
 .animate-road-track {
   animation: road-track 0.35s linear infinite;
 }
+
+@keyframes leg-left {
+  0%, 100% { transform: rotate(-18deg); }
+  50% { transform: rotate(18deg); }
+}
+@keyframes leg-right {
+  0%, 100% { transform: rotate(18deg); }
+  50% { transform: rotate(-18deg); }
+}
+.animate-leg-left {
+  animation: leg-left 0.4s ease-in-out infinite;
+  transform-origin: top center;
+}
+.animate-leg-right {
+  animation: leg-right 0.4s ease-in-out infinite;
+  transform-origin: top center;
+}
