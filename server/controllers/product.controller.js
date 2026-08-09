@@ -196,7 +196,10 @@ export const getProductDetails = async(request,response)=>{
             })
         }
 
-        const product = await ProductModel.findById(productId).populate('category subCategory')
+        // Use lean() to get raw data so old string-format sizes aren't silently dropped by Mongoose schema coercion
+        const product = await ProductModel.findById(productId)
+            .populate('category subCategory')
+            .lean()
 
         if (!product) {
             return response.status(404).json({
@@ -204,6 +207,13 @@ export const getProductDetails = async(request,response)=>{
                 error : true,
                 success : false
             })
+        }
+
+        // Normalize sizes: if any entry is a plain string (old format), convert it to {size, stock:1}
+        if (Array.isArray(product.sizes) && product.sizes.length > 0) {
+            product.sizes = product.sizes.map(s =>
+                typeof s === 'string' ? { size: s, stock: 1 } : s
+            )
         }
 
         return response.json({

@@ -198,6 +198,13 @@ const ProductDisplayPage = () => {
         }
         prod.image = normalizedImages
 
+        // Defensive: normalize sizes to [{size, stock}] in case backend returns old string format
+        if (Array.isArray(prod.sizes) && prod.sizes.length > 0) {
+          prod.sizes = prod.sizes.map(s =>
+            typeof s === 'string' ? { size: s, stock: 1 } : s
+          )
+        }
+
         setData(prod)
         if (prod.colors?.length) setSelectedColor(prod.colors[0])
 
@@ -250,6 +257,18 @@ const ProductDisplayPage = () => {
   useEffect(() => {
     fetchProductDetails()
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [params])
+
+  // Re-fetch fresh stock data whenever the user returns to this tab
+  // (e.g. after placing an order in another tab, or coming back from checkout)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchProductDetails()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [params])
 
   const handleThumbScrollRight = () => { if (imageContainerRef.current) imageContainerRef.current.scrollLeft += 80 }
