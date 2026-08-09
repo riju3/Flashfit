@@ -24,7 +24,7 @@ export async function registerUserController(request,response){
 
         const existingUser = await UserModel.findOne({ email })
 
-        if(existingUser && existingUser.verify_email){
+        if(existingUser){
             return response.status(400).json({
                 message : "Already registered email. Please login.",
                 error : true,
@@ -34,53 +34,22 @@ export async function registerUserController(request,response){
 
         const salt = await bcryptjs.genSalt(10)
         const hashPassword = await bcryptjs.hash(password,salt)
-        const otp = generatedOtp()
-        const otpExpiry = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes validity as requested
 
-        if (existingUser && !existingUser.verify_email) {
-            existingUser.name = name
-            existingUser.password = hashPassword
-            existingUser.register_otp = otp
-            existingUser.register_otp_expiry = otpExpiry
-            await existingUser.save()
-        } else {
-            const payload = {
-                name,
-                email,
-                password : hashPassword,
-                role : "USER",
-                verify_email : false,
-                status : "Active",
-                register_otp : otp,
-                register_otp_expiry : otpExpiry
-            }
-            const newUser = new UserModel(payload)
-            await newUser.save()
+        const payload = {
+            name,
+            email,
+            password : hashPassword,
+            role : "USER",
+            verify_email : true,
+            status : "Active"
         }
-
-        console.log("==========================================")
-        console.log(`🔑 REGISTER OTP FOR [${email}]: ${otp}`)
-        console.log("==========================================")
-
-        // Await sendEmail so Nodemailer finishes SMTP delivery before responding
-        try {
-            await sendEmail({
-                sendTo : email,
-                subject : "Your OTP Code - FlashFit Verification",
-                html : registerOtpTemplate({
-                    name,
-                    otp
-                })
-            })
-        } catch(emailErr) {
-            console.log("Register OTP email error:", emailErr?.message || emailErr)
-        }
+        const newUser = new UserModel(payload)
+        await newUser.save()
 
         return response.json({
-            message : "OTP sent to your email! (Valid for 5 minutes)",
+            message : "Registration successful! You can now login.",
             error : false,
-            success : true,
-            email : email
+            success : true
         })
 
     } catch (error) {
@@ -285,16 +254,6 @@ export async function loginController(request,response){
                 message : "User not registered",
                 error : true,
                 success : false
-            })
-        }
-
-        if(!user.verify_email){
-            return response.status(400).json({
-                message : "Email is not verified. Please verify your email with OTP.",
-                error : true,
-                success : false,
-                unverified : true,
-                email : user.email
             })
         }
 
