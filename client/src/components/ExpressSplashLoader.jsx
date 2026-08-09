@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react'
 const ExpressSplashLoader = () => {
   const [show, setShow] = useState(false)
   const [stage, setStage] = useState(0) 
-  // 0: Man walking carrying parcel (0s - 2.2s)
-  // 1: Man puts parcel into truck (2.2s - 3.2s)
-  // 2: Man steps back a little (3.2s - 4.0s)
-  // 3: Truck accelerates fast right (4.0s - 5.0s)
-  // 4: Fade out overlay (5.0s - 5.6s)
+  // 0: Man walking carrying parcel (0s - 2.5s)
+  // 1: Man puts parcel into truck (2.5s - 3.5s)
+  // 2: Man steps back a little (3.5s - 4.3s)
+  // 3: Truck accelerates fast right (4.3s - 5.3s)
+  // 4: Fade out overlay (5.3s - 6.0s)
 
   useEffect(() => {
     // Check if splash animation has already been shown in this browser session
@@ -15,31 +15,31 @@ const ExpressSplashLoader = () => {
     if (!hasSeen) {
       setShow(true)
 
-      // Stage 1: Put parcel into truck at 2.2s
+      // Stage 1: Put parcel into truck at 2.5s
       const putTimer = setTimeout(() => {
         setStage(1)
-      }, 2200)
+      }, 2500)
 
-      // Stage 2: Man steps back a little at 3.2s
+      // Stage 2: Man steps back a little at 3.5s
       const stepBackTimer = setTimeout(() => {
         setStage(2)
-      }, 3200)
+      }, 3500)
 
-      // Stage 3: Truck accelerates fast right at 4.0s
+      // Stage 3: Truck accelerates fast right at 4.3s
       const accelTimer = setTimeout(() => {
         setStage(3)
-      }, 4000)
+      }, 4300)
 
-      // Stage 4: Fade out overlay at 5.0s
+      // Stage 4: Fade out overlay at 5.3s
       const fadeTimer = setTimeout(() => {
         setStage(4)
-      }, 5000)
+      }, 5300)
 
-      // End & unmount at 5.6s
+      // End & unmount at 6.0s
       const endTimer = setTimeout(() => {
         setShow(false)
         sessionStorage.setItem('flashfit_splash_shown', 'true')
-      }, 5600)
+      }, 6000)
 
       return () => {
         clearTimeout(putTimer)
@@ -59,27 +59,27 @@ const ExpressSplashLoader = () => {
         stage === 4 ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      {/* Background Glow */}
-      <div className="absolute w-[600px] h-[600px] bg-orange-500/15 rounded-full blur-[120px] pointer-events-none" />
+      {/* Background Ambient Glow */}
+      <div className="absolute w-[800px] h-[800px] bg-orange-500/15 rounded-full blur-[140px] pointer-events-none" />
 
-      {/* Main Animation Stage */}
-      <div className="relative w-full max-w-3xl px-4 flex flex-col items-center">
+      {/* FULL SCREEN ANIMATION CONTAINER */}
+      <div className="relative w-full max-w-6xl h-screen flex flex-col items-center justify-center px-4 sm:px-8">
         
         {/* Stage Container */}
-        <div className="relative w-85 sm:w-[500px]">
+        <div className="relative w-full max-w-4xl">
 
           {/* Speed Motion Streaks when truck accelerates (Stage 3) */}
           {stage === 3 && (
-            <div className="absolute left-[-70px] top-1/2 -translate-y-1/2 flex flex-col gap-2 opacity-100 transition-opacity z-10">
-              <div className="w-28 h-1.5 bg-gradient-to-r from-transparent to-orange-500 rounded-full animate-pulse" />
-              <div className="w-36 h-1.5 bg-gradient-to-r from-transparent to-amber-400 rounded-full animate-pulse delay-75" />
-              <div className="w-30 h-1.5 bg-gradient-to-r from-transparent to-orange-600 rounded-full animate-pulse delay-150" />
-              <div className="w-20 h-1.5 bg-gradient-to-r from-transparent to-rose-500 rounded-full animate-pulse" />
+            <div className="absolute left-[-80px] top-1/2 -translate-y-1/2 flex flex-col gap-2.5 opacity-100 transition-opacity z-10">
+              <div className="w-36 h-2 bg-gradient-to-r from-transparent via-orange-500 to-amber-400 rounded-full animate-pulse" />
+              <div className="w-48 h-2 bg-gradient-to-r from-transparent via-amber-400 to-orange-500 rounded-full animate-pulse delay-75" />
+              <div className="w-40 h-2 bg-gradient-to-r from-transparent via-orange-600 to-rose-500 rounded-full animate-pulse delay-150" />
+              <div className="w-28 h-2 bg-gradient-to-r from-transparent via-rose-500 to-amber-300 rounded-full animate-pulse" />
             </div>
           )}
 
-          {/* Combined SVG Scene */}
-          <svg viewBox="0 0 600 270" className="w-full h-auto filter drop-shadow-[0_20px_35px_rgba(249,115,22,0.35)]">
+          {/* Expanded Full Canvas Widescreen SVG */}
+          <svg viewBox="0 0 800 320" className="w-full h-auto filter drop-shadow-[0_25px_45px_rgba(249,115,22,0.4)]">
             <defs>
               <linearGradient id="truckBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#1C1917" />
@@ -99,56 +99,67 @@ const ExpressSplashLoader = () => {
               </linearGradient>
             </defs>
 
-            {/* ── ANIMATED DELIVERY MAN SILHOUETTE ── */}
+            {/* GROUND LINE */}
+            <line x1="20" y1="240" x2="780" y2="240" stroke="#3F3F46" strokeWidth="4" strokeLinecap="round" />
+
+            {/* ── HIGH-DEFINITION DELIVERY MAN SILHOUETTE (Stage 0: Walks -> Stage 1: Puts -> Stage 2: Steps Back) ── */}
             <g
-              className={`transition-all duration-700 ease-in-out ${
+              className={`transition-all duration-1000 ease-in-out ${
                 stage === 0
-                  ? 'translate-x-0 opacity-100' // Man walks towards truck
+                  ? 'translate-x-[40px] opacity-100' // Man walks from left across ground
                   : stage === 1
-                  ? 'translate-x-[75px] opacity-100' // Man at truck putting parcel
+                  ? 'translate-x-[165px] opacity-100' // Man reaches truck rear and loads parcel
                   : stage >= 2
-                  ? 'translate-x-[40px] opacity-90' // Man stepped back a little!
+                  ? 'translate-x-[110px] opacity-90' // Man stepped back a little safely!
                   : 'opacity-0'
               }`}
             >
-              {/* Delivery Man Silhouette - Prominent 1.4x Scale */}
-              <g transform="scale(1.35) translate(0, 5)">
-                {/* Head / Cap */}
-                <circle cx="20" cy="40" r="13" fill="#F97316" />
-                <path d="M 10 38 C 10 29, 30 29, 34 38 Z" fill="#EA580C" />
+              {/* Delivery Executive Silhouette */}
+              <g transform="scale(1.5) translate(0, 10)">
+                {/* Cap */}
+                <path d="M 8 36 C 8 26, 32 26, 36 36 Z" fill="#F97316" />
+                <path d="M 24 34 L 40 34 L 38 38 L 24 38 Z" fill="#EA580C" />
+                {/* Head */}
+                <circle cx="20" cy="40" r="12" fill="#FFFFFF" />
                 
-                {/* Body / Uniform */}
-                <path d="M 10 53 L 30 53 L 28 98 L 12 98 Z" fill="#1C1917" stroke="#F97316" strokeWidth="2" />
+                {/* Body Jacket / Uniform */}
+                <path d="M 8 54 L 32 54 L 30 100 L 10 100 Z" fill="#1C1917" stroke="#F97316" strokeWidth="2.5" />
                 
                 {/* Leg Strides (Walks in Stage 0, stands still in Stage >= 1) */}
                 {/* Left Leg */}
                 <g className={stage === 0 ? "animate-leg-left" : ""}>
-                  <line x1="15" y1="98" x2="10" y2="135" stroke="#18181B" strokeWidth="6" strokeLinecap="round" />
-                  <path d="M 6 135 L 14 135 L 14 140 L 6 140 Z" fill="#F97316" />
+                  <line x1="14" y1="100" x2="8" y2="138" stroke="#18181B" strokeWidth="7" strokeLinecap="round" />
+                  <path d="M 3 138 L 13 138 L 13 144 L 3 144 Z" fill="#F97316" />
                 </g>
                 {/* Right Leg */}
                 <g className={stage === 0 ? "animate-leg-right" : ""}>
-                  <line x1="25" y1="98" x2="30" y2="135" stroke="#18181B" strokeWidth="6" strokeLinecap="round" />
-                  <path d="M 26 135 L 34 135 L 34 140 L 26 140 Z" fill="#F97316" />
+                  <line x1="26" y1="100" x2="32" y2="138" stroke="#18181B" strokeWidth="7" strokeLinecap="round" />
+                  <path d="M 27 138 L 37 138 L 37 144 L 27 144 Z" fill="#F97316" />
                 </g>
 
                 {/* Arms Holding Parcel in Stage 0 */}
                 {stage === 0 && (
-                  <path d="M 10 60 L -4 75 L 25 75" fill="none" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
+                  <path d="M 10 62 L -6 78 L 26 78" fill="none" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
                 )}
 
-                {/* Arms extended in Stage 1, relaxed at side when stepped back in Stage >= 2 */}
-                {stage >= 1 && (
-                  <path d="M 10 60 L 5 85" fill="none" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
+                {/* Arms Extended in Stage 1 */}
+                {stage === 1 && (
+                  <path d="M 28 62 L 48 65 L 35 80" fill="none" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
                 )}
 
-                {/* PARCEL BOX CARRIED BY MAN (Stage 0 only) */}
+                {/* Arms Relaxed at Side when Stepped Back in Stage >= 2 */}
+                {stage >= 2 && (
+                  <path d="M 10 62 L 6 90" fill="none" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
+                )}
+
+                {/* FLASHFIT PARCEL BOX CARRIED BY MAN (Stage 0 only) */}
                 {stage === 0 && (
-                  <g transform="translate(10, 48)">
-                    <rect x="0" y="0" width="38" height="30" rx="5" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="2" />
-                    <line x1="19" y1="0" x2="19" y2="30" stroke="#B45309" strokeWidth="3" />
-                    <line x1="0" y1="15" x2="38" y2="15" stroke="#B45309" strokeWidth="3" />
-                    <polygon points="19,6 15,15 19,15 17,24 23,12 19,12" fill="#FFFFFF" />
+                  <g transform="translate(10, 52)">
+                    <rect x="0" y="0" width="42" height="34" rx="6" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="2.5" />
+                    <line x1="21" y1="0" x2="21" y2="34" stroke="#B45309" strokeWidth="3.5" />
+                    <line x1="0" y1="17" x2="42" y2="17" stroke="#B45309" strokeWidth="3.5" />
+                    {/* Lightning Bolt Logo on Box */}
+                    <polygon points="21,7 16,17 21,17 19,27 26,14 21,14" fill="#FFFFFF" />
                   </g>
                 )}
               </g>
@@ -157,121 +168,121 @@ const ExpressSplashLoader = () => {
             {/* ── TRUCK CONTAINER & CAB GROUP (Accelerates Right in Stage 3) ── */}
             <g
               className={`transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) ${
-                stage === 3 ? 'translate-x-[170vw] opacity-90' : 'translate-x-0'
+                stage === 3 ? 'translate-x-[200vw] opacity-90' : 'translate-x-0'
               }`}
             >
               {/* PARCEL SAFE INSIDE TRUCK CONTAINER (Visible after Stage >= 1) */}
               {stage >= 1 && (
                 <g className="animate-bounce-once">
-                  <rect x="135" y="125" width="36" height="28" rx="5" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="2" />
-                  <line x1="153" y1="125" x2="153" y2="153" stroke="#B45309" strokeWidth="3" />
-                  <line x1="135" y1="139" x2="171" y2="139" stroke="#B45309" strokeWidth="3" />
-                  <polygon points="153,129 149,137 153,137 151,146 157,135 153,135" fill="#FFFFFF" />
+                  <rect x="290" y="150" width="42" height="34" rx="6" fill="url(#boxGrad)" stroke="#FFFFFF" strokeWidth="2.5" />
+                  <line x1="311" y1="150" x2="311" y2="184" stroke="#B45309" strokeWidth="3.5" />
+                  <line x1="290" y1="167" x2="332" y2="167" stroke="#B45309" strokeWidth="3.5" />
+                  <polygon points="311,157 306,167 311,167 309,177 316,164 311,164" fill="#FFFFFF" />
                 </g>
               )}
 
               {/* Rear Cargo Container */}
-              <rect x="115" y="30" width="280" height="150" rx="16" fill="url(#truckBodyGrad)" stroke="#F97316" strokeWidth="3" />
+              <rect x="270" y="40" width="310" height="170" rx="18" fill="url(#truckBodyGrad)" stroke="#F97316" strokeWidth="3.5" />
               
               {/* Speed Stripes on Cargo Rear */}
-              <line x1="95" y1="50" x2="115" y2="50" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
-              <line x1="85" y1="70" x2="115" y2="70" stroke="#F97316" strokeWidth="5" strokeLinecap="round" />
-              <line x1="100" y1="90" x2="115" y2="90" stroke="#FB923C" strokeWidth="4" strokeLinecap="round" />
-              <line x1="90" y1="110" x2="115" y2="110" stroke="#F97316" strokeWidth="5" strokeLinecap="round" />
-              <line x1="105" y1="130" x2="115" y2="130" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
+              <line x1="245" y1="65" x2="270" y2="65" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
+              <line x1="230" y1="90" x2="270" y2="90" stroke="#F97316" strokeWidth="5.5" strokeLinecap="round" />
+              <line x1="250" y1="115" x2="270" y2="115" stroke="#FB923C" strokeWidth="4.5" strokeLinecap="round" />
+              <line x1="235" y1="140" x2="270" y2="140" stroke="#F97316" strokeWidth="5.5" strokeLinecap="round" />
+              <line x1="255" y1="165" x2="270" y2="165" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
 
               {/* Middle Container Side Panel - FLASHFIT LOGO */}
-              <rect x="130" y="45" width="250" height="120" rx="10" fill="#09090B" stroke="#27272A" strokeWidth="2" />
+              <rect x="288" y="58" width="274" height="134" rx="12" fill="#09090B" stroke="#27272A" strokeWidth="2.5" />
               
               {/* FlashFit Logo Inside Container */}
-              <g transform="translate(160, 75)">
+              <g transform="translate(320, 92)">
                 {/* Lightning Bolt */}
-                <polygon points="18,2 6,22 14,22 8,46 28,18 18,18 24,2" fill="url(#boltGrad)" />
+                <polygon points="20,2 7,24 16,24 9,50 31,20 20,20 27,2" fill="url(#boltGrad)" />
                 {/* Text */}
-                <text x="36" y="26" fill="#FFFFFF" fontSize="24" fontWeight="900" fontFamily="Poppins, sans-serif" letterSpacing="-0.5">
+                <text x="40" y="28" fill="#FFFFFF" fontSize="28" fontWeight="900" fontFamily="Poppins, sans-serif" letterSpacing="-0.5">
                   Flash<tspan fill="#F97316">Fit</tspan>
                 </text>
-                <text x="36" y="42" fill="#FDBA74" fontSize="10" fontWeight="800" fontFamily="Poppins, sans-serif" letterSpacing="1.5">
+                <text x="40" y="46" fill="#FDBA74" fontSize="11" fontWeight="800" fontFamily="Poppins, sans-serif" letterSpacing="1.8">
                   30 MIN EXPRESS
                 </text>
               </g>
 
               {/* Front Cabin */}
-              <path d="M 395 60 L 495 60 Q 545 70 555 120 L 555 180 L 395 180 Z" fill="url(#cabinGrad)" stroke="#F97316" strokeWidth="3" />
+              <path d="M 580 70 L 685 70 Q 740 80 750 135 L 750 210 L 580 210 Z" fill="url(#cabinGrad)" stroke="#F97316" strokeWidth="3.5" />
               {/* Cabin Windshield Window */}
-              <path d="M 445 70 L 500 70 Q 530 80 535 115 L 445 115 Z" fill="#18181B" stroke="#F97316" strokeWidth="2" />
+              <path d="M 635 82 L 695 82 Q 725 92 730 130 L 635 130 Z" fill="#18181B" stroke="#F97316" strokeWidth="2.5" />
               {/* Door Handle */}
-              <rect x="455" y="130" width="25" height="6" rx="3" fill="#FFFFFF" />
+              <rect x="645" y="150" width="28" height="7" rx="3.5" fill="#FFFFFF" />
               {/* Headlight Glow */}
-              <circle cx="550" cy="155" r="8" fill="#FEF08A" />
-              <polygon points="558,147 605,135 605,175 558,163" fill="#FEF08A" opacity={stage >= 2 ? 0.5 : 0.15} />
+              <circle cx="745" cy="180" r="9" fill="#FEF08A" />
+              <polygon points="754,170 810,155 810,205 754,190" fill="#FEF08A" opacity={stage >= 2 ? 0.6 : 0.2} />
 
               {/* Chassis Bottom */}
-              <rect x="110" y="180" width="445" height="12" rx="4" fill="#27272A" />
+              <rect x="260" y="210" width="495" height="14" rx="5" fill="#27272A" />
 
               {/* ROTATING FRONT WHEEL */}
-              <g transform="translate(485, 192)">
-                <circle cx="0" cy="0" r="32" fill="#09090B" stroke="#F97316" strokeWidth="4" />
-                <circle cx="0" cy="0" r="22" fill="#27272A" stroke="#FFFFFF" strokeWidth="2" />
+              <g transform="translate(675, 222)">
+                <circle cx="0" cy="0" r="36" fill="#09090B" stroke="#F97316" strokeWidth="4.5" />
+                <circle cx="0" cy="0" r="25" fill="#27272A" stroke="#FFFFFF" strokeWidth="2.5" />
                 <g className={stage >= 2 ? "animate-spin-fast origin-center" : "origin-center"}>
-                  <line x1="-18" y1="0" x2="18" y2="0" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
-                  <line x1="0" y1="-18" x2="0" y2="18" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
-                  <line x1="-12" y1="-12" x2="12" y2="12" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-                  <line x1="-12" y1="12" x2="12" y2="-12" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
+                  <line x1="-20" y1="0" x2="20" y2="0" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
+                  <line x1="0" y1="-20" x2="0" y2="20" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
+                  <line x1="-14" y1="-14" x2="14" y2="14" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" />
+                  <line x1="-14" y1="14" x2="14" y2="-14" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" />
                 </g>
-                <circle cx="0" cy="0" r="8" fill="#F97316" />
+                <circle cx="0" cy="0" r="9" fill="#F97316" />
               </g>
 
               {/* ROTATING REAR WHEEL 1 */}
-              <g transform="translate(185, 192)">
-                <circle cx="0" cy="0" r="32" fill="#09090B" stroke="#F97316" strokeWidth="4" />
-                <circle cx="0" cy="0" r="22" fill="#27272A" stroke="#FFFFFF" strokeWidth="2" />
+              <g transform="translate(345, 222)">
+                <circle cx="0" cy="0" r="36" fill="#09090B" stroke="#F97316" strokeWidth="4.5" />
+                <circle cx="0" cy="0" r="25" fill="#27272A" stroke="#FFFFFF" strokeWidth="2.5" />
                 <g className={stage >= 2 ? "animate-spin-fast origin-center" : "origin-center"}>
-                  <line x1="-18" y1="0" x2="18" y2="0" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
-                  <line x1="0" y1="-18" x2="0" y2="18" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
-                  <line x1="-12" y1="-12" x2="12" y2="12" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-                  <line x1="-12" y1="12" x2="12" y2="-12" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
+                  <line x1="-20" y1="0" x2="20" y2="0" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
+                  <line x1="0" y1="-20" x2="0" y2="20" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
+                  <line x1="-14" y1="-14" x2="14" y2="14" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" />
+                  <line x1="-14" y1="14" x2="14" y2="-14" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" />
                 </g>
-                <circle cx="0" cy="0" r="8" fill="#F97316" />
+                <circle cx="0" cy="0" r="9" fill="#F97316" />
               </g>
 
               {/* ROTATING REAR WHEEL 2 */}
-              <g transform="translate(265, 192)">
-                <circle cx="0" cy="0" r="32" fill="#09090B" stroke="#F97316" strokeWidth="4" />
-                <circle cx="0" cy="0" r="22" fill="#27272A" stroke="#FFFFFF" strokeWidth="2" />
+              <g transform="translate(435, 222)">
+                <circle cx="0" cy="0" r="36" fill="#09090B" stroke="#F97316" strokeWidth="4.5" />
+                <circle cx="0" cy="0" r="25" fill="#27272A" stroke="#FFFFFF" strokeWidth="2.5" />
                 <g className={stage >= 2 ? "animate-spin-fast origin-center" : "origin-center"}>
-                  <line x1="-18" y1="0" x2="18" y2="0" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
-                  <line x1="0" y1="-18" x2="0" y2="18" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
-                  <line x1="-12" y1="-12" x2="12" y2="12" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-                  <line x1="-12" y1="12" x2="12" y2="-12" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
+                  <line x1="-20" y1="0" x2="20" y2="0" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
+                  <line x1="0" y1="-20" x2="0" y2="20" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" />
+                  <line x1="-14" y1="-14" x2="14" y2="14" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" />
+                  <line x1="-14" y1="14" x2="14" y2="-14" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" />
                 </g>
-                <circle cx="0" cy="0" r="8" fill="#F97316" />
+                <circle cx="0" cy="0" r="9" fill="#F97316" />
               </g>
             </g>
           </svg>
         </div>
 
         {/* Animated Moving Road Track */}
-        <div className="w-full max-w-lg h-1.5 bg-neutral-800 rounded-full mt-4 overflow-hidden relative shadow-inner">
+        <div className="w-full max-w-2xl h-2 bg-neutral-800 rounded-full mt-6 overflow-hidden relative shadow-inner">
           <div className={`absolute inset-0 bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 ${stage >= 2 ? 'animate-road-track' : ''}`} />
         </div>
 
         {/* Dynamic Story Status Text under Road Track */}
-        <div className="mt-6 text-center space-y-1">
-          <p className="text-xs font-black tracking-widest text-orange-400 uppercase animate-pulse">
+        <div className="mt-8 text-center space-y-1.5">
+          <p className="text-sm font-black tracking-widest text-orange-400 uppercase animate-pulse">
             {stage === 0
-              ? '🚶 EXPRESS RIDER APPROACHING TRUCK...'
+              ? '🚶 EXPRESS RIDER WALKING TO TRUCK...'
               : stage === 1
-              ? '📦 PUTTING PARCEL INTO EXPRESS CONTAINER...'
+              ? '📦 LOADING PARCEL INTO EXPRESS CONTAINER...'
               : stage === 2
               ? '✅ PARCEL LOADED! RIDER STEPPED BACK...'
               : '🚀 SPEEDING TO YOUR DOORSTEP IN 30 MINS!'}
           </p>
-          <p className="text-[11px] text-neutral-400 font-semibold tracking-wide">
+          <p className="text-xs text-neutral-400 font-semibold tracking-wide">
             {stage === 0
-              ? 'Delivery executive walking to load your FlashFit order'
+              ? 'Delivery executive walking carrying your FlashFit order'
               : stage === 1
-              ? 'Putting parcel inside the truck container'
+              ? 'Putting FlashFit parcel safely inside the express container'
               : stage === 2
               ? 'Rider stepped back to clear the road for departure'
               : 'Express truck accelerating to deliver your order fast'}
