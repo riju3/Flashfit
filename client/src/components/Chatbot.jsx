@@ -20,9 +20,8 @@ const Chatbot = () => {
             text: `😊 Hello${userName ? ` ${userName}` : ''}! Welcome to FlashFit! I'm here to help you with anything you need.\n\n` +
                 `Are you looking for some new fashion inspiration, or do you have a specific question about our products or services?\n\n` +
                 `You can ask me about:\n` +
-                `* **Products**: Get recommendations on our latest collections\n` +
+                `* **Products**: Get recommendations on our latest collections (Shoes, Dresses, Tops & More)\n` +
                 `* **Orders**: Track your order status or get help with returns/exchanges\n` +
-                `* **Offers**: Learn about our current discounts and promo codes\n` +
                 `* **Shipping**: Get info on our delivery options and timelines\n\n` +
                 `What's on your mind? 🤔`,
             products: []
@@ -45,9 +44,8 @@ const Chatbot = () => {
                     text: `😊 Hello ${userName}! Welcome to FlashFit! I'm here to help you with anything you need.\n\n` +
                         `Are you looking for some new fashion inspiration, or do you have a specific question about our products or services?\n\n` +
                         `You can ask me about:\n` +
-                        `* **Products**: Get recommendations on our latest collections\n` +
+                        `* **Products**: Get recommendations on our latest collections (Shoes, Dresses, Tops & More)\n` +
                         `* **Orders**: Track your order status or get help with returns/exchanges\n` +
-                        `* **Offers**: Learn about our current discounts and promo codes\n` +
                         `* **Shipping**: Get info on our delivery options and timelines\n\n` +
                         `What's on your mind? 🤔`,
                     products: []
@@ -71,10 +69,9 @@ const Chatbot = () => {
     // Quick suggestion chips
     const suggestions = [
         { label: '📞 Customer Support', query: 'What is customer support number?' },
-        { label: '👟 Find Shoes', query: 'Show me popular shoes under 3000' },
-        { label: '🚚 Delivery & Shipping', query: 'What is the shipping and delivery policy?' },
-        { label: '🔄 7-Day Returns', query: 'How to return or exchange an item?' },
-        { label: '🏷️ Coupon Codes', query: 'What discount coupons are available?' }
+        { label: '👟 Find Shoes', query: 'Show me popular shoes' },
+        { label: '👗 Find Dresses', query: 'Show me popular dresses for women' },
+        { label: '🚚 Delivery & Shipping', query: 'What is the shipping and delivery policy?' }
     ];
 
     const sendMessage = async (textToSend) => {

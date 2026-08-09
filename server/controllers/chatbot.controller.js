@@ -36,9 +36,8 @@ export async function chatbotController(req, res) {
             const welcomeText = `😊 Hello${namePart}! Welcome to FlashFit! I'm here to help you with anything you need.\n\n` +
                 `Are you looking for some new fashion inspiration, or do you have a specific question about our products or services?\n\n` +
                 `You can ask me about:\n` +
-                `* **Products**: Get recommendations on our latest collections\n` +
+                `* **Products**: Get recommendations on our latest collections (Shoes, Dresses, Tops & More)\n` +
                 `* **Orders**: Track your order status or get help with returns/exchanges\n` +
-                `* **Offers**: Learn about our current discounts and promo codes\n` +
                 `* **Shipping**: Get info on our delivery options and timelines\n\n` +
                 `What's on your mind? 🤔`;
 
@@ -69,7 +68,24 @@ export async function chatbotController(req, res) {
             });
         }
 
-        // 4. Search DB for matching products if query looks product-related
+        // 4. Direct Handler for Shipping & Delivery Information
+        const isShippingQuery = /ship|delivery|track|order status|timeline|when will i get/i.test(queryText);
+        if (isShippingQuery) {
+            const shippingText = `🚚 **Shipping & Delivery Information**:\n\n` +
+                `• **Free Standard Delivery**: On all orders over ₹499.\n` +
+                `• **Delivery Timelines**: 3-5 business days across India.\n` +
+                `• **Order Tracking**: You can view real-time order tracking under **My Profile → My Orders**.\n\n` +
+                `For urgent queries, feel free to contact customer care at **${supportPhone}**! 😊`;
+
+            return res.json({
+                message: shippingText,
+                products: [],
+                success: true,
+                error: false
+            });
+        }
+
+        // 5. Search DB for matching products if query looks product-related
         let matchingProducts = [];
         const isProductQuery = /shoe|shirt|dress|t-shirt|pant|jeans|jacket|coat|watch|bag|wallet|sneaker|heel|boot|kid|men|women|fashion|cloth|item|product|buy|price|under|find|recommend|show|look/i.test(queryText);
 
@@ -106,7 +122,7 @@ export async function chatbotController(req, res) {
 
         let aiReply = '';
 
-        // 5. Call Groq API with live store settings context
+        // 6. Call Groq API with live store settings context
         if (groq) {
             try {
                 const dynamicSystemPrompt = `
@@ -122,11 +138,11 @@ REAL STORE CONTACT DETAILS (Fetched from database - use EXACTLY these when asked
 POLICIES:
 - 7-Day Easy Return & Exchange policy on unworn items.
 - Free Shipping on orders over ₹499 (3-5 days delivery).
-- Offers: Code "FLASH20" for 20% OFF first order, "FIT500" for ₹500 OFF on orders > ₹2999.
 
 INSTRUCTIONS:
 - Be polite, concise, and helpful. Use emojis!
 - When asked for contact or customer care, ALWAYS use phone: ${supportPhone} and email: ${supportEmail}.
+- Do NOT talk about coupons or discount codes.
 `;
 
                 const messagesPayload = [
@@ -164,16 +180,6 @@ INSTRUCTIONS:
                     `• We offer a **7-Day Easy Return & Exchange** policy!\n` +
                     `• Size exchanges are **100% FREE**.\n\n` +
                     `👉 To start a return: Go to **My Profile -> My Orders** and click on "Return / Exchange".`;
-            } else if (/ship|delivery|track|order status/i.test(queryText)) {
-                aiReply = `🚚 **Shipping & Delivery Information**:\n\n` +
-                    `• **Standard Delivery**: 3-5 business days across India.\n` +
-                    `• **Free Shipping**: On all orders over ₹499.\n` +
-                    `• **Tracking**: You can track live status under **My Orders** page.`;
-            } else if (/coupon|discount|offer|code/i.test(queryText)) {
-                aiReply = `🎉 **Current Exclusive Offers**:\n\n` +
-                    `1. **FLASH20** - Get 20% OFF on your first purchase!\n` +
-                    `2. **FIT500** - Flat ₹500 OFF on orders above ₹2,999.\n\n` +
-                    `Apply coupon code at checkout! 🛍️`;
             } else if (matchingProducts.length > 0) {
                 aiReply = `Here are some great matching items I found in our FlashFit collection for you! 👇`;
             } else {
