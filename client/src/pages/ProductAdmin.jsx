@@ -61,7 +61,7 @@ const ProductAdmin = () => {
       const response = await Axios({ ...SummaryApi.updateAllSizes })
       const { data: responseData } = response
       if (responseData.success) {
-        toast.success(`Updated ${responseData.updatedCount} products with sizes!`)
+        toast.success(`✅ Updated ${responseData.updatedCount} products | Skipped ${responseData.skippedCount ?? 0} (already set or no size needed)`)
         fetchProductData()
       }
     } catch (error) { AxiosToastError(error) }
