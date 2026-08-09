@@ -3,7 +3,44 @@ import CartProductModel from "../models/cartproduct.model.js";
 import OrderModel from "../models/order.model.js";
 import UserModel from "../models/user.model.js";
 import CouponModel from "../models/coupon.model.js";
+import ProductModel from "../models/product.model.js";
 import mongoose from "mongoose";
+
+// Decrement overall stock AND per-size stock after an order
+const decrementStock = async (productId, size, qty = 1) => {
+    try {
+        const updateOps = {
+            $inc: { stock: -qty }
+        };
+        await ProductModel.findByIdAndUpdate(productId, updateOps);
+
+        // If a size was selected, also decrement that size's stock
+        if (size) {
+            await ProductModel.findOneAndUpdate(
+                { _id: productId, 'sizes.size': size },
+                { $inc: { 'sizes.$.stock': -qty } }
+            );
+        }
+    } catch (e) {
+        console.error('Stock decrement error:', e.message);
+    }
+};
+
+// Restore stock on order cancellation
+const restoreStock = async (productId, size, qty = 1) => {
+    try {
+        await ProductModel.findByIdAndUpdate(productId, { $inc: { stock: qty } });
+        if (size) {
+            await ProductModel.findOneAndUpdate(
+                { _id: productId, 'sizes.size': size },
+                { $inc: { 'sizes.$.stock': qty } }
+            );
+        }
+    } catch (e) {
+        console.error('Stock restore error:', e.message);
+    }
+};
+
 
  export async function CashOnDeliveryOrderController(request,response){
     try {
@@ -30,6 +67,15 @@ import mongoose from "mongoose";
         })
 
         const generatedOrder = await OrderModel.insertMany(payload)
+
+        // Decrement stock for each ordered item
+        for (const el of list_items) {
+            await decrementStock(
+                el.productId._id,
+                el.size || "",
+                el.quantity || 1
+            );
+        }
 
         // Increment coupon usage count and record user ID
         if (couponCode) {
@@ -183,6 +229,14 @@ export async function webhookStripe(request,response){
     
       const order = await OrderModel.insertMany(orderProduct)
 
+        // Decrement stock for each Stripe ordered item
+        for (const item of lineItems.data) {
+            const product = await Stripe.products.retrieve(item.price.product)
+            const productId = product.metadata.productId
+            const qty = item.quantity || 1
+            await decrementStock(productId, '', qty);
+        }
+
         console.log(order)
         if(Boolean(order[0])){
             const removeCartItems = await  UserModel.findByIdAndUpdate(userId,{
@@ -254,6 +308,13 @@ export async function cancelOrderController(request, response) {
         order.order_status = "CANCELLED";
         order.cancel_reason = cancel_reason || "User requested cancellation";
         await order.save();
+
+        // Restore stock on cancellation
+        await restoreStock(
+            order.productId,
+            order.product_details?.size || "",
+            1
+        );
 
         return response.json({
             message: "Order cancelled successfully",
