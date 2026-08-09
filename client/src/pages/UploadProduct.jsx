@@ -190,7 +190,7 @@ const UploadProduct = () => {
               />
             </FieldGroup>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <FieldGroup label="Brand (Optional)">
                 <input
                   id="brand" type="text" name="brand" value={data.brand || ''}
@@ -216,7 +216,7 @@ const UploadProduct = () => {
               />
             </FieldGroup>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <FieldGroup label="Unit / Size Label">
                 <input
                   id="unit" type="text" name="unit" value={data.unit}
@@ -233,7 +233,7 @@ const UploadProduct = () => {
               </FieldGroup>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <FieldGroup label="Price (₹) *">
                 <input
                   id="price" type="number" name="price" value={data.price}

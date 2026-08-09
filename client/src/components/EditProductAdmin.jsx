@@ -212,7 +212,7 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                   className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
                 />
               </div>
-              <div className='grid grid-cols-2 gap-3'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                 <div className='grid gap-1'>
                   <label htmlFor='brand' className='font-medium text-xs'>Brand (Optional)</label>
                   <input

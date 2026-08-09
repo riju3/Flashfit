@@ -186,7 +186,7 @@ const ProductAdmin = () => {
       : <FiArrowDown size={11} className="text-gray-300"/>
 
   return (
-    <section className="bg-fashion-light min-h-screen relative pb-20">
+    <section className="bg-fashion-light min-h-screen relative pb-28">
       {/* ── Header ── */}
       <div className="bg-white border-b border-gray-100 px-4 py-4 sticky top-0 z-20 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -195,8 +195,8 @@ const ProductAdmin = () => {
             <p className="text-xs text-fashion-gray">{productData.length} products total</p>
           </div>
           {/* Search + Update Sizes Button */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-2 bg-fashion-light border border-gray-200 rounded-xl px-3 py-2 w-full sm:w-64 focus-within:border-primary-200 transition-colors">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+            <div className="flex items-center gap-2 bg-fashion-light border border-gray-200 rounded-xl px-3 py-2 flex-1 sm:w-64 focus-within:border-primary-200 transition-colors">
               <IoSearchOutline size={16} className="text-fashion-gray flex-shrink-0"/>
               <input
                 type="text"
@@ -209,7 +209,7 @@ const ProductAdmin = () => {
             <button
               onClick={handleUpdateAllSizes}
               disabled={sizesUpdating}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 flex-shrink-0"
               style={{background:'linear-gradient(135deg,#6366F1,#8B5CF6)'}}
             >
               {sizesUpdating ? '⏳ Updating...' : '📐 Update All Sizes'}
@@ -226,20 +226,41 @@ const ProductAdmin = () => {
           { label: 'Out of Stock',   value: outOfStock,                       icon: <FiAlertTriangle size={18} className="text-amber-500" /> },
           { label: 'Stock Value',    value: DisplayPriceInRupees(totalValue), icon: <BsCurrencyDollar size={18} className="text-green-600" /> },
         ].map((stat, i) => (
-          <div key={i} className="bg-white rounded-2xl p-4 shadow-card">
+          <div key={i} className="bg-white rounded-2xl p-3.5 sm:p-4 shadow-card">
             <div className="w-8 h-8 rounded-lg bg-fashion-light flex items-center justify-center mb-2">
               {stat.icon}
             </div>
-            <p className="text-xs text-fashion-gray uppercase tracking-wide">{stat.label}</p>
-            <p className="text-lg font-bold text-fashion-dark mt-0.5">{stat.value}</p>
+            <p className="text-[11px] sm:text-xs text-fashion-gray uppercase tracking-wide">{stat.label}</p>
+            <p className="text-base sm:text-lg font-bold text-fashion-dark mt-0.5">{stat.value}</p>
           </div>
         ))}
       </div>
 
-      {/* ── Filter tabs + Table ── */}
-      <div className="container mx-auto px-4 pb-8">
+      {/* ── Filter tabs + Product List ── */}
+      <div className="container mx-auto px-4">
+        {/* Mobile selection header */}
+        <div className="flex items-center justify-between gap-2 mb-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={isAllSelected}
+              onChange={toggleSelectAll}
+              className="w-4 h-4 accent-primary-200 cursor-pointer rounded"
+              id="selectAllCheckbox"
+            />
+            <label htmlFor="selectAllCheckbox" className="text-xs font-bold text-fashion-dark cursor-pointer">
+              Select All ({displayData.length})
+            </label>
+          </div>
+          {selectedIds.length > 0 && (
+            <span className="text-xs font-bold text-primary-200 bg-primary-50 px-2.5 py-1 rounded-full border border-primary-100">
+              {selectedIds.length} Selected
+            </span>
+          )}
+        </div>
+
         {/* Status filter pills */}
-        <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-none">
+        <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-none pb-1">
           {FILTER_STATUS.map(s => (
             <button
               key={s}
@@ -255,8 +276,76 @@ const ProductAdmin = () => {
 
         {loading ? <Loading /> : (
           <div className="bg-white rounded-2xl shadow-card overflow-hidden">
-            {/* Table */}
-            <div className="overflow-x-auto">
+
+            {/* 📱 MOBILE CARD VIEW (Shown on small screens < md) */}
+            <div className="block md:hidden divide-y divide-gray-100">
+              {displayData.map((p, i) => (
+                <div
+                  key={p._id + i}
+                  className={`p-3.5 flex flex-col gap-3 transition-colors ${selectedIds.includes(p._id) ? 'bg-orange-50/60' : 'bg-white'}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(p._id)}
+                      onChange={() => toggleSelectOne(p._id)}
+                      className="w-4 h-4 accent-primary-200 cursor-pointer rounded mt-1 flex-shrink-0"
+                    />
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-fashion-light flex-shrink-0 border border-gray-100">
+                      <img src={p.image?.[0]} alt={p.name} className="w-full h-full object-cover"/>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-1">
+                        <p className="font-semibold text-fashion-dark text-xs sm:text-sm line-clamp-2 leading-snug">{p.name}</p>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0
+                          ${p.publish ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-gray-100 text-fashion-gray border border-gray-200'}`}>
+                          {p.publish ? 'Live' : 'Draft'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-fashion-gray mt-0.5">
+                        {p.category?.map(c => c.name).join(', ') || 'Fashion'}
+                      </p>
+                      {p.tags?.map(t => (
+                        <span key={t} className="text-[8px] font-bold mr-1 px-1.5 py-0.5 rounded-full"
+                          style={{
+                            background: t === 'new-arrival' ? '#22C55E' : t === 'trending' ? '#FF4D00' : t === 'sale' ? '#E94560' : '#C9A84C',
+                            color: t === 'best-seller' ? '#111' : '#fff'
+                          }}>
+                          {t.replace('-',' ').toUpperCase()}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between bg-fashion-light px-3 py-2 rounded-xl border border-gray-100 text-xs">
+                    <div>
+                      <span className="font-bold text-fashion-dark">{DisplayPriceInRupees(pricewithDiscount(p.price, p.discount))}</span>
+                      {p.discount > 0 && <span className="text-[10px] text-fashion-gray line-through ml-1">{DisplayPriceInRupees(p.price)}</span>}
+                    </div>
+                    <StockBadge stock={p.stock} />
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setEditProduct(p)}
+                        className="p-1.5 rounded-lg text-fashion-gray hover:text-primary-200 hover:bg-white transition-all border border-gray-200 bg-white"
+                        title="Edit"
+                      >
+                        <MdEdit size={14}/>
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(p)}
+                        className="p-1.5 rounded-lg text-fashion-gray hover:text-red-500 hover:bg-white transition-all border border-gray-200 bg-white"
+                        title="Delete"
+                      >
+                        <MdDelete size={14}/>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 💻 DESKTOP TABLE VIEW (Shown on screens >= md) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-fashion-light">
@@ -379,17 +468,17 @@ const ProductAdmin = () => {
                   ))}
                 </tbody>
               </table>
-
-              {displayData.length === 0 && !loading && (
-                <div className="text-center py-16">
-                  <div className="w-12 h-12 rounded-full bg-fashion-light flex items-center justify-center mx-auto mb-3">
-                    <FiPackage size={22} className="text-fashion-gray" />
-                  </div>
-                  <p className="font-semibold text-fashion-dark">No products found</p>
-                  <p className="text-sm text-fashion-gray mt-1">Try adjusting your search or filter</p>
-                </div>
-              )}
             </div>
+
+            {displayData.length === 0 && !loading && (
+              <div className="text-center py-16">
+                <div className="w-12 h-12 rounded-full bg-fashion-light flex items-center justify-center mx-auto mb-3">
+                  <FiPackage size={22} className="text-fashion-gray" />
+                </div>
+                <p className="font-semibold text-fashion-dark">No products found</p>
+                <p className="text-sm text-fashion-gray mt-1">Try adjusting your search or filter</p>
+              </div>
+            )}
 
             {/* Pagination */}
             {totalPageCount > 1 && (
@@ -397,17 +486,17 @@ const ProductAdmin = () => {
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-1.5 rounded-lg text-sm font-semibold border border-gray-200 disabled:opacity-40 hover:border-primary-200 hover:text-primary-200 transition-all"
+                  className="px-4 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 disabled:opacity-40 hover:border-primary-200 hover:text-primary-200 transition-all"
                 >
                   Previous
                 </button>
-                <span className="text-sm text-fashion-gray">
+                <span className="text-xs text-fashion-gray">
                   Page <span className="font-bold text-fashion-dark">{page}</span> of <span className="font-bold text-fashion-dark">{totalPageCount}</span>
                 </span>
                 <button
                   onClick={() => setPage(p => Math.min(totalPageCount, p + 1))}
                   disabled={page === totalPageCount}
-                  className="px-4 py-1.5 rounded-lg text-sm font-semibold border border-gray-200 disabled:opacity-40 hover:border-primary-200 hover:text-primary-200 transition-all"
+                  className="px-4 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 disabled:opacity-40 hover:border-primary-200 hover:text-primary-200 transition-all"
                 >
                   Next
                 </button>
@@ -417,9 +506,9 @@ const ProductAdmin = () => {
         )}
       </div>
 
-      {/* ── Floating Action Bar for Selected Products ── */}
+      {/* ── Floating Action Bar for Selected Products (Fully Responsive) ── */}
       {selectedIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-fashion-dark text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 border border-gray-700 animate-slideUp">
+        <div className="fixed bottom-4 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-50 bg-fashion-dark text-white p-3 sm:px-5 sm:py-3 rounded-2xl shadow-2xl flex flex-wrap items-center justify-between sm:justify-start gap-2 sm:gap-4 border border-gray-700 animate-slideUp">
           <div className="flex items-center gap-2 pr-2 border-r border-gray-700">
             <span className="w-6 h-6 rounded-full bg-primary-200 text-white text-xs font-bold flex items-center justify-center">
               {selectedIds.length}
@@ -427,11 +516,11 @@ const ProductAdmin = () => {
             <span className="text-xs font-semibold">Selected</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => handleBulkPublishStatus(true)}
               disabled={bulkActionLoading}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+              className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center gap-1"
             >
               <MdCheckCircle size={14}/> Publish
             </button>
@@ -439,25 +528,25 @@ const ProductAdmin = () => {
             <button
               onClick={() => handleBulkPublishStatus(false)}
               disabled={bulkActionLoading}
-              className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+              className="px-2.5 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center gap-1"
             >
-              <MdCancel size={14}/> Unpublish
+              <MdCancel size={14}/> Draft
             </button>
 
             <button
               onClick={() => setBulkDeleteConfirm(true)}
               disabled={bulkActionLoading}
-              className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+              className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center gap-1"
             >
-              <FiTrash2 size={14}/> Delete Selected
+              <FiTrash2 size={14}/> Delete
             </button>
           </div>
 
           <button
             onClick={() => setSelectedIds([])}
-            className="text-xs text-gray-400 hover:text-white underline pl-2"
+            className="text-xs text-gray-400 hover:text-white underline pl-1"
           >
-            Deselect
+            Clear
           </button>
         </div>
       )}
