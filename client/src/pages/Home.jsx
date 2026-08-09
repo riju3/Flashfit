@@ -205,6 +205,7 @@ const CategoryPills = ({ categories, subCategories, onCategoryClick }) => {
   const handleAllClick = () => {
     setActive(null)
     navigate('/')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -222,7 +223,7 @@ const CategoryPills = ({ categories, subCategories, onCategoryClick }) => {
           <button
             key={cat._id}
             onClick={() => handleClick(cat)}
-            className={`flex-shrink-0 flex items-center gap-2 pl-1 pr-4 py-1 rounded-full text-sm font-medium transition-all duration-200 border
+            className={`flex-shrink-0 flex items-center gap-2 pl-1 pr-4 py-1 rounded-full text-sm font-medium transition-all duration-200 border cursor-pointer
               ${active === cat._id ? 'text-white border-primary-200 shadow-orange' : 'text-fashion-charcoal border-gray-200 hover:border-primary-100 hover:text-primary-200 bg-white'}`}
             style={active === cat._id ? {background:'linear-gradient(135deg,#FF4D00,#E94560)'} : {}}
           >
@@ -247,6 +248,7 @@ const SectionHeader = ({ eyebrow, title, href }) => (
     {href && (
       <Link
         to={href}
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         className="flex items-center gap-1 text-sm font-semibold text-primary-200 hover:text-primary-100 transition-colors group"
       >
         View All
@@ -536,6 +538,7 @@ const Home = () => {
           </div>
           <Link
             to="/search?q="
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="flex items-center gap-1 text-sm font-semibold text-primary-200 hover:text-primary-100 transition-colors group"
           >
             Explore All 300+ Products
@@ -552,6 +555,7 @@ const Home = () => {
         <div className="text-center mt-8">
           <Link
             to="/search?q="
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="inline-flex items-center gap-2 text-white font-bold px-8 py-3.5 rounded-xl transition-all hover:shadow-orange hover:scale-105 active:scale-95"
             style={{ background: 'linear-gradient(135deg,#FF4D00,#E94560)' }}
           >

@@ -59,6 +59,7 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
         </div>
         <Link
           to={getRedirectUrl()}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="flex items-center gap-1 text-sm font-semibold text-primary-200 hover:text-primary-100 transition-colors group"
         >
           See All
