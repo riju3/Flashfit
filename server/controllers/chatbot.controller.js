@@ -201,17 +201,15 @@ export async function chatbotController(req, res) {
                 });
             }
 
-            // Color filtering
+            // Color filtering (Uses strict word boundary \b to prevent matching substrings like "tiered", "structured", "layered")
             if (targetColor) {
-                const colorRegex = new RegExp(targetColor, 'i');
+                const colorBoundRegex = new RegExp(`\\b${targetColor}\\b`, 'i');
                 andConditions.push({
                     $or: [
-                        { color: colorRegex },
-                        { colors: colorRegex },
-                        { name: colorRegex },
-                        { tags: colorRegex },
-                        { keywords: colorRegex },
-                        { description: colorRegex }
+                        { color: colorBoundRegex },
+                        { colors: colorBoundRegex },
+                        { keywords: colorBoundRegex },
+                        { name: colorBoundRegex }
                     ]
                 });
             }
