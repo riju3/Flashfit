@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FaCloudUploadAlt } from "react-icons/fa";
+import { FaCloudUploadAlt, FaLink } from "react-icons/fa";
 import uploadImage from '../utils/UploadImage';
 import Loading from '../components/Loading';
 import ViewImage from '../components/ViewImage';
@@ -117,6 +117,13 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
   const [openAddField, setOpenAddField] = useState(false)
   const [fieldName, setFieldName] = useState("")
   const [customSizeInput, setCustomSizeInput] = useState('')
+  const [urlInput, setUrlInput] = useState('')
+
+  const handleAddImageUrl = () => {
+    if (!urlInput.trim()) return
+    setData(p => ({ ...p, image: [...p.image, urlInput.trim()] }))
+    setUrlInput('')
+  }
 
   const isSizeSelected = (s) => data.sizes.some(x => x.size === s)
   const toggleSize = (s) => {
@@ -315,15 +322,17 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                 />
               </div>
               <div>
-                <p className='font-medium'>Image</p>
-                <div>
-                  <label htmlFor='productImage' className='bg-blue-50 h-24 border rounded flex justify-center items-center cursor-pointer'>
-                    <div className='text-center flex justify-center items-center flex-col'>
+                <p className='font-medium text-xs mb-1'>Product Images</p>
+                <div className="space-y-3">
+                  {/* File upload zone */}
+                  <label htmlFor='productImage' className='bg-blue-50 h-24 border border-dashed border-gray-300 rounded-xl flex justify-center items-center cursor-pointer hover:border-primary-200 hover:bg-blue-100/50 transition-all'>
+                    <div className='text-center flex justify-center items-center flex-col text-xs text-gray-600'>
                       {
                         imageLoading ? <Loading /> : (
                           <>
-                            <FaCloudUploadAlt size={35} />
-                            <p>Upload Image</p>
+                            <FaCloudUploadAlt size={28} className="text-primary-200 mb-1" />
+                            <p className="font-semibold text-fashion-dark">Click to Upload Image File</p>
+                            <p className="text-[10px] text-gray-400">JPG, PNG, WEBP</p>
                           </>
                         )
                       }
@@ -336,6 +345,30 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                       onChange={handleUploadImage}
                     />
                   </label>
+
+                  {/* URL image input */}
+                  <div className="flex gap-2">
+                    <div className="flex-1 relative">
+                      <FaLink className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={13}/>
+                      <input
+                        type="url"
+                        value={urlInput}
+                        onChange={e => setUrlInput(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddImageUrl())}
+                        placeholder="Or paste image URL (https://...)"
+                        className="bg-white p-2 pl-9 outline-none border focus-within:border-primary-200 rounded w-full text-xs"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddImageUrl}
+                      className="px-4 py-2 rounded text-xs font-bold text-white transition-all hover:bg-orange-600 cursor-pointer shrink-0"
+                      style={{background:'linear-gradient(135deg,#FF4D00,#E94560)'}}
+                    >
+                      + Add URL
+                    </button>
+                  </div>
+                </div>
                   {/**display uploded image*/}
                   <div className='flex flex-wrap gap-4'>
                     {
@@ -358,7 +391,6 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                   </div>
                 </div>
 
-              </div>
               <div className='grid gap-1'>
                 <label className='font-medium'>Category</label>
                 <div>
