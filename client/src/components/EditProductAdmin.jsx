@@ -15,6 +15,67 @@ import successAlert from '../utils/SuccessAlert';
 const APPAREL_SIZES  = ['XS','S','M','L','XL','XXL','XXXL','Free Size']
 const FOOTWEAR_SIZES = ['UK 5','UK 6','UK 7','UK 8','UK 9','UK 10','UK 11']
 
+const SPEC_PRESETS = [
+  {
+    id: 'shoes',
+    label: '👟 Shoes / Footwear',
+    fields: {
+      'Sole Material': 'Rubber',
+      'Heel Type': 'Flat',
+      'Color Family': 'White',
+      'Heel Height': '1',
+      'Upper Material': 'Synthetic',
+      'Net Quantity': '1',
+    }
+  },
+  {
+    id: 'clothes',
+    label: '👕 Clothes / Apparel',
+    fields: {
+      'Fabric / Material': 'Cotton',
+      'Pattern': 'Solid',
+      'Color Family': 'Black',
+      'Fit Type': 'Regular Fit',
+      'Net Quantity': '1 N',
+    }
+  },
+  {
+    id: 'sunglasses',
+    label: '🕶️ Sunglasses / Eyewear',
+    fields: {
+      'Frame Material': 'Acetate',
+      'Lens Technology': 'UV400 Protected',
+      'Frame Shape': 'Wayfarer',
+      'Color Family': 'Black',
+      'Gender / Fit': 'Unisex',
+      'Net Quantity': '1 N (With Case)',
+    }
+  },
+  {
+    id: 'watches',
+    label: '⌚ Watches / Accessories',
+    fields: {
+      'Strap Material': 'Stainless Steel',
+      'Movement': 'Analog Quartz',
+      'Water Resistance': '3 ATM / 30m',
+      'Dial Color': 'Black',
+      'Color Family': 'Silver',
+      'Net Quantity': '1 N',
+    }
+  },
+  {
+    id: 'bags',
+    label: '👜 Bags / Backpacks',
+    fields: {
+      'Material': 'Vegan Leather',
+      'Closure Type': 'Zipper',
+      'Capacity': '20 Liters',
+      'Color Family': 'Brown',
+      'Net Quantity': '1 N',
+    }
+  }
+]
+
 
 const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
   const [data, setData] = useState({
@@ -582,14 +643,81 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                 <p className="text-[10px] text-gray-500">💡 These keywords are hidden from customers on the product page, but help the AI Chatbot find exact matches.</p>
               </div>
 
-              <div onClick={() => setOpenAddField(true)} className=' hover:bg-primary-200 bg-white py-1 px-3 w-32 text-center font-semibold border border-primary-200 hover:text-neutral-900 cursor-pointer rounded'>
-                Add Fields
+              {/* ── Key Features & Specifications Card ── */}
+              <div className='grid gap-2 mt-2 p-3 bg-blue-50 rounded-lg border space-y-3'>
+                <div className='flex items-center justify-between border-b border-blue-100 pb-2'>
+                  <label className='font-bold text-sm text-fashion-dark uppercase tracking-wider'>Key Features & Specifications</label>
+                  <span className='text-[11px] text-gray-500 font-medium'>Load predefined product templates</span>
+                </div>
+
+                {/* Preset Template Buttons */}
+                <div className="bg-white p-3 rounded-xl border border-blue-100 space-y-2">
+                  <p className="text-[11px] font-bold text-gray-700 uppercase tracking-widest">⚡ Click to Load Template Fields</p>
+                  <div className="flex flex-wrap gap-2">
+                    {SPEC_PRESETS.map(preset => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setData(p => ({
+                            ...p,
+                            more_details: { ...p.more_details, ...preset.fields }
+                          }))
+                        }}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-600 hover:text-white text-fashion-dark transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Active Fields */}
+                {Object.keys(data.more_details || {}).length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    {Object.keys(data.more_details).map(k => (
+                      <div key={k} className="flex flex-col gap-1 bg-white p-2.5 rounded-xl border border-gray-200">
+                        <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">{k}</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            value={data.more_details[k]}
+                            onChange={e => {
+                              const val = e.target.value
+                              setData(p => ({ ...p, more_details: { ...p.more_details, [k]: val } }))
+                            }}
+                            placeholder={`Enter ${k}`}
+                            className="bg-white border rounded px-2.5 py-1.5 text-xs flex-1 outline-none focus:border-primary-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = { ...data.more_details }
+                              delete updated[k]
+                              setData(p => ({ ...p, more_details: updated }))
+                            }}
+                            title="Remove Field"
+                            className="text-gray-400 hover:text-red-500 p-1.5 transition-colors cursor-pointer"
+                          >
+                            <IoClose size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 italic py-1">Click a template above to add specification fields.</p>
+                )}
+              </div>
+
+              <div onClick={() => setOpenAddField(true)} className='hover:bg-primary-200 bg-white py-2 px-4 text-center font-semibold border border-primary-200 hover:text-neutral-900 cursor-pointer rounded-xl text-xs flex items-center justify-center gap-1.5 w-fit'>
+                + Add Custom Specification Field
               </div>
 
               <button
-                className='bg-primary-100 hover:bg-primary-200 py-2 rounded font-semibold'
+                className='bg-primary-100 hover:bg-primary-200 py-3 rounded-xl font-bold text-white transition-all shadow-md cursor-pointer'
               >
-                Update Product
+                Update Product Details
               </button>
             </form>
           </div>

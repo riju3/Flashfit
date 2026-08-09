@@ -23,6 +23,67 @@ const TAG_OPTIONS    = [
   { value: 'best-seller',  label: 'Best Seller', color: '#C9A84C' },
 ]
 
+const SPEC_PRESETS = [
+  {
+    id: 'shoes',
+    label: '👟 Shoes / Footwear',
+    fields: {
+      'Sole Material': 'Rubber',
+      'Heel Type': 'Flat',
+      'Color Family': 'White',
+      'Heel Height': '1',
+      'Upper Material': 'Synthetic',
+      'Net Quantity': '1',
+    }
+  },
+  {
+    id: 'clothes',
+    label: '👕 Clothes / Apparel',
+    fields: {
+      'Fabric / Material': 'Cotton',
+      'Pattern': 'Solid',
+      'Color Family': 'Black',
+      'Fit Type': 'Regular Fit',
+      'Net Quantity': '1 N',
+    }
+  },
+  {
+    id: 'sunglasses',
+    label: '🕶️ Sunglasses / Eyewear',
+    fields: {
+      'Frame Material': 'Acetate',
+      'Lens Technology': 'UV400 Protected',
+      'Frame Shape': 'Wayfarer',
+      'Color Family': 'Black',
+      'Gender / Fit': 'Unisex',
+      'Net Quantity': '1 N (With Case)',
+    }
+  },
+  {
+    id: 'watches',
+    label: '⌚ Watches / Accessories',
+    fields: {
+      'Strap Material': 'Stainless Steel',
+      'Movement': 'Analog Quartz',
+      'Water Resistance': '3 ATM / 30m',
+      'Dial Color': 'Black',
+      'Color Family': 'Silver',
+      'Net Quantity': '1 N',
+    }
+  },
+  {
+    id: 'bags',
+    label: '👜 Bags / Backpacks',
+    fields: {
+      'Material': 'Vegan Leather',
+      'Closure Type': 'Zipper',
+      'Capacity': '20 Liters',
+      'Color Family': 'Brown',
+      'Net Quantity': '1 N',
+    }
+  }
+]
+
 const FieldGroup = ({ label, children }) => (
   <div className="space-y-1.5">
     <label className="admin-label">{label}</label>
@@ -494,35 +555,84 @@ const UploadProduct = () => {
             </FieldGroup>
           </div>
 
-          {/* ── Additional Details Card ── */}
-          {(Object.keys(data.more_details).length > 0 || openAddField) && (
-            <div className="bg-white rounded-2xl p-5 shadow-card space-y-4">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-fashion-gray border-b border-gray-100 pb-2">Additional Details</h2>
-              <div className="grid grid-cols-2 gap-4">
-                {Object.keys(data.more_details).map(k => (
-                  <FieldGroup key={k} label={k}>
-                    <input
-                      type="text" value={data.more_details[k]}
-                      onChange={e => {
-                        const val = e.target.value
-                        setData(p => ({ ...p, more_details: { ...p.more_details, [k]: val } }))
-                      }}
-                      className="admin-input"
-                    />
-                  </FieldGroup>
+          {/* ── Key Features & Specifications Card ── */}
+          <div className="bg-white rounded-2xl p-5 shadow-card space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-fashion-gray">
+                Key Features & Specifications
+              </h2>
+              <span className="text-[11px] text-gray-400 font-medium">Predefined templates for product types</span>
+            </div>
+
+            {/* Template Selector Preset Buttons */}
+            <div className="bg-orange-50/50 p-3.5 rounded-2xl border border-orange-100 space-y-2">
+              <p className="text-[11px] font-bold text-fashion-dark uppercase tracking-widest">⚡ Click to Load Predefined Template Fields</p>
+              <div className="flex flex-wrap gap-2">
+                {SPEC_PRESETS.map(preset => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => {
+                      setData(p => ({
+                        ...p,
+                        more_details: { ...p.more_details, ...preset.fields }
+                      }))
+                    }}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-white border border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500 text-fashion-dark transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                  >
+                    {preset.label}
+                  </button>
                 ))}
               </div>
             </div>
-          )}
+
+            {/* Fields list */}
+            {Object.keys(data.more_details).length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                {Object.keys(data.more_details).map(k => (
+                  <div key={k} className="relative group">
+                    <FieldGroup label={k}>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          value={data.more_details[k]}
+                          onChange={e => {
+                            const val = e.target.value
+                            setData(p => ({ ...p, more_details: { ...p.more_details, [k]: val } }))
+                          }}
+                          placeholder={`Enter ${k}`}
+                          className="admin-input flex-1 text-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = { ...data.more_details }
+                            delete updated[k]
+                            setData(p => ({ ...p, more_details: updated }))
+                          }}
+                          title="Remove Field"
+                          className="text-gray-400 hover:text-red-500 p-2 transition-colors cursor-pointer"
+                        >
+                          <MdDelete size={18} />
+                        </button>
+                      </div>
+                    </FieldGroup>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 italic py-2">Click any template button above or click "+ Add Custom Specification Field" below to add details.</p>
+            )}
+          </div>
 
           {/* Add field + Submit */}
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setOpenAddField(true)}
-              className="flex items-center gap-1.5 text-sm font-semibold text-primary-200 border-2 border-primary-100 hover:bg-primary-50 px-4 py-2.5 rounded-xl transition-all"
+              className="flex items-center gap-1.5 text-sm font-semibold text-primary-200 border-2 border-primary-100 hover:bg-primary-50 px-4 py-2.5 rounded-xl transition-all cursor-pointer"
             >
-              <FiPlus /> Add Custom Field
+              <FiPlus /> Add Custom Specification Field
             </button>
 
             <button

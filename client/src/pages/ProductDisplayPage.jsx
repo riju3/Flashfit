@@ -44,6 +44,14 @@ const ProductDisplayPage = () => {
   const [touchEnd,   setTouchEnd]   = useState(null)
 
   const getProductSpecifications = () => {
+    // If more_details exists in database, map directly from it
+    if (data?.more_details && Object.keys(data.more_details).length > 0) {
+      return Object.entries(data.more_details)
+        .filter(([_, val]) => val !== undefined && val !== null && String(val).trim() !== '')
+        .map(([key, val]) => ({ label: key, value: String(val) }));
+    }
+
+    // Default fallback specs based on footwear vs apparel
     const isFootwear = data?.category?.some(c => 
       c.name?.toLowerCase().includes('footwear') || 
       c.name?.toLowerCase().includes('shoe') || 
@@ -54,19 +62,19 @@ const ProductDisplayPage = () => {
 
     if (isFootwear) {
       return [
-        { label: 'Sole Material', value: data?.more_details?.['Sole Material'] || 'Rubber' },
-        { label: 'Heel Type', value: data?.more_details?.['Heel Type'] || 'Flat' },
+        { label: 'Sole Material', value: 'Rubber' },
+        { label: 'Heel Type', value: 'Flat' },
         { label: 'Color Family', value: color.charAt(0).toUpperCase() + color.slice(1) },
-        { label: 'Heel Height', value: data?.more_details?.['Heel Height'] || '1' },
-        { label: 'Upper Material', value: data?.more_details?.['Upper Material'] || 'Synthetic' },
+        { label: 'Heel Height', value: '1' },
+        { label: 'Upper Material', value: 'Synthetic' },
         { label: 'Net Quantity', value: '1' },
       ];
     } else {
       return [
-        { label: 'Fabric / Material', value: data?.more_details?.['Fabric'] || 'Premium Breathable Cotton' },
-        { label: 'Pattern', value: data?.more_details?.['Pattern'] || 'Solid Design' },
+        { label: 'Fabric / Material', value: 'Premium Breathable Cotton' },
+        { label: 'Pattern', value: 'Solid Design' },
         { label: 'Color Family', value: color.charAt(0).toUpperCase() + color.slice(1) },
-        { label: 'Fit Type', value: data?.more_details?.['Fit'] || 'Regular Comfort Fit' },
+        { label: 'Fit Type', value: 'Regular Comfort Fit' },
         { label: 'Net Quantity', value: '1' },
       ];
     }
@@ -670,21 +678,6 @@ const ProductDisplayPage = () => {
                       </span>
                     </div>
                   ))}
-
-                  {/* Additional custom keys if provided */}
-                  {data?.more_details && Object.keys(data.more_details).map(key => {
-                    if (['Sole Material', 'Heel Type', 'Upper Material', 'Heel Height'].includes(key)) return null;
-                    return (
-                      <div key={key} className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-gray-100 hover:border-teal-200 transition-colors shadow-2xs">
-                        <span className="inline-block bg-[#E0F7FA] text-[#00695C] font-semibold px-3 py-1.5 rounded-xl text-xs tracking-wide border border-[#B2EBF2]/60">
-                          {key}
-                        </span>
-                        <span className="text-xs sm:text-sm text-fashion-dark font-bold">
-                          {data.more_details[key]}
-                        </span>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
             </div>
