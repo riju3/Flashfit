@@ -47,14 +47,28 @@ const restoreStock = async (productId, size, qty = 1) => {
         const userId = request.userId // auth middleware 
         const { list_items, totalAmt, addressId, subTotalAmt, couponCode } = request.body 
 
-        const payload = list_items.map(el => {
+        // Filter out null or missing products
+        const validItems = (list_items || []).filter(el => el?.productId && (el?.productId?._id || el?.productId));
+
+        if (!validItems || validItems.length === 0) {
+            return response.status(400).json({
+                message: "No valid products found in your cart.",
+                error: true,
+                success: false
+            });
+        }
+
+        const payload = validItems.map(el => {
+            const pId = el.productId._id || el.productId;
+            const pName = el.productId.name || "Product";
+            const pImage = el.productId.image || [];
             return({
                 userId : userId,
                 orderId : `ORD-${new mongoose.Types.ObjectId()}`,
-                productId : el.productId._id, 
+                productId : pId, 
                 product_details : {
-                    name : el.productId.name,
-                    image : el.productId.image,
+                    name : pName,
+                    image : pImage,
                     size : el.size || ""
                 } ,
                 couponCode : couponCode ? String(couponCode).toUpperCase().trim() : "",
@@ -69,9 +83,10 @@ const restoreStock = async (productId, size, qty = 1) => {
         const generatedOrder = await OrderModel.insertMany(payload)
 
         // Decrement stock for each ordered item
-        for (const el of list_items) {
+        for (const el of validItems) {
+            const pId = el.productId._id || el.productId;
             await decrementStock(
-                el.productId._id,
+                pId,
                 el.size || "",
                 el.quantity || 1
             );
@@ -119,26 +134,39 @@ export async function paymentController(request,response){
         const userId = request.userId // auth middleware 
         const { list_items, totalAmt, addressId,subTotalAmt } = request.body 
 
+        const validItems = (list_items || []).filter(el => el?.productId && (el?.productId?._id || el?.productId));
+
+        if (!validItems || validItems.length === 0) {
+            return response.status(400).json({
+                message: "No valid products found in your cart.",
+                error: true,
+                success: false
+            });
+        }
+
         const user = await UserModel.findById(userId)
 
-        const line_items  = list_items.map(item =>{
+        const line_items  = validItems.map(item =>{
+            const pName = item.productId.name || "Product";
+            const pImage = item.productId.image || [];
+            const pId = item.productId._id || item.productId;
             return{
                price_data : {
                     currency : 'inr',
                     product_data : {
-                        name : item.productId.name,
-                        images : item.productId.image,
+                        name : pName,
+                        images : Array.isArray(pImage) ? pImage : [pImage],
                         metadata : {
-                            productId : item.productId._id
+                            productId : pId
                         }
                     },
-                    unit_amount : pricewithDiscount(item.productId.price,item.productId.discount) * 100   
+                    unit_amount : pricewithDiscount(item.productId.price || 0, item.productId.discount || 0) * 100   
                },
                adjustable_quantity : {
                     enabled : true,
                     minimum : 1
                },
-               quantity : item.quantity 
+               quantity : item.quantity || 1
             }
         })
 

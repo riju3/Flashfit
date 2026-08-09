@@ -154,7 +154,7 @@ const Header = () => {
                 <BsCart4 size={20} />
                 {cartItem[0] ? (
                   <div className="text-left leading-tight">
-                    <p className="text-xs opacity-90">{totalQty} Items</p>
+                    <p className="text-xs opacity-90">{totalQty} {totalQty === 1 ? 'Item' : 'Items'}</p>
                     <p className="font-bold">{DisplayPriceInRupees(totalPrice)}</p>
                   </div>
                 ) : (

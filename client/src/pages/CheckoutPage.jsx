@@ -103,13 +103,19 @@ const CheckoutPage = () => {
     setStep(2)
   }
 
+  const validCartItemsList = (cartItemsList || []).filter(item => item?.productId && item?.productId?._id)
+
   const handleCashOnDelivery = async () => {
+    if (validCartItemsList.length === 0) {
+      toast.error("Your cart contains no active products")
+      return
+    }
     try {
       toast.loading("Placing Order...")
       const response = await Axios({
         ...SummaryApi.CashOnDeliveryOrder,
         data: {
-          list_items: cartItemsList,
+          list_items: validCartItemsList,
           addressId: addressList[selectAddress]?._id,
           subTotalAmt: totalPrice,
           totalAmt: finalPayableAmount,
@@ -137,6 +143,10 @@ const CheckoutPage = () => {
   }
 
   const handleUPIAppPayment = async (appName) => {
+    if (validCartItemsList.length === 0) {
+      toast.error("Your cart contains no active products")
+      return
+    }
     const merchantUpi = upiId || 'flashfit@upi'
     const payeeName = 'FlashFit Fashion'
     const transactionNote = `FlashFit Order Payment`
@@ -157,7 +167,7 @@ const CheckoutPage = () => {
       const response = await Axios({
         ...SummaryApi.CashOnDeliveryOrder,
         data: {
-          list_items: cartItemsList,
+          list_items: validCartItemsList,
           addressId: addressList[selectAddress]?._id,
           subTotalAmt: totalPrice,
           totalAmt: finalPayableAmount,
@@ -185,6 +195,10 @@ const CheckoutPage = () => {
   }
 
   const handleOnlinePayment = async () => {
+    if (validCartItemsList.length === 0) {
+      toast.error("Your cart contains no active products")
+      return
+    }
     try {
       toast.loading("Redirecting to Card Payment Gateway...")
       const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY
@@ -193,7 +207,7 @@ const CheckoutPage = () => {
       const response = await Axios({
         ...SummaryApi.payment_url,
         data: {
-          list_items: cartItemsList,
+          list_items: validCartItemsList,
           addressId: addressList[selectAddress]?._id,
           subTotalAmt: totalPrice,
           totalAmt: totalPrice,
