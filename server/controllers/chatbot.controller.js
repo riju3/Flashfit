@@ -2,50 +2,16 @@ import Groq from 'groq-sdk';
 import ProductModel from '../models/product.model.js';
 import CategoryModel from '../models/category.model.js';
 import SubCategoryModel from '../models/subCategory.model.js';
+import SettingsModel from '../models/settings.model.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
 const groqApiKey = process.env.GROQ_API_KEY;
 const groq = groqApiKey ? new Groq({ apiKey: groqApiKey }) : null;
 
-// System context provided to AI for store policies and info
-const SYSTEM_STORE_CONTEXT = `
-You are "FlashFit AI Assistant", the friendly, expert shopping assistant and customer support helper for FlashFit (an online fashion & lifestyle store).
-
-KEY STORE INFORMATION & POLICIES:
-1. CUSTOMER SERVICE CONTACT:
-   - Toll-Free Phone: +91 1800-123-4567 (Mon-Sat, 9:00 AM - 8:00 PM IST)
-   - WhatsApp Support: +91 98765-43210
-   - Email: support@flashfit.app / help@flashfit.com
-   - Live Chat: Available 24/7 right here!
-
-2. SHIPPING & DELIVERY:
-   - Free Standard Shipping on all orders above ₹499.
-   - Delivery Time: 3-5 business days across all major Indian cities.
-   - Express Delivery available in select metro cities (1-2 days).
-
-3. RETURNS, EXCHANGES & REFUNDS:
-   - 7-Day Easy Return & Exchange policy on all unworn items with original tags.
-   - Size exchanges are 100% FREE!
-   - Refunds are processed to original payment method or FlashFit Wallet within 48 hours of item pickup.
-   - How to return: Go to My Profile -> My Orders -> Click "Return / Exchange".
-
-4. OFFERS & COUPONS:
-   - Use code "FLASH20" for 20% OFF on your first purchase!
-   - Use code "FIT500" for ₹500 OFF on orders above ₹2,999.
-
-5. PAYMENT OPTIONS:
-   - Cash on Delivery (COD), UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, Net Banking.
-
-INSTRUCTIONS:
-- Be polite, enthusiastic, concise, and helpful. Use emojis appropriately!
-- Format answers cleanly with bullet points or bold text when appropriate.
-- If asked for products, summarize top recommended choices based on the product context provided below.
-`;
-
 export async function chatbotController(req, res) {
     try {
-        const { message, history = [] } = req.body;
+        const { message, history = [], userName = '' } = req.body;
 
         if (!message || typeof message !== 'string') {
             return res.status(400).json({
@@ -57,12 +23,57 @@ export async function chatbotController(req, res) {
 
         const queryText = message.toLowerCase().trim();
 
-        // 1. Search DB for matching products if query looks product-related
+        // 1. Fetch real store settings from MongoDB (Admin-managed settings)
+        const storeSettings = await SettingsModel.findOne().lean();
+        const supportPhone = storeSettings?.supportPhone || "+91 98765 43210";
+        const supportEmail = storeSettings?.supportEmail || "support@flashfit.com";
+        const storeAddress = storeSettings?.storeAddress || "42 Fashion Street, Mumbai, MH 400001";
+
+        // 2. Direct Handler for "hi", "hello", "hey", "greetings"
+        const isGreeting = /^(hi|hello|hey|hola|greetings|good morning|good evening|good afternoon)(\s+.*)?$/i.test(queryText);
+        if (isGreeting) {
+            const namePart = userName ? ` ${userName}` : '';
+            const welcomeText = `😊 Hello${namePart}! Welcome to FlashFit! I'm here to help you with anything you need.\n\n` +
+                `Are you looking for some new fashion inspiration, or do you have a specific question about our products or services?\n\n` +
+                `You can ask me about:\n` +
+                `* **Products**: Get recommendations on our latest collections\n` +
+                `* **Orders**: Track your order status or get help with returns/exchanges\n` +
+                `* **Offers**: Learn about our current discounts and promo codes\n` +
+                `* **Shipping**: Get info on our delivery options and timelines\n\n` +
+                `What's on your mind? 🤔`;
+
+            return res.json({
+                message: welcomeText,
+                products: [],
+                success: true,
+                error: false
+            });
+        }
+
+        // 3. Direct Handler for Customer Support Query (Using real DB values)
+        const isSupportQuery = /customer support|customer care|contact|phone|call|support number|helpdesk/i.test(queryText);
+        if (isSupportQuery) {
+            const supportText = `📞 Our customer support number is: **${supportPhone}** (Mon-Sat, 9:00 AM - 8:00 PM IST)\n\n` +
+                `You can also reach us on:\n` +
+                `* **WhatsApp**: ${supportPhone}\n` +
+                `* **Email**: ${supportEmail}\n` +
+                `* **Store Address**: ${storeAddress}\n` +
+                `* **Live Chat**: Available 24/7 right here! 📲\n\n` +
+                `Feel free to contact us anytime for assistance! 😊`;
+
+            return res.json({
+                message: supportText,
+                products: [],
+                success: true,
+                error: false
+            });
+        }
+
+        // 4. Search DB for matching products if query looks product-related
         let matchingProducts = [];
         const isProductQuery = /shoe|shirt|dress|t-shirt|pant|jeans|jacket|coat|watch|bag|wallet|sneaker|heel|boot|kid|men|women|fashion|cloth|item|product|buy|price|under|find|recommend|show|look/i.test(queryText);
 
         if (isProductQuery) {
-            // Extract potential keywords
             const words = queryText
                 .replace(/[^a-zA-Z0-9\s]/g, '')
                 .split(/\s+/)
@@ -86,27 +97,42 @@ export async function chatbotController(req, res) {
                 .lean();
         }
 
-        // 2. Prepare Product context string for AI model
+        // Prepare product context string
         let productContextStr = '';
         if (matchingProducts.length > 0) {
             productContextStr = `\nAVAILABLE PRODUCTS IN STORE MATCHING USER QUERY:\n` +
-                matchingProducts.map(p => `- ${p.name} (Brand: ${p.brand || 'FlashFit'}, Category: ${p.category_name || 'Fashion'}, Price: ₹${p.price}, Original Price: ₹${p.original_price || p.price}, Stock: ${p.stock > 0 ? 'In Stock' : 'Out of Stock'})`).join('\n');
+                matchingProducts.map(p => `- ${p.name} (Brand: ${p.brand || 'FlashFit'}, Price: ₹${p.price}, Stock: ${p.stock > 0 ? 'In Stock' : 'Out of Stock'})`).join('\n');
         }
 
         let aiReply = '';
 
-        // 3. Call Groq API if API Key is available
+        // 5. Call Groq API with live store settings context
         if (groq) {
             try {
-                // Build messages array
+                const dynamicSystemPrompt = `
+You are "FlashFit AI Assistant", the friendly, expert shopping assistant for FlashFit (online fashion & lifestyle store).
+Current User's Name: ${userName || 'Customer'}
+
+REAL STORE CONTACT DETAILS (Fetched from database - use EXACTLY these when asked):
+- Customer Support Phone: ${supportPhone}
+- Support Email: ${supportEmail}
+- Store Address: ${storeAddress}
+- Hours: Mon-Sat, 9:00 AM - 8:00 PM IST
+
+POLICIES:
+- 7-Day Easy Return & Exchange policy on unworn items.
+- Free Shipping on orders over ₹499 (3-5 days delivery).
+- Offers: Code "FLASH20" for 20% OFF first order, "FIT500" for ₹500 OFF on orders > ₹2999.
+
+INSTRUCTIONS:
+- Be polite, concise, and helpful. Use emojis!
+- When asked for contact or customer care, ALWAYS use phone: ${supportPhone} and email: ${supportEmail}.
+`;
+
                 const messagesPayload = [
-                    {
-                        role: 'system',
-                        content: `${SYSTEM_STORE_CONTEXT}\n${productContextStr}`
-                    }
+                    { role: 'system', content: `${dynamicSystemPrompt}\n${productContextStr}` }
                 ];
 
-                // Append last 4 conversation turns for memory
                 const recentHistory = history.slice(-4);
                 recentHistory.forEach(h => {
                     if (h.sender === 'user') {
@@ -131,22 +157,14 @@ export async function chatbotController(req, res) {
             }
         }
 
-        // 4. Smart Fallback Generator if Groq is not configured or failed
+        // Fallback response engine if Groq fails or offline
         if (!aiReply) {
-            if (/phone|contact|number|call|support|helpdesk|customer service|customer care/i.test(queryText)) {
-                aiReply = `📞 **FlashFit Customer Care Contact Info**:\n\n` +
-                    `• **Toll-Free Phone**: +91 1800-123-4567\n` +
-                    `• **WhatsApp Support**: +91 98765-43210\n` +
-                    `• **Email**: support@flashfit.app\n` +
-                    `• **Hours**: Mon-Sat (9:00 AM - 8:00 PM IST)\n\n` +
-                    `Feel free to ask me any questions about your orders, returns, or product recommendations! 😊`;
-            } else if (/return|exchange|refund|cancel/i.test(queryText)) {
+            if (/return|exchange|refund|cancel/i.test(queryText)) {
                 aiReply = `🔄 **Return & Refund Policy**:\n\n` +
                     `• We offer a **7-Day Easy Return & Exchange** policy!\n` +
-                    `• Items must be unworn with original tags attached.\n` +
                     `• Size exchanges are **100% FREE**.\n\n` +
                     `👉 To start a return: Go to **My Profile -> My Orders** and click on "Return / Exchange".`;
-            } else if (/ship|delivery|track|order status|when will i get/i.test(queryText)) {
+            } else if (/ship|delivery|track|order status/i.test(queryText)) {
                 aiReply = `🚚 **Shipping & Delivery Information**:\n\n` +
                     `• **Standard Delivery**: 3-5 business days across India.\n` +
                     `• **Free Shipping**: On all orders over ₹499.\n` +
@@ -159,18 +177,10 @@ export async function chatbotController(req, res) {
             } else if (matchingProducts.length > 0) {
                 aiReply = `Here are some great matching items I found in our FlashFit collection for you! 👇`;
             } else {
-                aiReply = `Hi there! I'm your **FlashFit AI Assistant**! 🤖✨\n\n` +
-                    `I can help you with:\n` +
-                    `• 👟 Finding products, shoes, and clothing\n` +
-                    `• 📞 Customer support number & email\n` +
-                    `• 📦 Order tracking & delivery times\n` +
-                    `• 🔄 Returns, exchanges, and refunds\n` +
-                    `• 🏷️ Discounts & coupon codes\n\n` +
-                    `How can I assist you today?`;
+                aiReply = `Hello ${userName || ''}! How can I assist you with your shopping at FlashFit today? 😊`;
             }
         }
 
-        // Format product data for frontend response
         const formattedProducts = matchingProducts.map(p => ({
             _id: p._id,
             name: p.name,

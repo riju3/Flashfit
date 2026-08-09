@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { IoSend, IoClose, IoChatbubbleEllipsesSharp, IoRefreshOutline, IoBagAddOutline } from 'react-icons/io5';
 import { FaRobot, FaPhoneAlt, FaTruck, FaUndo, FaTag, FaShoePrints } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import chatbotIcon from '../assets/chatbot_icon.png';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
@@ -9,11 +10,21 @@ import { useGlobalContext } from '../provider/GlobalProvider';
 import toast from 'react-hot-toast';
 
 const Chatbot = () => {
+    const user = useSelector(state => state.user);
+    const userName = user?.name || '';
+
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
             sender: 'bot',
-            text: "Hi there! I'm your **FlashFit AI Assistant**! 🤖✨\nHow can I help you today? You can search for products, ask for customer support, or check shipping & returns!",
+            text: `😊 Hello${userName ? ` ${userName}` : ''}! Welcome to FlashFit! I'm here to help you with anything you need.\n\n` +
+                `Are you looking for some new fashion inspiration, or do you have a specific question about our products or services?\n\n` +
+                `You can ask me about:\n` +
+                `* **Products**: Get recommendations on our latest collections\n` +
+                `* **Orders**: Track your order status or get help with returns/exchanges\n` +
+                `* **Offers**: Learn about our current discounts and promo codes\n` +
+                `* **Shipping**: Get info on our delivery options and timelines\n\n` +
+                `What's on your mind? 🤔`,
             products: []
         }
     ]);
@@ -24,6 +35,26 @@ const Chatbot = () => {
     const chatEndRef = useRef(null);
     const navigate = useNavigate();
     const { fetchCartItem } = useGlobalContext();
+
+    // Update greeting if user logs in dynamically
+    useEffect(() => {
+        if (userName && messages.length === 1 && messages[0].sender === 'bot') {
+            setMessages([
+                {
+                    sender: 'bot',
+                    text: `😊 Hello ${userName}! Welcome to FlashFit! I'm here to help you with anything you need.\n\n` +
+                        `Are you looking for some new fashion inspiration, or do you have a specific question about our products or services?\n\n` +
+                        `You can ask me about:\n` +
+                        `* **Products**: Get recommendations on our latest collections\n` +
+                        `* **Orders**: Track your order status or get help with returns/exchanges\n` +
+                        `* **Offers**: Learn about our current discounts and promo codes\n` +
+                        `* **Shipping**: Get info on our delivery options and timelines\n\n` +
+                        `What's on your mind? 🤔`,
+                    products: []
+                }
+            ]);
+        }
+    }, [userName]);
 
     // Auto-scroll to bottom of chat
     const scrollToBottom = () => {
@@ -60,7 +91,8 @@ const Chatbot = () => {
                 ...SummaryApi.chatbot,
                 data: {
                     message: query,
-                    history: messages
+                    history: messages,
+                    userName: userName
                 }
             });
 
