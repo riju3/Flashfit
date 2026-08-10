@@ -351,7 +351,7 @@ const OrderTracking = () => {
                 {isCancelled ? <FaTimesCircle size={180} /> : hasReturnStatus ? <FaBoxOpen size={180} /> : <FaMotorcycle size={180} />}
               </div>
 
-              <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="relative z-10 space-y-4">
                 <div>
                   <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider bg-black/30 px-3 py-1 rounded-full w-fit mb-2">
                     <FiZap size={14} className="text-yellow-300 fill-yellow-300" />
@@ -395,15 +395,30 @@ const OrderTracking = () => {
                   </p>
                 </div>
 
-                {/* Live Status Badge (ONLY DELIVERED or CANCELLED status, no duplicate return badge) */}
-                <div className="bg-white/20 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/30 text-center shrink-0 flex flex-col items-center justify-center min-w-[110px]">
-                  <span className="text-[10px] font-extrabold uppercase text-white/80 block">Status</span>
-                  <span className="text-xs font-black text-white flex items-center justify-center gap-1 mt-0.5">
-                    <span className={`w-2 h-2 rounded-full ${
-                      isCancelled ? 'bg-red-300' : isDelivered ? 'bg-green-300' : 'bg-yellow-300 animate-ping'
-                    }`}></span>
-                    {dbStatus.replace(/_/g, ' ')}
-                  </span>
+                {/* FULL WIDTH STATUS BAR SPANNING 100% ACROSS THE HERO CARD */}
+                <div className="w-full bg-white/20 backdrop-blur-md px-4 py-3 sm:px-5 rounded-2xl border border-white/30 flex items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase text-white/80 block">STATUS</span>
+                    <span className="text-xs sm:text-sm font-black text-white flex items-center gap-1.5 mt-0.5">
+                      <span className={`w-2.5 h-2.5 rounded-full ${
+                        isCancelled ? 'bg-red-300' : isDelivered ? 'bg-green-300' : 'bg-yellow-300 animate-ping'
+                      }`}></span>
+                      {dbStatus.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+
+                  {/* Return / Exchange Status Pill on the Right Side of Full Width Status Bar */}
+                  {hasReturnStatus && (
+                    <span className={`text-xs font-black px-3.5 py-1 rounded-full uppercase border shadow-sm ${
+                      currentOrder.return_status.includes('REJECTED')
+                        ? 'bg-red-100 text-red-800 border-red-300'
+                        : currentOrder.return_status.includes('APPROVED') || currentOrder.return_status === 'COMPLETED'
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        : 'bg-amber-100 text-amber-900 border-amber-300'
+                    }`}>
+                      {currentOrder.return_status.replace(/_/g, ' ')}
+                    </span>
+                  )}
                 </div>
               </div>
 
