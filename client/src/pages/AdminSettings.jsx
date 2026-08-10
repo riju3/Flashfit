@@ -3,7 +3,7 @@ import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import toast from 'react-hot-toast'
 import AxiosToastError from '../utils/AxiosToastError'
-import uploadImage from '../utils/uploadImage'
+import UploadImage from '../utils/UploadImage'
 import { FiPlus, FiTrash2, FiUploadCloud, FiLink, FiTag, FiShoppingBag } from 'react-icons/fi'
 
 const DEFAULT_BRANDS = [
@@ -69,7 +69,7 @@ const AdminSettings = () => {
 
     try {
       setUploadingLogo(true)
-      const response = await uploadImage(file)
+      const response = await UploadImage(file)
       if (response.data?.success) {
         setNewBrandLogo(response.data.data.url)
         toast.success("Logo uploaded successfully!")
