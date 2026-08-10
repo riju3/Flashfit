@@ -290,6 +290,37 @@ const ProductRow = ({ products, loading }) => {
 }
 
 // ─── Brands Marquee ──────────────────────────────────────────────────────────
+const BRAND_LOGO_MAP = {
+  "levi's": "https://upload.wikimedia.org/wikipedia/commons/7/75/Levi%27s_logo.svg",
+  "levis": "https://upload.wikimedia.org/wikipedia/commons/7/75/Levi%27s_logo.svg",
+  "nike": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg",
+  "adidas": "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg",
+  "puma": "https://upload.wikimedia.org/wikipedia/commons/8/88/Puma-Logo.png",
+  "wrangler": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Wrangler_Jeans_logo.svg",
+  "lee": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Lee_Jeans_logo.svg",
+  "tommy hilfiger": "https://upload.wikimedia.org/wikipedia/commons/2/24/Tommy_Hilfiger_logo.svg",
+  "tommy": "https://upload.wikimedia.org/wikipedia/commons/2/24/Tommy_Hilfiger_logo.svg",
+  "calvin klein": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Calvin_klein_logo.svg",
+  "ck": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Calvin_klein_logo.svg",
+  "zara": "https://upload.wikimedia.org/wikipedia/commons/f/fd/Zara_Logo.svg",
+  "h&m": "https://upload.wikimedia.org/wikipedia/commons/5/53/H%26M-Logo.svg",
+  "hm": "https://upload.wikimedia.org/wikipedia/commons/5/53/H%26M-Logo.svg",
+  "spykar": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Spykar_Logo.svg/512px-Spykar_Logo.svg.png",
+  "woodland": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Woodland_logo.svg/512px-Woodland_logo.svg.png",
+  "flying machine": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Wrangler_Jeans_logo.svg/512px-Wrangler_Jeans_logo.svg.png",
+  "flying m.": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Wrangler_Jeans_logo.svg/512px-Wrangler_Jeans_logo.svg.png",
+  "snitch": "https://snitch.co.in/cdn/shop/files/logo_1_300x.png",
+  "roadster": "https://assets.myntassets.com/assets/images/2021/4/22/a8c6a0c0-6b6f-40c2-b5e0-f1c5040e0c051619092473489-Roadster.png",
+  "peter england": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Peter_England_Logo.svg/512px-Peter_England_Logo.svg.png",
+  "p.england": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Peter_England_Logo.svg/512px-Peter_England_Logo.svg.png",
+  "van heusen": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Van_Heusen_logo.svg/512px-Van_Heusen_logo.svg.png",
+  "jack & jones": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Jack_%26_Jones_Logo.svg/512px-Jack_%26_Jones_Logo.svg.png",
+  "j&j": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Jack_%26_Jones_Logo.svg/512px-Jack_%26_Jones_Logo.svg.png",
+  "manyavar": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Manyavar_logo.png/512px-Manyavar_logo.png",
+  "biba": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/BIBA_Logo.png/512px-BIBA_Logo.png",
+  "fabindia": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Fabindia_logo.svg/512px-Fabindia_logo.svg.png"
+}
+
 const DEFAULT_BRANDS = [
   { name: "Levi's", logo: "https://upload.wikimedia.org/wikipedia/commons/7/75/Levi%27s_logo.svg", query: "Levis" },
   { name: "Nike", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg", query: "Nike" },
@@ -307,16 +338,19 @@ const DEFAULT_BRANDS = [
 const BrandChip = ({ brand, onClick }) => {
   const [imgError, setImgError] = useState(false)
 
+  // Resolve logo URL from brand object or fallback dictionary
+  const logoUrl = brand?.logo || (brand?.name ? BRAND_LOGO_MAP[brand.name.toLowerCase().trim()] : null)
+
   return (
     <div
       onClick={onClick}
       className="flex-shrink-0 flex items-center justify-center px-5 py-2.5 rounded-2xl mx-3 bg-white border border-gray-100 shadow-sm hover:shadow-card group cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
       style={{ minWidth: '140px', height: '56px' }}
     >
-      {brand?.logo && !imgError ? (
+      {logoUrl && !imgError ? (
         <img
-          src={brand.logo}
-          alt={brand.name || 'Brand Logo'}
+          src={logoUrl}
+          alt={brand?.name || 'Brand Logo'}
           onError={() => setImgError(true)}
           className="h-8 max-w-[110px] object-contain transition-transform duration-300 group-hover:scale-105"
         />
@@ -330,6 +364,12 @@ const BrandChip = ({ brand, onClick }) => {
       )}
     </div>
   )
+}
+
+const rotateArray = (arr, count) => {
+  if (!arr || arr.length === 0) return []
+  const offset = Math.abs(count) % arr.length
+  return [...arr.slice(offset), ...arr.slice(0, offset)]
 }
 
 const BrandsMarquee = () => {
@@ -349,9 +389,15 @@ const BrandsMarquee = () => {
   }, [])
 
   const list = brands.length > 0 ? brands : DEFAULT_BRANDS
-  const row1 = [...list, ...list, ...list]
-  const row2 = [...list].reverse()
-  const row2Full = [...row2, ...row2, ...row2]
+
+  // Row 1: Normal order
+  const list1 = list
+  // Row 2: Shifted by half array length so identical logos NEVER pass vertically at the same time!
+  const halfOffset = Math.max(1, Math.floor(list.length / 2))
+  const list2 = rotateArray(list, halfOffset)
+
+  const row1 = [...list1, ...list1, ...list1, ...list1]
+  const row2 = [...list2, ...list2, ...list2, ...list2]
 
   const handleBrandClick = (b) => {
     const q = b.query || b.name
@@ -368,8 +414,8 @@ const BrandsMarquee = () => {
         <h2 className="section-heading">Shop 300+ Premium Brands</h2>
       </div>
 
-      {/* Row 1 — left to right */}
-      <div className="marquee-wrapper mb-3" style={{ '--duration': '60s' }}>
+      {/* Row 1 — left to right (snappy 28s duration) */}
+      <div className="marquee-wrapper mb-3" style={{ '--duration': '28s' }}>
         <div className="marquee-track">
           {row1.map((brand, i) => (
             <BrandChip
@@ -381,10 +427,10 @@ const BrandsMarquee = () => {
         </div>
       </div>
 
-      {/* Row 2 — right to left (reverse) */}
-      <div className="marquee-wrapper marquee-reverse" style={{ '--duration': '50s' }}>
+      {/* Row 2 — right to left (reverse 24s duration) */}
+      <div className="marquee-wrapper marquee-reverse" style={{ '--duration': '24s' }}>
         <div className="marquee-track">
-          {row2Full.map((brand, i) => (
+          {row2.map((brand, i) => (
             <BrandChip
               key={(brand.name || 'b2') + 'r2-' + i}
               brand={brand}
