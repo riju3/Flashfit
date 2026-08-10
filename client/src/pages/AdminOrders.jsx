@@ -4,7 +4,7 @@ import SummaryApi from '../common/SummaryApi'
 import toast from 'react-hot-toast'
 import AxiosToastError from '../utils/AxiosToastError'
 import { DisplayPriceInRupees } from '../utils/DisplayPriceInRupees'
-import { FiShoppingBag, FiUser, FiMapPin, FiClock, FiRefreshCw } from 'react-icons/fi'
+import { FiShoppingBag, FiUser, FiMapPin, FiClock, FiRefreshCw, FiRepeat, FiRotateCcw } from 'react-icons/fi'
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([])
@@ -32,18 +32,22 @@ const AdminOrders = () => {
     fetchAllOrders()
   }, [])
 
-  const handleStatusChange = async (orderId, newStatus) => {
+  const handleStatusChange = async (orderId, newStatus, isReturnStatus = false) => {
     try {
       setUpdatingId(orderId)
+      const payload = { orderId }
+      if (isReturnStatus) {
+        payload.return_status = newStatus
+      } else {
+        payload.order_status = newStatus
+      }
+
       const response = await Axios({
         ...SummaryApi.adminUpdateOrderStatus,
-        data: {
-          orderId,
-          order_status: newStatus
-        }
+        data: payload
       })
       if (response.data.success) {
-        toast.success(`Order status updated to ${newStatus}`)
+        toast.success(`Updated order ${isReturnStatus ? 'return status' : 'status'} to ${newStatus}`)
         fetchAllOrders()
       }
     } catch (error) {
@@ -55,7 +59,11 @@ const AdminOrders = () => {
 
   const filteredOrders = orders.filter(order => {
     const currentStatus = order.order_status || 'CONFIRMED'
+    const returnStatus = order.return_status || ''
+    
     if (filter === 'ALL') return true
+    if (filter === 'RETURN_REQUESTED') return returnStatus.includes('RETURN')
+    if (filter === 'REPLACE_REQUESTED') return returnStatus.includes('REPLACE')
     return currentStatus === filter
   })
 
@@ -67,13 +75,13 @@ const AdminOrders = () => {
         <div className="min-w-0 flex-1">
           <h1 className="text-sm sm:text-xl font-extrabold text-fashion-dark flex items-center gap-1.5 truncate">
             <FiShoppingBag className="text-orange-500 shrink-0" size={16} />
-            <span className="truncate">Customer Orders</span>
+            <span className="truncate">Customer Orders & Returns</span>
             <span className="text-[10px] sm:text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold shrink-0">Admin</span>
           </h1>
-          <p className="text-[10px] sm:text-xs text-fashion-gray truncate">Manage all customer purchases</p>
+          <p className="text-[10px] sm:text-xs text-fashion-gray truncate">Manage customer purchases, returns, and replacements</p>
         </div>
 
-        {/* Refresh Button (NO Emoji) */}
+        {/* Refresh Button */}
         <button
           onClick={fetchAllOrders}
           disabled={loading}
@@ -84,18 +92,24 @@ const AdminOrders = () => {
         </button>
       </div>
 
-      {/* Filter Tabs Wrapping on Mobile so ALL tabs (Delivered & Cancelled) are 100% visible */}
+      {/* Filter Tabs */}
       <div className="flex flex-wrap gap-1.5 pb-2 text-xs font-bold w-full border-b border-gray-100">
         {[
-          { id: 'ALL', label: 'All' },
+          { id: 'ALL', label: 'All Orders' },
           { id: 'CONFIRMED', label: 'Confirmed' },
           { id: 'PACKING', label: 'Packing' },
           { id: 'OUT_FOR_DELIVERY', label: 'Out for Delivery' },
           { id: 'DELIVERED', label: 'Delivered' },
+          { id: 'RETURN_REQUESTED', label: 'Returns ↩️' },
+          { id: 'REPLACE_REQUESTED', label: 'Replacements 🔄' },
           { id: 'CANCELLED', label: 'Cancelled' }
         ].map((tab) => {
           const count = tab.id === 'ALL' 
             ? orders.length 
+            : tab.id === 'RETURN_REQUESTED'
+            ? orders.filter(o => (o.return_status || '').includes('RETURN')).length
+            : tab.id === 'REPLACE_REQUESTED'
+            ? orders.filter(o => (o.return_status || '').includes('REPLACE')).length
             : orders.filter(o => (o.order_status || 'CONFIRMED') === tab.id).length
 
           return (
@@ -125,7 +139,7 @@ const AdminOrders = () => {
       {/* Orders List */}
       {loading ? (
         <div className="text-center py-10 text-fashion-gray animate-pulse font-semibold text-xs sm:text-sm">
-          Loading customer orders...
+          Loading customer orders & return requests...
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-2xl">
@@ -138,12 +152,15 @@ const AdminOrders = () => {
             const address = order.delivery_address
             const product = order.product_details
             const currentStatus = order.order_status || 'CONFIRMED'
+            const returnStatus = order.return_status || ''
 
             return (
               <div
                 key={order._id}
                 className={`p-3 sm:p-5 rounded-2xl border transition-all w-full ${
-                  currentStatus === 'CANCELLED'
+                  returnStatus
+                    ? 'bg-orange-50/30 border-orange-300 shadow-sm'
+                    : currentStatus === 'CANCELLED'
                     ? 'bg-red-50/40 border-red-200'
                     : currentStatus === 'DELIVERED'
                     ? 'bg-green-50/30 border-green-200'
@@ -164,8 +181,8 @@ const AdminOrders = () => {
                     </span>
                   </div>
 
-                  {/* Status Dropdown Selector */}
-                  <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                  {/* Status Selectors */}
+                  <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
                     <span className="text-[11px] font-bold text-fashion-gray">Status:</span>
                     <select
                       value={currentStatus}
@@ -190,7 +207,46 @@ const AdminOrders = () => {
                   </div>
                 </div>
 
-                {/* Main Content Grid Mobile Responsive */}
+                {/* PROMINENT RETURN / REPLACE ALERT BOX IF USER SUBMITTED RETURN OR EXCHANGE */}
+                {returnStatus && (
+                  <div className="mb-3 p-3 bg-gradient-to-r from-orange-100/90 via-amber-100/80 to-orange-100/90 border border-orange-300 rounded-xl text-xs space-y-1 shadow-xs">
+                    <div className="flex flex-wrap justify-between items-center gap-2">
+                      <span className="font-extrabold text-orange-950 flex items-center gap-1.5 text-xs">
+                        {order.return_type === 'REPLACE' ? <FiRepeat className="text-orange-600" size={14} /> : <FiRotateCcw className="text-orange-600" size={14} />}
+                        {order.return_type === 'REPLACE' ? 'REPLACEMENT / EXCHANGE REQUESTED' : 'RETURN & REFUND REQUESTED'}
+                      </span>
+
+                      {/* Admin Return Status Control */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-orange-900">Return Action:</span>
+                        <select
+                          value={returnStatus}
+                          disabled={updatingId === order._id}
+                          onChange={(e) => handleStatusChange(order._id, e.target.value, true)}
+                          className="text-[11px] font-black px-2 py-1 rounded-lg bg-white border border-orange-400 text-orange-900 focus:outline-none cursor-pointer"
+                        >
+                          <option value="RETURN_REQUESTED">RETURN_REQUESTED</option>
+                          <option value="REPLACE_REQUESTED">REPLACE_REQUESTED</option>
+                          <option value="RETURN_APPROVED">RETURN_APPROVED</option>
+                          <option value="REPLACE_APPROVED">REPLACE_APPROVED</option>
+                          <option value="RETURN_REJECTED">RETURN_REJECTED</option>
+                          <option value="COMPLETED">COMPLETED</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <p className="text-orange-900 font-semibold text-[11px]">
+                      Reason: <span className="font-extrabold italic">"{order.return_reason || 'N/A'}"</span>
+                    </p>
+                    {order.replace_size && (
+                      <p className="text-orange-800 font-black text-[11px]">
+                        Requested Exchange Size: <span className="bg-white px-2 py-0.5 rounded border border-orange-300 font-extrabold">{order.replace_size}</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Main Content Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs w-full">
                   
                   {/* Customer Info */}
@@ -224,7 +280,7 @@ const AdminOrders = () => {
                     </div>
                   </div>
 
-                  {/* Delivery Address & Cancel Reason if applicable */}
+                  {/* Delivery Address & Cancel Reason */}
                   <div className="space-y-0.5 bg-gray-50/80 p-2.5 rounded-xl border border-gray-100">
                     <p className="font-bold text-fashion-dark uppercase text-[10px] tracking-wider flex items-center gap-1 text-gray-500 mb-0.5">
                       <FiMapPin size={11} className="shrink-0" /> Delivery Location
@@ -238,7 +294,6 @@ const AdminOrders = () => {
                       <p className="text-fashion-gray text-[11px]">Standard Express Address</p>
                     )}
 
-                    {/* Cancellation Reason Alert if Cancelled */}
                     {currentStatus === 'CANCELLED' && (
                       <div className="mt-1.5 pt-1.5 border-t border-red-200 text-red-600 font-semibold">
                         <p className="text-[10px] font-bold uppercase text-red-500">Cancellation Reason:</p>

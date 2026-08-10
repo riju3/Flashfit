@@ -57,6 +57,26 @@ const orderSchema = new mongoose.Schema({
     cancel_reason : {
         type : String,
         default : ""
+    },
+    return_status : {
+        type : String,
+        default : ""
+    },
+    return_type : {
+        type : String,
+        default : ""
+    },
+    return_reason : {
+        type : String,
+        default : ""
+    },
+    replace_size : {
+        type : String,
+        default : ""
+    },
+    deliveredAt : {
+        type : Date,
+        default : null
     }
 },{
     timestamps : true

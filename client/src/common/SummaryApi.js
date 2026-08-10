@@ -185,6 +185,10 @@ const SummaryApi = {
         url : '/api/order/cancel-order',
         method : 'post'
     },
+    returnOrder : {
+        url : '/api/order/return-order',
+        method : 'post'
+    },
     adminAllOrders : {
         url : '/api/order/admin-all-orders',
         method : 'get'

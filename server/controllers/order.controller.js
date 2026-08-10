@@ -390,6 +390,71 @@ export async function getAllOrdersAdminController(request, response) {
     }
 }
 
+export async function returnOrderController(request, response) {
+    try {
+        const userId = request.userId;
+        const { orderId, return_type, return_reason, replace_size } = request.body;
+
+        if (!orderId || !return_type || !return_reason) {
+            return response.status(400).json({
+                message: "Provide orderId, return_type, and return_reason",
+                error: true,
+                success: false
+            });
+        }
+
+        const order = await OrderModel.findOne({ _id: orderId, userId: userId });
+        if (!order) {
+            return response.status(404).json({
+                message: "Order not found",
+                error: true,
+                success: false
+            });
+        }
+
+        if (order.order_status !== "DELIVERED") {
+            return response.status(400).json({
+                message: "Return or replacement is only available for delivered orders",
+                error: true,
+                success: false
+            });
+        }
+
+        // Verify 7-day return window
+        const deliveryTime = order.deliveredAt ? new Date(order.deliveredAt).getTime() : new Date(order.updatedAt || order.createdAt).getTime();
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        if ((Date.now() - deliveryTime) > sevenDaysMs) {
+            return response.status(400).json({
+                message: "7-day return/replacement window has expired for this order",
+                error: true,
+                success: false
+            });
+        }
+
+        order.return_status = return_type === "REPLACE" ? "REPLACE_REQUESTED" : "RETURN_REQUESTED";
+        order.return_type = return_type;
+        order.return_reason = return_reason;
+        if (return_type === "REPLACE") {
+            order.replace_size = replace_size || "";
+        }
+
+        await order.save();
+
+        return response.json({
+            message: `${return_type === "REPLACE" ? "Replacement" : "Return"} request submitted successfully!`,
+            error: false,
+            success: true,
+            data: order
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+
 export async function updateOrderStatusAdminController(request, response) {
     try {
         const adminUser = await UserModel.findById(request.userId);
@@ -401,7 +466,7 @@ export async function updateOrderStatusAdminController(request, response) {
             });
         }
 
-        const { orderId, order_status, cancel_reason } = request.body;
+        const { orderId, order_status, return_status, cancel_reason, return_reason } = request.body;
 
         const order = await OrderModel.findById(orderId);
         if (!order) {
@@ -412,8 +477,15 @@ export async function updateOrderStatusAdminController(request, response) {
             });
         }
 
-        if (order_status) order.order_status = order_status;
+        if (order_status) {
+            order.order_status = order_status;
+            if (order_status === "DELIVERED" && !order.deliveredAt) {
+                order.deliveredAt = new Date();
+            }
+        }
+        if (return_status !== undefined) order.return_status = return_status;
         if (cancel_reason !== undefined) order.cancel_reason = cancel_reason;
+        if (return_reason !== undefined) order.return_reason = return_reason;
 
         await order.save();
 

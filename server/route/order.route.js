@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import auth from '../middleware/auth.js'
-import { CashOnDeliveryOrderController, getOrderDetailsController, paymentController, webhookStripe, cancelOrderController, getAllOrdersAdminController, updateOrderStatusAdminController } from '../controllers/order.controller.js'
+import { CashOnDeliveryOrderController, getOrderDetailsController, paymentController, webhookStripe, cancelOrderController, returnOrderController, getAllOrdersAdminController, updateOrderStatusAdminController } from '../controllers/order.controller.js'
 
 const orderRouter = Router()
 
@@ -9,6 +9,7 @@ orderRouter.post('/checkout',auth,paymentController)
 orderRouter.post('/webhook',webhookStripe)
 orderRouter.get("/order-list",auth,getOrderDetailsController)
 orderRouter.post("/cancel-order",auth,cancelOrderController)
+orderRouter.post("/return-order",auth,returnOrderController)
 orderRouter.get("/admin-all-orders",auth,getAllOrdersAdminController)
 orderRouter.put("/admin-update-order-status",auth,updateOrderStatusAdminController)
 

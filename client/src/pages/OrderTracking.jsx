@@ -33,6 +33,14 @@ const OrderTracking = () => {
   const [customReason, setCustomReason] = useState('')
   const [cancelling, setCancelling] = useState(false)
 
+  // ── Return & Replace State ──
+  const [showReturnModal, setShowReturnModal] = useState(false)
+  const [returnType, setReturnType] = useState('REPLACE')
+  const [returnReason, setReturnReason] = useState('Size issue / Fit problem')
+  const [customReturnReason, setCustomReturnReason] = useState('')
+  const [replaceSize, setReplaceSize] = useState('M')
+  const [submittingReturn, setSubmittingReturn] = useState(false)
+
   // ── Review & Rating State (Defaults to 0 Stars) ──
   const [userReview, setUserReview] = useState(null)
   const [rating, setRating] = useState(0)
@@ -148,6 +156,60 @@ const OrderTracking = () => {
   const isDelivered = dbStatus === 'DELIVERED' || (!isCancelled && elapsedMinutes >= 30)
   const isOutForDelivery = dbStatus === 'OUT_FOR_DELIVERY' || (!isCancelled && !isDelivered && elapsedMinutes >= 10)
   const isPacking = dbStatus === 'PACKING' || (!isCancelled && !isDelivered && !isOutForDelivery && elapsedMinutes >= 5)
+
+  // 7-Day Return / Replacement Window Check
+  const deliveryTime = currentOrder?.deliveredAt
+    ? new Date(currentOrder.deliveredAt).getTime()
+    : (currentOrder?.updatedAt ? new Date(currentOrder.updatedAt).getTime() : orderTimeMs)
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000
+  const isWithin7Days = (now - deliveryTime) <= sevenDaysMs
+
+  const RETURN_REASONS = [
+    "Size issue / Fit problem",
+    "Defective or Damaged product",
+    "Quality not as expected",
+    "Different item delivered",
+    "Other"
+  ]
+
+  const handleReturnSubmit = async (e) => {
+    e.preventDefault()
+    const finalReason = returnReason === 'Other' ? customReturnReason : returnReason
+    if (!finalReason || !finalReason.trim()) {
+      toast.error("Please select a reason for return/exchange")
+      return
+    }
+
+    try {
+      setSubmittingReturn(true)
+      const res = await Axios({
+        ...SummaryApi.returnOrder,
+        data: {
+          orderId: currentOrder?._id,
+          return_type: returnType,
+          return_reason: finalReason,
+          replace_size: returnType === 'REPLACE' ? replaceSize : ''
+        }
+      })
+
+      if (res.data?.success) {
+        toast.success(res.data.message || "Request submitted successfully!")
+        setShowReturnModal(false)
+        setCurrentOrder(prev => ({
+          ...prev,
+          return_status: returnType === 'REPLACE' ? 'REPLACE_REQUESTED' : 'RETURN_REQUESTED',
+          return_type: returnType,
+          return_reason: finalReason,
+          replace_size: returnType === 'REPLACE' ? replaceSize : ''
+        }))
+        if (fetchOrder) fetchOrder()
+      }
+    } catch (error) {
+      AxiosToastError(error)
+    } finally {
+      setSubmittingReturn(false)
+    }
+  }
 
   const expressSteps = [
     {
@@ -672,6 +734,77 @@ const OrderTracking = () => {
           </div>
         )}
 
+        {/* 7-DAY EASY RETURN / REPLACEMENT CARD FOR DELIVERED ORDERS */}
+        {isDelivered && !isCancelled && (
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="text-sm font-extrabold text-fashion-dark flex items-center gap-2">
+                  <span>🔄 7-Day Easy Return & Exchange</span>
+                  {isWithin7Days ? (
+                    <span className="text-[10px] font-black bg-green-100 text-green-700 px-2 py-0.5 rounded-full border border-green-200 uppercase">
+                      Window Active
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full uppercase">
+                      Window Expired
+                    </span>
+                  )}
+                </h3>
+                <p className="text-xs text-fashion-gray mt-0.5">
+                  {isWithin7Days
+                    ? 'Hassle-free 7-day exchange or full money refund guarantee'
+                    : 'The 7-day return & replacement window for this order has expired.'}
+                </p>
+              </div>
+
+              {currentOrder?.return_status && currentOrder.return_status !== 'NONE' ? (
+                <span className="text-xs font-black px-3 py-1 rounded-full bg-orange-100 text-orange-800 border border-orange-200">
+                  {currentOrder.return_status.replace(/_/g, ' ')}
+                </span>
+              ) : isWithin7Days ? (
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => {
+                      setReturnType('REPLACE')
+                      setShowReturnModal(true)
+                    }}
+                    className="flex-1 sm:flex-initial py-2 px-4 bg-orange-50 hover:bg-orange-500 hover:text-white text-orange-600 font-extrabold text-xs rounded-xl border border-orange-200 transition-all cursor-pointer"
+                  >
+                    🔄 Exchange / Replace
+                  </button>
+                  <button
+                    onClick={() => {
+                      setReturnType('RETURN')
+                      setShowReturnModal(true)
+                    }}
+                    className="flex-1 sm:flex-initial py-2 px-4 bg-gray-100 hover:bg-gray-800 hover:text-white text-fashion-dark font-extrabold text-xs rounded-xl border border-gray-200 transition-all cursor-pointer"
+                  >
+                    ↩️ Return & Refund
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Return / Replace Submitted Alert Banner */}
+            {currentOrder?.return_status && currentOrder.return_status !== 'NONE' && (
+              <div className="p-3 bg-orange-50/70 border border-orange-200 rounded-2xl text-xs text-orange-900 space-y-1">
+                <div className="flex justify-between items-center font-bold">
+                  <span>Request Type: {currentOrder.return_type || 'RETURN / REPLACE'}</span>
+                  <span className="bg-orange-200 text-orange-800 px-2 py-0.5 rounded-md text-[10px]">
+                    {currentOrder.return_status.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                <p className="text-fashion-gray">Reason: <span className="font-semibold italic">"{currentOrder.return_reason}"</span></p>
+                {currentOrder.replace_size && (
+                  <p className="text-orange-700 font-bold">Requested Exchange Size: {currentOrder.replace_size}</p>
+                )}
+                <p className="text-[11px] text-gray-500 pt-1">Our darkstore pickup executive will arrive within 24-48 hours for item verification.</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* CANCEL YOUR ORDER WHITE BOX AT THE VERY BOTTOM */}
         {!isCancelled && !isDelivered && (
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-3">
@@ -700,6 +833,132 @@ const OrderTracking = () => {
         )}
 
       </div>
+
+      {/* RETURN & REPLACEMENT MODAL */}
+      {showReturnModal && (
+        <section className="bg-black/70 fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4 animate-scale-in">
+            <div className="flex justify-between items-center border-b pb-3">
+              <h3 className="font-extrabold text-base text-fashion-dark flex items-center gap-2">
+                {returnType === 'REPLACE' ? '🔄 Exchange / Replace Product' : '↩️ Return Product for Full Refund'}
+              </h3>
+              <button
+                onClick={() => setShowReturnModal(false)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleReturnSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-fashion-charcoal mb-1">Request Type:</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setReturnType('REPLACE')}
+                    className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+                      returnType === 'REPLACE'
+                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                        : 'bg-gray-50 text-fashion-dark border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    🔄 Exchange Size/Item
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReturnType('RETURN')}
+                    className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+                      returnType === 'RETURN'
+                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                        : 'bg-gray-50 text-fashion-dark border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    ↩️ Return & Refund
+                  </button>
+                </div>
+              </div>
+
+              {returnType === 'REPLACE' && (
+                <div>
+                  <label className="block text-xs font-bold text-fashion-charcoal mb-1">Select Exchange Size Required:</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['S', 'M', 'L', 'XL', 'XXL', 'UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10'].map(sz => (
+                      <button
+                        key={sz}
+                        type="button"
+                        onClick={() => setReplaceSize(sz)}
+                        className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all ${
+                          replaceSize === sz
+                            ? 'bg-orange-100 text-orange-700 border-orange-500 ring-2 ring-orange-200'
+                            : 'bg-gray-50 text-fashion-dark border-gray-200 hover:bg-gray-100'
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-fashion-charcoal mb-1">Reason for {returnType === 'REPLACE' ? 'Exchange' : 'Return'}:</label>
+                <div className="space-y-1.5">
+                  {RETURN_REASONS.map((reason, index) => (
+                    <label
+                      key={index}
+                      className={`flex items-center gap-3 p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                        returnReason === reason
+                          ? 'border-orange-500 bg-orange-50/50 text-orange-900'
+                          : 'border-gray-200 text-fashion-dark hover:bg-gray-50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="return_reason"
+                        checked={returnReason === reason}
+                        onChange={() => setReturnReason(reason)}
+                        className="accent-orange-500"
+                      />
+                      <span>{reason}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {returnReason === "Other" && (
+                <div>
+                  <textarea
+                    rows={2}
+                    placeholder="Please state details..."
+                    value={customReturnReason}
+                    onChange={(e) => setCustomReturnReason(e.target.value)}
+                    className="w-full p-2.5 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-200"
+                    required
+                  ></textarea>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowReturnModal(false)}
+                  className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-fashion-dark text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingReturn}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-95 text-white text-xs font-bold rounded-xl shadow-md transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  {submittingReturn ? "Submitting..." : `Submit ${returnType === 'REPLACE' ? 'Exchange' : 'Return'}`}
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      )}
 
       {/* CANCEL ORDER MODAL */}
       {showCancelModal && (
