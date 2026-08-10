@@ -86,13 +86,6 @@ const MyOrders = () => {
                       {order?.payment_status || 'CASH ON DELIVERY'}
                     </span>
 
-                    {/* Return/Exchange Status Badge if present */}
-                    {order?.return_status && order.return_status !== 'NONE' && (
-                      <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
-                        {order.return_status.replace(/_/g, ' ')}
-                      </span>
-                    )}
-
                     {/* Order Status Badge */}
                     {isCancelled ? (
                       <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 flex items-center gap-1">
