@@ -101,6 +101,8 @@ const GlobalProvider = ({children}) => {
     const handleLogoutOut = ()=>{
         localStorage.clear()
         dispatch(handleAddItemCart([]))
+        dispatch(handleAddAddress([]))
+        dispatch(setOrder([]))
     }
 
     const fetchAddress = async()=>{
@@ -111,10 +113,10 @@ const GlobalProvider = ({children}) => {
         const { data : responseData } = response
 
         if(responseData.success){
-          dispatch(handleAddAddress(responseData.data))
+          dispatch(handleAddAddress(responseData.data || []))
         }
       } catch (error) {
-          // AxiosToastError(error)
+          dispatch(handleAddAddress([]))
       }
     }
     const fetchOrder = async()=>{
@@ -125,7 +127,7 @@ const GlobalProvider = ({children}) => {
         const { data : responseData } = response
 
         if(responseData.success){
-            dispatch(setOrder(responseData.data))
+            dispatch(setOrder(responseData.data || []))
         }
       } catch (error) {
         console.log(error)
@@ -137,8 +139,12 @@ const GlobalProvider = ({children}) => {
         fetchCartItem()
         fetchAddress()
         fetchOrder()
+      } else if (!user?.authLoading) {
+        dispatch(handleAddAddress([]))
+        dispatch(handleAddItemCart([]))
+        dispatch(setOrder([]))
       }
-    },[user])
+    },[user?._id, user?.authLoading])
     
     return(
         <GlobalContext.Provider value={{

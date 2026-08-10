@@ -43,7 +43,15 @@ export const getAddressController = async(request,response)=>{
     try {
         const userId = request.userId // middleware auth
 
-        const data = await AddressModel.find({ userId : userId }).sort({ createdAt : -1})
+        if (!userId) {
+            return response.status(400).json({
+                message: "User ID missing",
+                error: true,
+                success: false
+            })
+        }
+
+        const data = await AddressModel.find({ userId : userId, status : true }).sort({ createdAt : -1})
 
         return response.json({
             data : data,
@@ -94,7 +102,7 @@ export const deleteAddresscontroller = async(request,response)=>{
         const userId = request.userId // auth middleware    
         const { _id } = request.body 
 
-        const disableAddress = await AddressModel.updateOne({ _id : _id, userId},{
+        const disableAddress = await AddressModel.updateOne({ _id : _id, userId : userId },{
             status : false
         })
 

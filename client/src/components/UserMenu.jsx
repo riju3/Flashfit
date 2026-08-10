@@ -4,6 +4,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import { logout } from '../store/userSlice'
+import { handleAddAddress } from '../store/addressSlice'
+import { handleAddItemCart } from '../store/cartProduct'
+import { setOrder } from '../store/orderSlice'
 import toast from 'react-hot-toast'
 import AxiosToastError from '../utils/AxiosToastError'
 import isAdmin from '../utils/isAdmin'
@@ -30,6 +33,9 @@ const UserMenu = ({ close, openSupport }) => {
       if (response.data.success) {
         if (close) close()
         dispatch(logout())
+        dispatch(handleAddAddress([]))
+        dispatch(handleAddItemCart([]))
+        dispatch(setOrder([]))
         localStorage.clear()
         setIsLoggingOut(false)
         navigate('/')
