@@ -1,4 +1,5 @@
 import ProductModel from "../models/product.model.js";
+import CategoryModel from "../models/category.model.js";
 
 export const createProductController = async(request,response)=>{
     try {
@@ -61,7 +62,6 @@ export const createProductController = async(request,response)=>{
 
 export const getProductController = async(request,response)=>{
     try {
-        
         let { page, limit, search } = request.body 
 
         if(!page){
@@ -133,7 +133,7 @@ export const getProductByCategory = async(request,response)=>{
     }
 }
 
-export const getProductByCategoryAndSubCategory  = async(request,response)=>{
+export const getProductByCategoryAndSubCategory = async(request,response)=>{
     try {
         const { categoryId,subCategoryId,page,limit } = request.body
 
@@ -196,7 +196,6 @@ export const getProductDetails = async(request,response)=>{
             })
         }
 
-        // Use lean() to get raw data so old string-format sizes aren't silently dropped by Mongoose schema coercion
         const product = await ProductModel.findById(productId)
             .populate('category subCategory')
             .lean()
@@ -209,7 +208,6 @@ export const getProductDetails = async(request,response)=>{
             })
         }
 
-        // Normalize sizes: if any entry is a plain string (old format), convert it to {size, stock:1}
         if (Array.isArray(product.sizes) && product.sizes.length > 0) {
             product.sizes = product.sizes.map(s =>
                 typeof s === 'string' ? { size: s, stock: 1 } : s
@@ -232,7 +230,6 @@ export const getProductDetails = async(request,response)=>{
     }
 }
 
-//update product
 export const updateProductDetails = async(request,response)=>{
     try {
         const { _id } = request.body 
@@ -265,7 +262,6 @@ export const updateProductDetails = async(request,response)=>{
     }
 }
 
-//delete product
 export const deleteProductDetails = async(request,response)=>{
     try {
         const { _id } = request.body 
@@ -295,7 +291,6 @@ export const deleteProductDetails = async(request,response)=>{
     }
 }
 
-//search product
 export const searchProduct = async(request,response)=>{
     try {
         let { search, tag, page, limit } = request.body 
@@ -319,25 +314,72 @@ export const searchProduct = async(request,response)=>{
 
         if (search && search.trim() !== '') {
             const cleanSearch = search.trim()
-            try {
-                const query = { ...filterQuery, $text: { $search: cleanSearch } };
+            const lowerSearch = cleanSearch.toLowerCase()
+
+            if (lowerSearch === 'men' || lowerSearch === "men's" || lowerSearch === 'mens') {
+                const menCat = await CategoryModel.findOne({ name: { $regex: /^men/i } });
+                const womenCat = await CategoryModel.findOne({ name: { $regex: /^women/i } });
+
+                const query = {
+                    ...filterQuery,
+                    $and: [
+                        {
+                            $or: [
+                                ...(menCat ? [{ category: menCat._id }] : []),
+                                { name: { $regex: /\bmen('s)?\b/i } },
+                                { description: { $regex: /\bmen('s)?\b/i } },
+                                { keywords: { $in: ['men', "men's", 'mens', 'male', "men's wear"] } }
+                            ]
+                        },
+                        {
+                            name: { $not: { $regex: /\bwomen('s)?\b/i } },
+                            description: { $not: { $regex: /\bwomen('s)?\b/i } },
+                            ...(womenCat ? { category: { $ne: womenCat._id } } : {})
+                        }
+                    ]
+                };
+
                 [data, dataCount] = await Promise.all([
                     ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
                     ProductModel.countDocuments(query)
-                ])
-            } catch (textErr) {
-                // Fallback to regex search if $text index is missing in Atlas
-                const regexQuery = {
+                ]);
+            } else if (lowerSearch === 'women' || lowerSearch === "women's" || lowerSearch === 'womens') {
+                const womenCat = await CategoryModel.findOne({ name: { $regex: /^women/i } });
+
+                const query = {
                     ...filterQuery,
                     $or: [
-                        { name: { $regex: cleanSearch, $options: "i" } },
-                        { description: { $regex: cleanSearch, $options: "i" } }
+                        ...(womenCat ? [{ category: womenCat._id }] : []),
+                        { name: { $regex: /\bwomen('s)?\b/i } },
+                        { description: { $regex: /\bwomen('s)?\b/i } },
+                        { keywords: { $in: ['women', "women's", 'womens', 'female', "women's wear"] } }
                     ]
                 };
+
                 [data, dataCount] = await Promise.all([
-                    ProductModel.find(regexQuery).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
-                    ProductModel.countDocuments(regexQuery)
-                ])
+                    ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
+                    ProductModel.countDocuments(query)
+                ]);
+            } else {
+                try {
+                    const query = { ...filterQuery, $text: { $search: cleanSearch } };
+                    [data, dataCount] = await Promise.all([
+                        ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
+                        ProductModel.countDocuments(query)
+                    ])
+                } catch (textErr) {
+                    const regexQuery = {
+                        ...filterQuery,
+                        $or: [
+                            { name: { $regex: cleanSearch, $options: "i" } },
+                            { description: { $regex: cleanSearch, $options: "i" } }
+                        ]
+                    };
+                    [data, dataCount] = await Promise.all([
+                        ProductModel.find(regexQuery).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
+                        ProductModel.countDocuments(regexQuery)
+                    ])
+                }
             }
         } else {
             [data, dataCount] = await Promise.all([
@@ -367,7 +409,6 @@ export const searchProduct = async(request,response)=>{
     }
 }
 
-// Seed 100 100% Unique Branded Products (Complete Clean Slate Wipe & Seed)
 export const seedProductsController = async (request, response) => {
     try {
         const CategoryModel = (await import('../models/category.model.js')).default;
@@ -377,14 +418,12 @@ export const seedProductsController = async (request, response) => {
         const CartProductModel = (await import('../models/cartproduct.model.js')).default;
         const { SEED_PRODUCTS_100 } = await import('../data/seedData100.js');
 
-        // STEP 1: CLEAN SLATE WIPE (Products, Categories, Subcategories, Orders, Cart)
         await ProductModel.deleteMany({});
         await CategoryModel.deleteMany({});
         await SubCategoryModel.deleteMany({});
         await OrderModel.deleteMany({});
         await CartProductModel.deleteMany({});
 
-        // STEP 2: BUILD CATEGORIES AND SUBCATEGORIES MAP
         const categoryMap = {};
         const subCategoryMap = {};
 
@@ -408,7 +447,6 @@ export const seedProductsController = async (request, response) => {
             }
         }
 
-        // STEP 3: PREPARE AND INSERT 100 UNIQUE PRODUCTS
         const productsToInsert = SEED_PRODUCTS_100.map(item => ({
             name: item.name,
             image: item.images,
@@ -423,170 +461,23 @@ export const seedProductsController = async (request, response) => {
                 Brand: item.brand,
                 Fabric: item.fabric,
                 Fit: item.fit,
-                Care: 'Machine Wash Cold',
-                Origin: 'Made in India'
+                Color: item.color,
+                Occasion: item.occasion || 'Casual'
             },
-            publish: true,
-            sizes: item.sizes,
-            colors: item.colors,
-            tags: item.tags
+            sizes: item.sizes.map(s => ({ size: s, stock: item.stock })),
+            colors: [item.color],
+            tags: item.tags,
+            keywords: [item.name.toLowerCase(), item.brand.toLowerCase(), item.category.toLowerCase(), item.subCategory.toLowerCase()],
+            publish: true
         }));
 
         await ProductModel.insertMany(productsToInsert);
 
         return response.json({
-            message: `Successfully wiped database (products, categories, subcategories, orders, cart) and seeded ${productsToInsert.length} 100% unique, non-repeating branded products!`,
+            message: "100 Unique Branded Products seeded successfully!",
+            error: false,
             success: true,
-            error: false,
-            totalProductsSeeded: productsToInsert.length
-        });
-
-    } catch (error) {
-        return response.status(500).json({
-            message: error.message || error,
-            error: true,
-            success: false
-        });
-    }
-};
-
-export const updateAllProductSizesController = async (request, response) => {
-    try {
-        const products = await ProductModel.find({}).populate('category subCategory').lean();
-        let updatedCount = 0;
-        let skippedCount = 0;
-
-        const randStock = () => Math.floor(Math.random() * 46) + 5;
-        const fromStrings = (arr) => arr.map(s => ({ size: s, stock: randStock() }));
-        const toSizeStock = (arr) => arr.map(s => ({ size: s, stock: randStock() }));
-
-        const isStringArray = (arr) =>
-            Array.isArray(arr) && arr.length > 0 && typeof arr[0] === 'string';
-
-        const isStockArray = (arr) =>
-            Array.isArray(arr) && arr.length > 0 && typeof arr[0] === 'object' && arr[0].size !== undefined;
-
-        const isFootwear = (cat, sub, name) =>
-            cat.includes('shoe') || cat.includes('footwear') || cat.includes('sneaker') ||
-            sub.includes('shoe') || sub.includes('footwear') || sub.includes('sneaker') ||
-            name.includes('shoe') || name.includes('sneaker') || name.includes('boot') ||
-            name.includes('heel') || name.includes('sandal') || name.includes('slide') || name.includes('loafer');
-
-        const isApparel = (cat, sub, name) =>
-            cat.includes('men') || cat.includes('women') || cat.includes('dress') ||
-            cat.includes('top') || cat.includes('shirt') || cat.includes('wear') ||
-            cat.includes('fashion') || cat.includes('kid') || cat.includes('cloth') ||
-            sub.includes('top') || sub.includes('dress') || sub.includes('pant') ||
-            sub.includes('jean') || sub.includes('shirt') || sub.includes('jacket') || sub.includes('tshirt') ||
-            name.includes('dress') || name.includes('shirt') || name.includes('t-shirt') ||
-            name.includes('top') || name.includes('jean') || name.includes('pant') ||
-            name.includes('jacket') || name.includes('hoodie') || name.includes('kurti') ||
-            name.includes('saree') || name.includes('suit') || name.includes('frock') || name.includes('skirt') ||
-            name.includes('kurta') || name.includes('legging') || name.includes('trouser') || name.includes('blouse');
-
-        for (const prod of products) {
-            const cat  = (prod.category?.[0]?.name    || '').toLowerCase();
-            const sub  = (prod.subCategory?.[0]?.name || '').toLowerCase();
-            const name = (prod.name || '').toLowerCase();
-            const existingSizes = prod.sizes || [];
-
-            let newSizes = null;
-
-            if (isStringArray(existingSizes)) {
-                newSizes = fromStrings(existingSizes);
-            } else if (isStockArray(existingSizes)) {
-                const hasZeroStock = existingSizes.some(x => x.stock === 0);
-                if (hasZeroStock) {
-                    newSizes = existingSizes.map(x => ({ ...x, stock: x.stock === 0 ? randStock() : x.stock }));
-                } else {
-                    skippedCount++;
-                    continue;
-                }
-            } else {
-                if (isFootwear(cat, sub, name)) {
-                    newSizes = toSizeStock(['UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11']);
-                } else if (isApparel(cat, sub, name)) {
-                    newSizes = toSizeStock(['S', 'M', 'L', 'XL', 'XXL']);
-                } else {
-                    skippedCount++;
-                    continue;
-                }
-            }
-
-            if (newSizes) {
-                await ProductModel.updateOne({ _id: prod._id }, { $set: { sizes: newSizes } });
-                updatedCount++;
-            }
-        }
-
-        return response.json({
-            message: `Migration complete! Updated ${updatedCount} products, skipped ${skippedCount} (already correct or no size needed).`,
-            success: true,
-            error: false,
-            updatedCount,
-            skippedCount
-        });
-
-    } catch (error) {
-        return response.status(500).json({
-            message: error.message || error,
-            error: true,
-            success: false
-        });
-    }
-};
-
-// Bulk Delete Products
-export const bulkDeleteProductsController = async (request, response) => {
-    try {
-        const { ids } = request.body;
-        if (!ids || !Array.isArray(ids) || ids.length === 0) {
-            return response.status(400).json({
-                message: "Provide array of product IDs to delete",
-                error: true,
-                success: false
-            });
-        }
-
-        const deleteResult = await ProductModel.deleteMany({ _id: { $in: ids } });
-
-        return response.json({
-            message: `Successfully deleted ${deleteResult.deletedCount} products`,
-            deletedCount: deleteResult.deletedCount,
-            error: false,
-            success: true
-        });
-    } catch (error) {
-        return response.status(500).json({
-            message: error.message || error,
-            error: true,
-            success: false
-        });
-    }
-};
-
-// Bulk Update Publish Status
-export const bulkPublishProductsController = async (request, response) => {
-    try {
-        const { ids, publish } = request.body;
-        if (!ids || !Array.isArray(ids) || ids.length === 0) {
-            return response.status(400).json({
-                message: "Provide array of product IDs to update",
-                error: true,
-                success: false
-            });
-        }
-
-        const updateResult = await ProductModel.updateMany(
-            { _id: { $in: ids } },
-            { $set: { publish: Boolean(publish) } }
-        );
-
-        return response.json({
-            message: `Successfully updated ${updateResult.modifiedCount} products`,
-            modifiedCount: updateResult.modifiedCount,
-            error: false,
-            success: true
+            totalProducts: productsToInsert.length
         });
     } catch (error) {
         return response.status(500).json({
