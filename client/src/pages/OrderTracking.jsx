@@ -38,6 +38,7 @@ const OrderTracking = () => {
   const [returnType, setReturnType] = useState('REPLACE')
   const [returnReason, setReturnReason] = useState('Size issue / Fit problem')
   const [customReturnReason, setCustomReturnReason] = useState('')
+  const [returnComment, setReturnComment] = useState('')
   const [replaceSize, setReplaceSize] = useState('M')
   const [submittingReturn, setSubmittingReturn] = useState(false)
 
@@ -188,7 +189,7 @@ const OrderTracking = () => {
           orderId: currentOrder?._id,
           return_type: returnType,
           return_reason: finalReason,
-          replace_size: returnType === 'REPLACE' ? replaceSize : ''
+          return_comment: returnComment
         }
       })
 
@@ -200,7 +201,7 @@ const OrderTracking = () => {
           return_status: returnType === 'REPLACE' ? 'REPLACE_REQUESTED' : 'RETURN_REQUESTED',
           return_type: returnType,
           return_reason: finalReason,
-          replace_size: returnType === 'REPLACE' ? replaceSize : ''
+          return_comment: returnComment
         }))
         if (fetchOrder) fetchOrder()
       }
@@ -796,6 +797,9 @@ const OrderTracking = () => {
                   </span>
                 </div>
                 <p className="text-fashion-gray">Reason: <span className="font-semibold italic">"{currentOrder.return_reason}"</span></p>
+                {currentOrder.return_comment && (
+                  <p className="text-orange-900 font-medium">Notes: <span className="font-bold">"{currentOrder.return_comment}"</span></p>
+                )}
                 <p className="text-[11px] text-gray-500 pt-1">Our pickup executive will arrive within 24-48 hours for item verification.</p>
               </div>
             )}
@@ -901,18 +905,16 @@ const OrderTracking = () => {
                 </div>
               </div>
 
-              {returnReason === "Other" && (
-                <div>
-                  <textarea
-                    rows={2}
-                    placeholder="Please state details..."
-                    value={customReturnReason}
-                    onChange={(e) => setCustomReturnReason(e.target.value)}
-                    className="w-full p-2.5 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-200"
-                    required
-                  ></textarea>
-                </div>
-              )}
+              <div>
+                <label className="block text-xs font-bold text-fashion-charcoal mb-1">Additional Note / Request (Optional):</label>
+                <textarea
+                  rows={2}
+                  placeholder={returnType === 'REPLACE' ? "e.g. Need size M instead of L, or preferred color..." : "Add any specific instructions for pickup..."}
+                  value={returnComment}
+                  onChange={(e) => setReturnComment(e.target.value)}
+                  className="w-full p-2.5 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-200"
+                ></textarea>
+              </div>
 
               <div className="flex gap-3 pt-2">
                 <button

@@ -393,7 +393,7 @@ export async function getAllOrdersAdminController(request, response) {
 export async function returnOrderController(request, response) {
     try {
         const userId = request.userId;
-        const { orderId, return_type, return_reason, replace_size } = request.body;
+        const { orderId, return_type, return_reason, return_comment, replace_size } = request.body;
 
         if (!orderId || !return_type || !return_reason) {
             return response.status(400).json({
@@ -434,6 +434,7 @@ export async function returnOrderController(request, response) {
         order.return_status = return_type === "REPLACE" ? "REPLACE_REQUESTED" : "RETURN_REQUESTED";
         order.return_type = return_type;
         order.return_reason = return_reason;
+        if (return_comment !== undefined) order.return_comment = return_comment;
         if (return_type === "REPLACE") {
             order.replace_size = replace_size || "";
         }
@@ -466,7 +467,7 @@ export async function updateOrderStatusAdminController(request, response) {
             });
         }
 
-        const { orderId, order_status, return_status, cancel_reason, return_reason } = request.body;
+        const { orderId, order_status, return_status, cancel_reason, return_reason, return_comment } = request.body;
 
         const order = await OrderModel.findById(orderId);
         if (!order) {
@@ -486,6 +487,7 @@ export async function updateOrderStatusAdminController(request, response) {
         if (return_status !== undefined) order.return_status = return_status;
         if (cancel_reason !== undefined) order.cancel_reason = cancel_reason;
         if (return_reason !== undefined) order.return_reason = return_reason;
+        if (return_comment !== undefined) order.return_comment = return_comment;
 
         await order.save();
 

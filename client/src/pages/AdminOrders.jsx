@@ -238,6 +238,11 @@ const AdminOrders = () => {
                     <p className="text-orange-900 font-semibold text-[11px]">
                       Reason: <span className="font-extrabold italic">"{order.return_reason || 'N/A'}"</span>
                     </p>
+                    {order.return_comment && (
+                      <p className="text-orange-950 font-bold text-[11px]">
+                        Customer Notes: <span className="bg-white/80 px-2 py-0.5 rounded border border-orange-200 font-extrabold">"{order.return_comment}"</span>
+                      </p>
+                    )}
                   </div>
                 )}
 

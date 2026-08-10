@@ -70,6 +70,10 @@ const orderSchema = new mongoose.Schema({
         type : String,
         default : ""
     },
+    return_comment : {
+        type : String,
+        default : ""
+    },
     replace_size : {
         type : String,
         default : ""

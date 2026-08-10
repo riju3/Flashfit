@@ -86,6 +86,13 @@ const MyOrders = () => {
                       {order?.payment_status || 'CASH ON DELIVERY'}
                     </span>
 
+                    {/* Return/Exchange Status Badge if present */}
+                    {order?.return_status && order.return_status !== 'NONE' && (
+                      <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                        {order.return_status.replace(/_/g, ' ')}
+                      </span>
+                    )}
+
                     {/* Order Status Badge */}
                     {isCancelled ? (
                       <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 flex items-center gap-1">
@@ -102,6 +109,22 @@ const MyOrders = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Return / Replace Alert Banner inside card */}
+                {order?.return_status && order.return_status !== 'NONE' && (
+                  <div className="mb-3 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-0.5">
+                    <div className="flex justify-between items-center font-bold">
+                      <span>{order.return_type === 'REPLACE' ? 'Exchange Request' : 'Return & Refund Request'}</span>
+                      <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md font-extrabold">
+                        {order.return_status.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    <p className="text-gray-600">Reason: <span className="font-semibold italic">"{order?.return_reason}"</span></p>
+                    {order?.return_comment && (
+                      <p className="text-amber-800 font-medium">Notes: <span className="font-bold">"{order.return_comment}"</span></p>
+                    )}
+                  </div>
+                )}
 
                 {/* Cancelled Alert Banner inside card */}
                 {isCancelled && (
