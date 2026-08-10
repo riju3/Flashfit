@@ -43,28 +43,28 @@ const Address = () => {
                 Add Address
             </button>
         </div>
-        <div className='bg-blue-50 p-2 grid gap-4'>
+        <div className='bg-blue-50 p-2 sm:p-4 grid gap-4 rounded-xl'>
               {
                 addressList.map((address,index)=>{
                   return(
-                      <div className={`border rounded p-3 flex gap-3 bg-white ${!address.status && 'hidden'}`}>
-                          <div className='w-full'>
-                            <p>{address.address_line}</p>
-                            <p>{address.city}</p>
-                            <p>{address.state} - {address.pincode}</p>
-                            <p>{address.mobile}</p>
+                      <div key={address._id || index} className={`border rounded-xl p-3 flex justify-between gap-3 bg-white min-w-0 ${!address.status && 'hidden'}`}>
+                          <div className='w-full min-w-0 space-y-1 text-xs sm:text-sm text-fashion-charcoal'>
+                            <p className='font-bold text-fashion-dark break-words'>{address.address_line}</p>
+                            <p className='break-words'>{address.city}</p>
+                            <p className='break-words font-semibold text-orange-700'>{address.state} - <span className='font-mono font-bold'>{address.pincode}</span></p>
+                            <p className='text-gray-500 font-medium'>Mobile: {address.mobile}</p>
                           </div>
-                          <div className=' grid gap-10'>
+                          <div className='flex flex-col justify-between items-center gap-4 shrink-0'>
                             <button onClick={()=>{
                               setOpenEdit(true)
                               setEditData(address)
-                            }} className='bg-green-200 p-1 rounded  hover:text-white hover:bg-orange-500'>
-                              <MdEdit/>
+                            }} className='bg-green-100 text-green-700 p-2 rounded-xl hover:text-white hover:bg-green-600 transition-all' title="Edit">
+                              <MdEdit size={16}/>
                             </button>
                             <button onClick={()=>
                               handleDisableAddress(address._id)
-                            } className='bg-red-200 p-1 rounded hover:text-white hover:bg-red-600'>
-                              <MdDelete size={20}/>  
+                            } className='bg-red-100 text-red-600 p-2 rounded-xl hover:text-white hover:bg-red-600 transition-all' title="Delete">
+                              <MdDelete size={16}/>  
                             </button>
                           </div>
                       </div>

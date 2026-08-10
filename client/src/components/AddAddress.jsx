@@ -72,76 +72,76 @@ const AddAddress = ({ close }) => {
     }
 
     return (
-        <section className='bg-black fixed top-0 left-0 right-0 bottom-0 z-50 bg-opacity-70 h-screen overflow-auto flex items-center justify-center p-4'>
-            <div className='bg-white p-6 w-full max-w-lg mx-auto rounded-2xl shadow-xl'>
+        <section className='bg-black/70 fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4'>
+            <div className='bg-white p-4 sm:p-6 w-full max-w-lg mx-auto rounded-2xl shadow-xl max-h-[92vh] overflow-y-auto min-w-0'>
                 <div className='flex justify-between items-center gap-4 border-b pb-3 mb-4'>
-                    <h2 className='font-bold text-lg text-fashion-dark'>Add New Delivery Address</h2>
-                    <button onClick={close} className='hover:text-red-500 text-gray-400 p-1 rounded-full hover:bg-gray-100 transition-colors'>
+                    <h2 className='font-bold text-base sm:text-lg text-fashion-dark truncate'>Add New Delivery Address</h2>
+                    <button onClick={close} className='hover:text-red-500 text-gray-400 p-1 rounded-full hover:bg-gray-100 transition-colors shrink-0'>
                         <IoClose size={22} />
                     </button>
                 </div>
-                <form className='grid gap-4' onSubmit={handleSubmit(onSubmit)}>
-                    <div className='grid gap-1'>
+                <form className='grid gap-3.5' onSubmit={handleSubmit(onSubmit)}>
+                    <div className='grid gap-1 min-w-0'>
                         <label htmlFor='addressline' className='text-xs font-bold text-fashion-charcoal'>Address Line (House No, Street, Area) :</label>
                         <input
                             type='text'
                             id='addressline'
                             placeholder='e.g. Flat 302, Green Valley Apartments'
-                            className='border border-gray-200 bg-gray-50 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200'
+                            className='w-full min-w-0 border border-gray-200 bg-gray-50 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200'
                             {...register("addressline", { required: true })}
                         />
                     </div>
 
-                    <div className='grid gap-1'>
+                    <div className='grid gap-1 min-w-0'>
                         <label htmlFor='pincode' className='text-xs font-bold text-fashion-charcoal flex justify-between items-center'>
                             <span>Pincode :</span>
-                            {loadingPincode && <span className='text-[11px] text-orange-600 font-normal animate-pulse'>Fetching City & State...</span>}
+                            {loadingPincode && <span className='text-[11px] text-orange-600 font-normal animate-pulse truncate'>Fetching City & State...</span>}
                         </label>
                         <input
                             type='text'
                             id='pincode'
                             maxLength={6}
                             placeholder='Enter 6-digit Pincode'
-                            className='border border-gray-200 bg-gray-50 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 font-mono font-bold'
+                            className='w-full min-w-0 border border-gray-200 bg-gray-50 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 font-mono font-bold'
                             {...register("pincode", { required: true })}
                         />
                     </div>
 
-                    <div className='grid grid-cols-2 gap-3'>
-                        <div className='grid gap-1'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0'>
+                        <div className='grid gap-1 min-w-0'>
                             <label htmlFor='city' className='text-xs font-bold text-fashion-charcoal'>City / District :</label>
                             <input
                                 type='text'
                                 id='city'
                                 placeholder='Auto-filled by Pincode'
-                                className='border border-gray-200 bg-gray-100 p-2.5 rounded-xl text-sm font-semibold text-fashion-dark focus:outline-none'
+                                className='w-full min-w-0 border border-gray-200 bg-gray-100 p-2.5 rounded-xl text-sm font-semibold text-fashion-dark focus:outline-none truncate'
                                 {...register("city", { required: true })}
                             />
                         </div>
-                        <div className='grid gap-1'>
+                        <div className='grid gap-1 min-w-0'>
                             <label htmlFor='state' className='text-xs font-bold text-fashion-charcoal'>State :</label>
                             <input
                                 type='text'
                                 id='state'
                                 placeholder='Auto-filled by Pincode'
-                                className='border border-gray-200 bg-gray-100 p-2.5 rounded-xl text-sm font-semibold text-fashion-dark focus:outline-none'
+                                className='w-full min-w-0 border border-gray-200 bg-gray-100 p-2.5 rounded-xl text-sm font-semibold text-fashion-dark focus:outline-none truncate'
                                 {...register("state", { required: true })}
                             />
                         </div>
                     </div>
 
-                    <div className='grid gap-1'>
+                    <div className='grid gap-1 min-w-0'>
                         <label htmlFor='mobile' className='text-xs font-bold text-fashion-charcoal'>Mobile No. :</label>
                         <input
                             type='text'
                             id='mobile'
                             placeholder='10-digit mobile number'
-                            className='border border-gray-200 bg-gray-50 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200'
+                            className='w-full min-w-0 border border-gray-200 bg-gray-50 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200'
                             {...register("mobile", { required: true })}
                         />
                     </div>
 
-                    <button type='submit' className='bg-gradient-to-r from-orange-500 to-amber-500 text-white w-full py-3 font-bold rounded-xl shadow-md hover:opacity-95 transition-all mt-2'>
+                    <button type='submit' className='bg-gradient-to-r from-orange-500 to-amber-500 text-white w-full py-3 font-bold rounded-xl shadow-md hover:opacity-95 transition-all mt-1 cursor-pointer'>
                         Save Address
                     </button>
                 </form>
