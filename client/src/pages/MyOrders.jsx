@@ -1,71 +1,21 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import NoData from '../components/NoData'
 import { DisplayPriceInRupees } from '../utils/DisplayPriceInRupees'
 import { useGlobalContext } from '../provider/GlobalProvider'
-import Axios from '../utils/Axios'
-import SummaryApi from '../common/SummaryApi'
-import toast from 'react-hot-toast'
-import AxiosToastError from '../utils/AxiosToastError'
 import { FiTruck, FiChevronRight, FiPackage, FiX, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi'
-
-const CANCEL_REASONS = [
-  "Ordered by mistake",
-  "Delivery time is longer than expected",
-  "Need to change delivery address or phone number",
-  "Found a better price elsewhere",
-  "Other"
-]
 
 const MyOrders = () => {
   const orders = useSelector(state => state.orders.order)
   const { fetchOrder } = useGlobalContext()
   const navigate = useNavigate()
 
-  const [selectedOrderToCancel, setSelectedOrderToCancel] = useState(null)
-  const [selectedReason, setSelectedReason] = useState(CANCEL_REASONS[0])
-  const [customReason, setCustomReason] = useState('')
-  const [cancelling, setCancelling] = useState(false)
-
   useEffect(() => {
     if (fetchOrder) {
       fetchOrder()
     }
   }, [])
-
-  const handleCancelSubmit = async (e) => {
-    e.preventDefault()
-    if (!selectedOrderToCancel) return
-
-    const finalReason = selectedReason === 'Other' ? customReason : selectedReason
-    if (!finalReason || !finalReason.trim()) {
-      toast.error("Please specify a reason for cancellation")
-      return
-    }
-
-    try {
-      setCancelling(true)
-      const response = await Axios({
-        ...SummaryApi.cancelOrder,
-        data: {
-          orderId: selectedOrderToCancel._id,
-          cancel_reason: finalReason
-        }
-      })
-
-      if (response.data.success) {
-        toast.success("Order cancelled successfully")
-        setSelectedOrderToCancel(null)
-        setCustomReason('')
-        if (fetchOrder) fetchOrder()
-      }
-    } catch (error) {
-      AxiosToastError(error)
-    } finally {
-      setCancelling(false)
-    }
-  }
 
   return (
     <div className="bg-gray-50/50 min-h-[80vh] p-4 sm:p-6">
@@ -79,7 +29,7 @@ const MyOrders = () => {
             </div>
             <div>
               <h1 className="text-lg font-extrabold text-fashion-dark">My Orders</h1>
-              <p className="text-xs text-fashion-gray">Track status, view details, or cancel your purchases</p>
+              <p className="text-xs text-fashion-gray">Track status and view details for all your purchases</p>
             </div>
           </div>
           <span className="text-xs font-bold bg-orange-100 text-orange-700 px-3 py-1 rounded-full">
@@ -164,7 +114,7 @@ const MyOrders = () => {
                   </div>
                 )}
 
-                {/* Card Body: Product Info & Actions */}
+                {/* Card Body: Product Info & Action */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex gap-4 items-center">
                     <img
@@ -189,21 +139,8 @@ const MyOrders = () => {
                     </div>
                   </div>
 
-                  {/* Buttons */}
-                  <div className="w-full sm:w-auto flex items-center justify-end gap-2 shrink-0">
-                    {!isCancelled && !isDelivered && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSelectedOrderToCancel(order)
-                        }}
-                        className="flex items-center gap-1 text-xs font-extrabold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-3 py-2 rounded-xl border border-red-200 transition-all cursor-pointer"
-                        title="Cancel Order"
-                      >
-                        <FiX size={14} /> Cancel Order
-                      </button>
-                    )}
-
+                  {/* Track Order Button Only */}
+                  <div className="w-full sm:w-auto flex items-center justify-end shrink-0">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -225,83 +162,6 @@ const MyOrders = () => {
         </div>
 
       </div>
-
-      {/* CANCEL ORDER MODAL */}
-      {selectedOrderToCancel && (
-        <section className="bg-black/70 fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4 animate-scale-in">
-            <div className="flex justify-between items-center border-b pb-3">
-              <h3 className="font-extrabold text-base text-fashion-dark flex items-center gap-2">
-                <FiAlertTriangle className="text-red-500" /> Cancel Order
-              </h3>
-              <button
-                onClick={() => setSelectedOrderToCancel(null)}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
-              >
-                <FiX size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleCancelSubmit} className="space-y-4">
-              <p className="text-xs font-bold text-fashion-charcoal">
-                Please tell us why you are cancelling this order:
-              </p>
-
-              <div className="space-y-2">
-                {CANCEL_REASONS.map((reason, index) => (
-                  <label
-                    key={index}
-                    className={`flex items-center gap-3 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
-                      selectedReason === reason
-                        ? 'border-red-500 bg-red-50/50 text-red-900'
-                        : 'border-gray-200 text-fashion-dark hover:bg-gray-50'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="cancel_reason"
-                      checked={selectedReason === reason}
-                      onChange={() => setSelectedReason(reason)}
-                      className="accent-red-500"
-                    />
-                    <span>{reason}</span>
-                  </label>
-                ))}
-              </div>
-
-              {selectedReason === "Other" && (
-                <div>
-                  <textarea
-                    rows={3}
-                    placeholder="Please specify your reason for cancellation..."
-                    value={customReason}
-                    onChange={(e) => setCustomReason(e.target.value)}
-                    className="w-full p-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-200"
-                    required
-                  ></textarea>
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedOrderToCancel(null)}
-                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-fashion-dark text-xs font-bold rounded-xl transition-colors cursor-pointer"
-                >
-                  Keep Order
-                </button>
-                <button
-                  type="submit"
-                  disabled={cancelling}
-                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md transition-all disabled:opacity-50 cursor-pointer"
-                >
-                  {cancelling ? "Cancelling..." : "Confirm Cancellation"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </section>
-      )}
     </div>
   )
 }
