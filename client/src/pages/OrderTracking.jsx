@@ -783,17 +783,8 @@ const OrderTracking = () => {
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100 pb-3">
               <div>
-                <h3 className="text-sm font-extrabold text-fashion-dark flex items-center gap-2">
-                  <span>7-Day Easy Return & Exchange</span>
-                  {isWithin7Days ? (
-                    <span className="text-[10px] font-black bg-green-100 text-green-700 px-2 py-0.5 rounded-full border border-green-200 uppercase">
-                      Window Active
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full uppercase">
-                      Window Expired
-                    </span>
-                  )}
+                <h3 className="text-sm font-extrabold text-fashion-dark">
+                  7-Day Easy Return & Exchange
                 </h3>
                 <p className="text-xs text-fashion-gray mt-0.5">
                   {isWithin7Days

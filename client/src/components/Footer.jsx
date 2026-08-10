@@ -204,7 +204,7 @@ const Footer = () => {
         </div>
 
         {/* Contact (Dynamic from Admin Settings) */}
-        <div>
+        <div className="col-span-2 md:col-span-1">
           <h4 className="text-sm font-bold uppercase tracking-widest text-white/90 mb-4">Contact</h4>
           <ul className="space-y-3">
             <li className="flex items-start gap-2.5 text-white/55 text-sm">
@@ -224,7 +224,7 @@ const Footer = () => {
           {/* Badges */}
           <div className="flex gap-2 mt-5 flex-wrap">
             {['Secure Checkout', 'Free Returns', 'COD Available'].map(badge => (
-              <span key={badge} className="text-xs px-2 py-1 rounded-full bg-white/8 border border-white/15 text-white/60">
+              <span key={badge} className="text-xs px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-white/70 font-medium">
                 {badge}
               </span>
             ))}
