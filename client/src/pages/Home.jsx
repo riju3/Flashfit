@@ -290,74 +290,75 @@ const ProductRow = ({ products, loading }) => {
 }
 
 // ─── Brands Marquee ──────────────────────────────────────────────────────────
-const BRANDS = [
-  { name: 'U.S. Polo Assn.',  abbr: 'USPA',       color: '#1B3A6B' },
-  { name: 'Tommy Hilfiger',   abbr: 'TOMMY',      color: '#C8102E' },
-  { name: 'Woodland',         abbr: 'WOODLAND',   color: '#4A2C0A' },
-  { name: 'Snitch',           abbr: 'SNITCH',     color: '#FF4D00' },
-  { name: 'Roadster',         abbr: 'ROADSTER',   color: '#111111' },
-  { name: 'H&M',              abbr: 'H&M',        color: '#E50010' },
-  { name: "Levi's",           abbr: "LEVI'S",     color: '#C41230' },
-  { name: 'Nike',             abbr: 'NIKE',       color: '#111111' },
-  { name: 'Adidas',           abbr: 'ADIDAS',     color: '#000000' },
-  { name: 'Puma',             abbr: 'PUMA',       color: '#DB0030' },
-  { name: 'Reebok',           abbr: 'REEBOK',     color: '#CC0000' },
-  { name: 'Peter England',    abbr: 'P.ENGLAND',  color: '#003087' },
-  { name: 'Van Heusen',       abbr: 'VAN HEUSEN', color: '#1C3A6A' },
-  { name: 'Arrow',            abbr: 'ARROW',      color: '#2C2C2C' },
-  { name: 'Louis Philippe',   abbr: 'L.PHILIPPE', color: '#8B6914' },
-  { name: 'Raymond',          abbr: 'RAYMOND',    color: '#1A1A1A' },
-  { name: 'Allen Solly',      abbr: 'A.SOLLY',    color: '#E63C2F' },
-  { name: 'Jack & Jones',     abbr: 'J&J',        color: '#003399' },
-  { name: 'Vero Moda',        abbr: 'VERO MODA',  color: '#222222' },
-  { name: 'Only',             abbr: 'ONLY',       color: '#111111' },
-  { name: 'Benetton',         abbr: 'BENETTON',   color: '#00A54F' },
-  { name: 'Superdry',         abbr: 'SUPERDRY',   color: '#E8C200' },
-  { name: 'Wrangler',         abbr: 'WRANGLER',   color: '#003087' },
-  { name: 'Lee',              abbr: 'LEE',        color: '#C8102E' },
-  { name: 'Spykar',           abbr: 'SPYKAR',     color: '#FF6B00' },
-  { name: 'Flying Machine',   abbr: 'FLYING M.',  color: '#1B3A6B' },
-  { name: 'Being Human',      abbr: 'B.HUMAN',    color: '#E30045' },
-  { name: 'FabIndia',         abbr: 'FABINDIA',   color: '#8B3A0F' },
-  { name: 'Manyavar',         abbr: 'MANYAVAR',   color: '#7B0D1E' },
-  { name: 'W (Aurelia)',      abbr: 'W',          color: '#9B2335' },
-  { name: 'Biba',             abbr: 'BIBA',       color: '#D4007A' },
-  { name: 'Anita Dongre',     abbr: 'A.DONGRE',   color: '#B8860B' },
-  { name: 'Calvin Klein',     abbr: 'CK',         color: '#111111' },
-  { name: 'Ralph Lauren',     abbr: 'RL',         color: '#00205B' },
-  { name: 'Fossil',           abbr: 'FOSSIL',     color: '#333333' },
-  { name: 'Killer Jeans',     abbr: 'KILLER',     color: '#1A1A1A' },
+const DEFAULT_BRANDS = [
+  { name: "Levi's", logo: "https://upload.wikimedia.org/wikipedia/commons/7/75/Levi%27s_logo.svg", query: "Levis" },
+  { name: "Nike", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg", query: "Nike" },
+  { name: "Adidas", logo: "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg", query: "Adidas" },
+  { name: "Puma", logo: "https://upload.wikimedia.org/wikipedia/commons/8/88/Puma-Logo.png", query: "Puma" },
+  { name: "Wrangler", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Wrangler_Jeans_logo.svg", query: "Wrangler" },
+  { name: "Lee", logo: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Lee_Jeans_logo.svg", query: "Lee" },
+  { name: "Tommy Hilfiger", logo: "https://upload.wikimedia.org/wikipedia/commons/2/24/Tommy_Hilfiger_logo.svg", query: "Tommy" },
+  { name: "Calvin Klein", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e2/Calvin_klein_logo.svg", query: "Calvin" },
+  { name: "Zara", logo: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Zara_Logo.svg", query: "Zara" },
+  { name: "H&M", logo: "https://upload.wikimedia.org/wikipedia/commons/5/53/H%26M-Logo.svg", query: "HM" },
+  { name: "Spykar", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Spykar_Logo.svg/512px-Spykar_Logo.svg.png", query: "Spykar" }
 ]
 
-const BrandChip = ({ brand }) => (
-  <div
-    className="flex-shrink-0 flex items-center gap-2.5 px-5 py-3 rounded-xl mx-3 bg-white border border-gray-100 shadow-sm hover:shadow-card group cursor-default transition-all duration-300 hover:-translate-y-0.5"
-    style={{ minWidth: '140px' }}
-  >
-    {/* Color dot representing brand identity */}
-    <span
-      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-      style={{ backgroundColor: brand.color }}
-    />
-    <div>
-      <p
-        className="text-xs font-black tracking-widest leading-none"
-        style={{ color: brand.color, letterSpacing: '0.08em' }}
-      >
-        {brand.abbr}
-      </p>
-      <p className="text-[9px] text-fashion-gray mt-0.5 leading-none whitespace-nowrap">
-        {brand.name}
-      </p>
+const BrandChip = ({ brand, onClick }) => {
+  const [imgError, setImgError] = useState(false)
+
+  return (
+    <div
+      onClick={onClick}
+      className="flex-shrink-0 flex items-center justify-center px-5 py-2.5 rounded-2xl mx-3 bg-white border border-gray-100 shadow-sm hover:shadow-card group cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
+      style={{ minWidth: '140px', height: '56px' }}
+    >
+      {brand?.logo && !imgError ? (
+        <img
+          src={brand.logo}
+          alt={brand.name || 'Brand Logo'}
+          onError={() => setImgError(true)}
+          className="h-8 max-w-[110px] object-contain transition-transform duration-300 group-hover:scale-105"
+        />
+      ) : (
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0" />
+          <span className="text-xs font-black tracking-widest text-fashion-dark uppercase truncate max-w-[100px]">
+            {brand?.name || 'Brand'}
+          </span>
+        </div>
+      )}
     </div>
-  </div>
-)
+  )
+}
 
 const BrandsMarquee = () => {
-  // Triplicate so it's truly seamless at any viewport
-  const row1 = [...BRANDS, ...BRANDS, ...BRANDS]
-  const row2 = [...BRANDS].reverse()
+  const [brands, setBrands] = useState(DEFAULT_BRANDS)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await Axios({ ...SummaryApi.getSettings })
+        if (response.data?.success && response.data?.data?.brandLogos && response.data.data.brandLogos.length > 0) {
+          setBrands(response.data.data.brandLogos)
+        }
+      } catch (_) {}
+    }
+    fetchSettings()
+  }, [])
+
+  const list = brands.length > 0 ? brands : DEFAULT_BRANDS
+  const row1 = [...list, ...list, ...list]
+  const row2 = [...list].reverse()
   const row2Full = [...row2, ...row2, ...row2]
+
+  const handleBrandClick = (b) => {
+    const q = b.query || b.name
+    if (q) {
+      navigate(`/search?q=${encodeURIComponent(q)}`)
+    }
+  }
 
   return (
     <section className="py-10 bg-white border-y border-gray-100 overflow-hidden">
@@ -371,7 +372,11 @@ const BrandsMarquee = () => {
       <div className="marquee-wrapper mb-3" style={{ '--duration': '60s' }}>
         <div className="marquee-track">
           {row1.map((brand, i) => (
-            <BrandChip key={brand.name + 'r1-' + i} brand={brand} />
+            <BrandChip
+              key={(brand.name || 'b1') + 'r1-' + i}
+              brand={brand}
+              onClick={() => handleBrandClick(brand)}
+            />
           ))}
         </div>
       </div>
@@ -380,7 +385,11 @@ const BrandsMarquee = () => {
       <div className="marquee-wrapper marquee-reverse" style={{ '--duration': '50s' }}>
         <div className="marquee-track">
           {row2Full.map((brand, i) => (
-            <BrandChip key={brand.name + 'r2-' + i} brand={brand} />
+            <BrandChip
+              key={(brand.name || 'b2') + 'r2-' + i}
+              brand={brand}
+              onClick={() => handleBrandClick(brand)}
+            />
           ))}
         </div>
       </div>

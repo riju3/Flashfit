@@ -16,7 +16,14 @@ const settingsSchema = new mongoose.Schema({
     storeAddress: {
         type: String,
         default: "42 Fashion Street, Mumbai, MH 400001"
-    }
+    },
+    brandLogos: [
+        {
+            name: { type: String, default: "" },
+            logo: { type: String, default: "" },
+            query: { type: String, default: "" }
+        }
+    ]
 }, {
     timestamps: true
 });
