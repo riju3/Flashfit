@@ -334,146 +334,99 @@ const OrderTracking = () => {
         </div>
 
         {/* DYNAMIC REAL-TIME 30 MIN COUNTDOWN HERO */}
-        <div className={`p-6 rounded-3xl shadow-xl relative overflow-hidden text-white transition-all ${
-          isCancelled
-            ? 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700'
-            : isDelivered
-            ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-teal-700'
-            : 'bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600'
-        }`}>
-          <div className="absolute right-[-20px] bottom-[-20px] opacity-15 pointer-events-none">
-            {isCancelled ? <FaTimesCircle size={180} /> : <FaMotorcycle size={180} />}
-          </div>
+        {(() => {
+          const hasReturnStatus = currentOrder?.return_status && currentOrder.return_status !== 'NONE'
 
-          <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider bg-black/20 px-3 py-1 rounded-full w-fit mb-2">
-                <FiZap size={14} className="text-yellow-300 fill-yellow-300" />
-                {isCancelled
-                  ? 'ORDER CANCELLED'
-                  : isDelivered
-                  ? 'DELIVERED SUCCESSFULLY'
-                  : isOutForDelivery
-                  ? 'RIDER ON THE WAY'
-                  : isPacking
-                  ? 'PACKING IN PROGRESS'
-                  : 'ORDER PLACED'}
+          return (
+            <div className={`p-6 rounded-3xl shadow-xl relative overflow-hidden text-white transition-all ${
+              hasReturnStatus
+                ? 'bg-gradient-to-r from-amber-900 via-stone-900 to-amber-950'
+                : isCancelled
+                ? 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700'
+                : isDelivered
+                ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-teal-700'
+                : 'bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600'
+            }`}>
+              <div className="absolute right-[-20px] bottom-[-20px] opacity-15 pointer-events-none">
+                {isCancelled ? <FaTimesCircle size={180} /> : hasReturnStatus ? <FaBoxOpen size={180} /> : <FaMotorcycle size={180} />}
               </div>
-              
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-                {isCancelled ? (
-                  'Order Has Been Cancelled'
-                ) : isDelivered ? (
-                  'Delivered in 30 Mins!'
-                ) : (
-                  `${String(minLeft).padStart(2, '0')} mins ${String(secLeft).padStart(2, '0')} secs`
-                )}
-              </h1>
-              
-              <p className="text-xs font-semibold text-white/90 mt-1">
-                {isCancelled
-                  ? `Reason: "${currentOrder?.cancel_reason || 'Requested by customer'}"`
-                  : isDelivered
-                  ? 'Your package has been successfully delivered to your doorstep.'
-                  : isOutForDelivery
-                  ? 'Rider is speeding on motorcycle to deliver your package 🛵'
-                  : isPacking
-                  ? 'Packing team is packing your fashion item at Darkstore'
-                  : 'Order confirmed! Assigning nearest rider...'}
-              </p>
-            </div>
 
-            {/* Live Status Badge */}
-            <div className="bg-white/20 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/30 text-center shrink-0 flex flex-col items-center gap-1">
-              <span className="text-[10px] font-extrabold uppercase text-white/80 block">Status</span>
-              <span className="text-xs font-black text-white flex items-center justify-center gap-1">
-                <span className={`w-2 h-2 rounded-full ${
-                  isCancelled ? 'bg-red-300' : isDelivered ? 'bg-green-300' : 'bg-yellow-300 animate-ping'
-                }`}></span>
-                {dbStatus.replace(/_/g, ' ')}
-              </span>
+              <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider bg-black/30 px-3 py-1 rounded-full w-fit mb-2">
+                    <FiZap size={14} className="text-yellow-300 fill-yellow-300" />
+                    {hasReturnStatus
+                      ? (currentOrder.return_type === 'REPLACE' ? 'EXCHANGE REQUEST' : 'RETURN & REFUND REQUEST')
+                      : isCancelled
+                      ? 'ORDER CANCELLED'
+                      : isDelivered
+                      ? 'DELIVERED SUCCESSFULLY'
+                      : isOutForDelivery
+                      ? 'RIDER ON THE WAY'
+                      : isPacking
+                      ? 'PACKING IN PROGRESS'
+                      : 'ORDER PLACED'}
+                  </div>
+                  
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+                    {hasReturnStatus ? (
+                      currentOrder.return_status.replace(/_/g, ' ')
+                    ) : isCancelled ? (
+                      'Order Has Been Cancelled'
+                    ) : isDelivered ? (
+                      'Delivered in 30 Mins!'
+                    ) : (
+                      `${String(minLeft).padStart(2, '0')} mins ${String(secLeft).padStart(2, '0')} secs`
+                    )}
+                  </h1>
+                  
+                  <p className="text-xs font-semibold text-white/90 mt-1">
+                    {hasReturnStatus
+                      ? `Reason: "${currentOrder?.return_reason || 'N/A'}"${currentOrder?.return_comment ? ` • Notes: "${currentOrder.return_comment}"` : ''}`
+                      : isCancelled
+                      ? `Reason: "${currentOrder?.cancel_reason || 'Requested by customer'}"`
+                      : isDelivered
+                      ? 'Your package has been successfully delivered to your doorstep.'
+                      : isOutForDelivery
+                      ? 'Rider is speeding on motorcycle to deliver your package'
+                      : isPacking
+                      ? 'Packing team is packing your fashion item at Darkstore'
+                      : 'Order confirmed! Assigning nearest rider...'}
+                  </p>
+                </div>
 
-              {/* Return/Exchange Badge inside Top Banner */}
-              {currentOrder?.return_status && currentOrder.return_status !== 'NONE' && (
-                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase border shadow-xs mt-0.5 ${
-                  currentOrder.return_status.includes('REJECTED')
-                    ? 'bg-red-100 text-red-800 border-red-300'
-                    : currentOrder.return_status.includes('APPROVED') || currentOrder.return_status === 'COMPLETED'
-                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                    : 'bg-amber-100 text-amber-900 border-amber-300'
-                }`}>
-                  {currentOrder.return_status.replace(/_/g, ' ')}
-                </span>
+                {/* Live Status Badge (ONLY DELIVERED or CANCELLED status, no duplicate return badge) */}
+                <div className="bg-white/20 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/30 text-center shrink-0 flex flex-col items-center justify-center min-w-[110px]">
+                  <span className="text-[10px] font-extrabold uppercase text-white/80 block">Status</span>
+                  <span className="text-xs font-black text-white flex items-center justify-center gap-1 mt-0.5">
+                    <span className={`w-2 h-2 rounded-full ${
+                      isCancelled ? 'bg-red-300' : isDelivered ? 'bg-green-300' : 'bg-yellow-300 animate-ping'
+                    }`}></span>
+                    {dbStatus.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Express Live Dynamic Progress Bar */}
+              {!isCancelled && (
+                <div className="mt-6 pt-4 border-t border-white/20">
+                  <div className="w-full bg-black/20 h-3 rounded-full overflow-hidden p-0.5">
+                    <div
+                      className="bg-white h-full rounded-full transition-all duration-700 shadow-sm"
+                      style={{ width: `${isDelivered ? 100 : progressPercentage}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-[11px] font-bold text-white/80 mt-2">
+                    <span>Darkstore (0m)</span>
+                    <span>Packing (5m)</span>
+                    <span>On Bike (10m)</span>
+                    <span>Delivered (30m)</span>
+                  </div>
+                </div>
               )}
             </div>
-          </div>
-
-          {/* Express Live Dynamic Progress Bar */}
-          {!isCancelled && (
-            <div className="mt-6 pt-4 border-t border-white/20">
-              <div className="w-full bg-black/20 h-3 rounded-full overflow-hidden p-0.5">
-                <div
-                  className="bg-white h-full rounded-full transition-all duration-700 shadow-sm"
-                  style={{ width: `${isDelivered ? 100 : progressPercentage}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between text-[11px] font-bold text-white/80 mt-2">
-                <span>Darkstore (0m)</span>
-                <span>Packing (5m)</span>
-                <span>On Bike (10m)</span>
-                <span>Delivered (30m)</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* PROMINENT RETURN / EXCHANGE STATUS CARD IF RETURN STATUS EXISTS */}
-        {currentOrder?.return_status && currentOrder.return_status !== 'NONE' && (
-          <div className={`p-4 rounded-2xl border-2 space-y-2.5 transition-all shadow-sm ${
-            currentOrder.return_status.includes('REJECTED')
-              ? 'bg-red-50/80 border-red-200 text-red-900'
-              : currentOrder.return_status.includes('APPROVED') || currentOrder.return_status === 'COMPLETED'
-              ? 'bg-green-50/80 border-green-200 text-green-900'
-              : 'bg-amber-50/80 border-amber-300 text-amber-950'
-          }`}>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2 border-gray-200/60">
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-sm uppercase tracking-wide">
-                  {currentOrder.return_type === 'REPLACE' ? 'Exchange / Replacement Status' : 'Return & Refund Status'}
-                </span>
-              </div>
-              <span className={`text-xs font-black px-3 py-1 rounded-full uppercase border ${
-                currentOrder.return_status.includes('REJECTED')
-                  ? 'bg-red-100 text-red-800 border-red-300'
-                  : currentOrder.return_status.includes('APPROVED') || currentOrder.return_status === 'COMPLETED'
-                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  : 'bg-amber-100 text-amber-900 border-amber-300'
-              }`}>
-                {currentOrder.return_status.replace(/_/g, ' ')}
-              </span>
-            </div>
-
-            <div className="text-xs space-y-1">
-              <p className="font-semibold">Reason: <span className="font-bold italic">"{currentOrder.return_reason || 'N/A'}"</span></p>
-              {currentOrder.return_comment && (
-                <p className="font-semibold">Notes: <span className="font-extrabold">"{currentOrder.return_comment}"</span></p>
-              )}
-              {currentOrder.return_status.includes('REJECTED') ? (
-                <p className="text-[11px] text-red-700 pt-1 font-medium">
-                  • This return/exchange request was reviewed and rejected by our Darkstore inspection team.
-                </p>
-              ) : currentOrder.return_status.includes('APPROVED') ? (
-                <p className="text-[11px] text-green-700 pt-1 font-medium">
-                  • Request approved! Executive is assigned for doorstep pickup & processing.
-                </p>
-              ) : (
-                <p className="text-[11px] text-amber-800 pt-1 font-medium">
-                  • Request received. Our darkstore executive will arrive within 24-48 hours for item verification.
-                </p>
-              )}
-            </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* Cancellation Alert if Cancelled */}
         {isCancelled && (
