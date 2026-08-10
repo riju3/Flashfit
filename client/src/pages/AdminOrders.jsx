@@ -100,8 +100,8 @@ const AdminOrders = () => {
           { id: 'PACKING', label: 'Packing' },
           { id: 'OUT_FOR_DELIVERY', label: 'Out for Delivery' },
           { id: 'DELIVERED', label: 'Delivered' },
-          { id: 'RETURN_REQUESTED', label: 'Returns ↩️' },
-          { id: 'REPLACE_REQUESTED', label: 'Replacements 🔄' },
+          { id: 'RETURN_REQUESTED', label: 'Returns' },
+          { id: 'REPLACE_REQUESTED', label: 'Replacements' },
           { id: 'CANCELLED', label: 'Cancelled' }
         ].map((tab) => {
           const count = tab.id === 'ALL' 
@@ -238,11 +238,6 @@ const AdminOrders = () => {
                     <p className="text-orange-900 font-semibold text-[11px]">
                       Reason: <span className="font-extrabold italic">"{order.return_reason || 'N/A'}"</span>
                     </p>
-                    {order.replace_size && (
-                      <p className="text-orange-800 font-black text-[11px]">
-                        Requested Exchange Size: <span className="bg-white px-2 py-0.5 rounded border border-orange-300 font-extrabold">{order.replace_size}</span>
-                      </p>
-                    )}
                   </div>
                 )}
 

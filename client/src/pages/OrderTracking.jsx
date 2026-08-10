@@ -740,7 +740,7 @@ const OrderTracking = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100 pb-3">
               <div>
                 <h3 className="text-sm font-extrabold text-fashion-dark flex items-center gap-2">
-                  <span>🔄 7-Day Easy Return & Exchange</span>
+                  <span>7-Day Easy Return & Exchange</span>
                   {isWithin7Days ? (
                     <span className="text-[10px] font-black bg-green-100 text-green-700 px-2 py-0.5 rounded-full border border-green-200 uppercase">
                       Window Active
@@ -771,7 +771,7 @@ const OrderTracking = () => {
                     }}
                     className="flex-1 sm:flex-initial py-2 px-4 bg-orange-50 hover:bg-orange-500 hover:text-white text-orange-600 font-extrabold text-xs rounded-xl border border-orange-200 transition-all cursor-pointer"
                   >
-                    🔄 Exchange / Replace
+                    Exchange / Replace
                   </button>
                   <button
                     onClick={() => {
@@ -780,7 +780,7 @@ const OrderTracking = () => {
                     }}
                     className="flex-1 sm:flex-initial py-2 px-4 bg-gray-100 hover:bg-gray-800 hover:text-white text-fashion-dark font-extrabold text-xs rounded-xl border border-gray-200 transition-all cursor-pointer"
                   >
-                    ↩️ Return & Refund
+                    Return & Refund
                   </button>
                 </div>
               ) : null}
@@ -796,10 +796,7 @@ const OrderTracking = () => {
                   </span>
                 </div>
                 <p className="text-fashion-gray">Reason: <span className="font-semibold italic">"{currentOrder.return_reason}"</span></p>
-                {currentOrder.replace_size && (
-                  <p className="text-orange-700 font-bold">Requested Exchange Size: {currentOrder.replace_size}</p>
-                )}
-                <p className="text-[11px] text-gray-500 pt-1">Our darkstore pickup executive will arrive within 24-48 hours for item verification.</p>
+                <p className="text-[11px] text-gray-500 pt-1">Our pickup executive will arrive within 24-48 hours for item verification.</p>
               </div>
             )}
           </div>
@@ -840,7 +837,7 @@ const OrderTracking = () => {
           <div className="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4 animate-scale-in">
             <div className="flex justify-between items-center border-b pb-3">
               <h3 className="font-extrabold text-base text-fashion-dark flex items-center gap-2">
-                {returnType === 'REPLACE' ? '🔄 Exchange / Replace Product' : '↩️ Return Product for Full Refund'}
+                {returnType === 'REPLACE' ? 'Exchange / Replace Product' : 'Return Product for Full Refund'}
               </h3>
               <button
                 onClick={() => setShowReturnModal(false)}
@@ -863,7 +860,7 @@ const OrderTracking = () => {
                         : 'bg-gray-50 text-fashion-dark border-gray-200 hover:bg-gray-100'
                     }`}
                   >
-                    🔄 Exchange Size/Item
+                    Exchange Item
                   </button>
                   <button
                     type="button"
@@ -874,32 +871,10 @@ const OrderTracking = () => {
                         : 'bg-gray-50 text-fashion-dark border-gray-200 hover:bg-gray-100'
                     }`}
                   >
-                    ↩️ Return & Refund
+                    Return & Refund
                   </button>
                 </div>
               </div>
-
-              {returnType === 'REPLACE' && (
-                <div>
-                  <label className="block text-xs font-bold text-fashion-charcoal mb-1">Select Exchange Size Required:</label>
-                  <div className="flex flex-wrap gap-2">
-                    {['S', 'M', 'L', 'XL', 'XXL', 'UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10'].map(sz => (
-                      <button
-                        key={sz}
-                        type="button"
-                        onClick={() => setReplaceSize(sz)}
-                        className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all ${
-                          replaceSize === sz
-                            ? 'bg-orange-100 text-orange-700 border-orange-500 ring-2 ring-orange-200'
-                            : 'bg-gray-50 text-fashion-dark border-gray-200 hover:bg-gray-100'
-                        }`}
-                      >
-                        {sz}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <div>
                 <label className="block text-xs font-bold text-fashion-charcoal mb-1">Reason for {returnType === 'REPLACE' ? 'Exchange' : 'Return'}:</label>
