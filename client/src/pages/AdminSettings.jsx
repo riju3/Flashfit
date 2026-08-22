@@ -176,15 +176,19 @@ const AdminSettings = () => {
               </p>
             </div>
 
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={virtualTryOnEnabled}
-                onChange={(e) => setVirtualTryOnEnabled(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-12 h-6.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5.5 after:w-5.5 after:transition-all peer-checked:bg-orange-600"></div>
-            </label>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setVirtualTryOnEnabled(!virtualTryOnEnabled)}
+                className={`px-5 py-2.5 text-xs font-black rounded-xl transition-all shadow-sm cursor-pointer border ${
+                  virtualTryOnEnabled
+                    ? 'bg-green-600 hover:bg-green-700 text-white border-green-700'
+                    : 'bg-red-600 hover:bg-red-700 text-white border-red-700'
+                }`}
+              >
+                {virtualTryOnEnabled ? 'ON (SHOW ON STORE)' : 'OFF (HIDE FROM STORE)'}
+              </button>
+            </div>
           </div>
         </section>
         
