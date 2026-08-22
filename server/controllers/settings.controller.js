@@ -9,7 +9,8 @@ export const getSettingsController = async (request, response) => {
                 supportPhone: "+91 98765 43210",
                 supportEmail: "support@flashfit.com",
                 storeAddress: "42 Fashion Street, Mumbai, MH 400001",
-                brandLogos: []
+                brandLogos: [],
+                virtualTryOnEnabled: true
             });
         }
         return response.json({
@@ -29,16 +30,17 @@ export const getSettingsController = async (request, response) => {
 
 export const updateSettingsController = async (request, response) => {
     try {
-        const { upiId, supportPhone, supportEmail, storeAddress, brandLogos } = request.body;
+        const { upiId, supportPhone, supportEmail, storeAddress, brandLogos, virtualTryOnEnabled } = request.body;
         let settings = await SettingsModel.findOne();
         if (!settings) {
-            settings = new SettingsModel({ upiId, supportPhone, supportEmail, storeAddress, brandLogos });
+            settings = new SettingsModel({ upiId, supportPhone, supportEmail, storeAddress, brandLogos, virtualTryOnEnabled });
         } else {
             if (upiId !== undefined) settings.upiId = upiId;
             if (supportPhone !== undefined) settings.supportPhone = supportPhone;
             if (supportEmail !== undefined) settings.supportEmail = supportEmail;
             if (storeAddress !== undefined) settings.storeAddress = storeAddress;
             if (brandLogos !== undefined) settings.brandLogos = brandLogos;
+            if (virtualTryOnEnabled !== undefined) settings.virtualTryOnEnabled = virtualTryOnEnabled;
         }
         await settings.save();
 

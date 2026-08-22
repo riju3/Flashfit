@@ -23,7 +23,11 @@ const settingsSchema = new mongoose.Schema({
             logo: { type: String, default: "" },
             query: { type: String, default: "" }
         }
-    ]
+    ],
+    virtualTryOnEnabled: {
+        type: Boolean,
+        default: true
+    }
 }, {
     timestamps: true
 });

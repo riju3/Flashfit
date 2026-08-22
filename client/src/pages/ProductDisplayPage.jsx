@@ -43,6 +43,19 @@ const ProductDisplayPage = () => {
   const [showTryOnModal, setShowTryOnModal] = useState(false)
   const [openProductDetails, setOpenProductDetails] = useState(true)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [globalTryOnEnabled, setGlobalTryOnEnabled] = useState(true)
+
+  useEffect(() => {
+    const fetchGlobalSettings = async () => {
+      try {
+        const response = await Axios({ ...SummaryApi.getSettings })
+        if (response.data?.success && response.data?.data) {
+          setGlobalTryOnEnabled(response.data.data.virtualTryOnEnabled !== false)
+        }
+      } catch (_) {}
+    }
+    fetchGlobalSettings()
+  }, [])
   const [touchStart, setTouchStart] = useState(null)
   const [touchEnd,   setTouchEnd]   = useState(null)
 
@@ -527,7 +540,7 @@ const ProductDisplayPage = () => {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <p className="text-sm font-bold text-fashion-dark">Select Size</p>
-                    {data?.virtualTryOnEnabled !== false && (
+                    {globalTryOnEnabled && (
                       <button
                         onClick={() => setShowTryOnModal(true)}
                         className="text-xs text-orange-600 hover:text-orange-700 font-extrabold hover:underline cursor-pointer transition-all"

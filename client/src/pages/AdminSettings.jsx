@@ -4,7 +4,7 @@ import SummaryApi from '../common/SummaryApi'
 import toast from 'react-hot-toast'
 import AxiosToastError from '../utils/AxiosToastError'
 import UploadImage from '../utils/UploadImage'
-import { FiPlus, FiTrash2, FiUploadCloud, FiLink, FiTag, FiShoppingBag } from 'react-icons/fi'
+import { FiPlus, FiTrash2, FiLink, FiTag, FiShoppingBag, FiLayers } from 'react-icons/fi'
 
 const DEFAULT_BRANDS = [
   { name: "Levi's", logo: "https://upload.wikimedia.org/wikipedia/commons/7/75/Levi%27s_logo.svg", query: "Levis" },
@@ -26,13 +26,14 @@ const AdminSettings = () => {
   const [supportEmail, setSupportEmail] = useState('')
   const [storeAddress, setStoreAddress] = useState('')
   const [brandLogos, setBrandLogos] = useState([])
+  const [virtualTryOnEnabled, setVirtualTryOnEnabled] = useState(true)
   const [loading, setLoading] = useState(false)
 
   // Add Brand Form State
   const [newBrandName, setNewBrandName] = useState('')
   const [newBrandLogo, setNewBrandLogo] = useState('')
   const [newBrandQuery, setNewBrandQuery] = useState('')
-  const [logoInputMode, setLogoInputMode] = useState('URL') // 'URL' or 'FILE'
+  const [logoInputMode, setLogoInputMode] = useState('URL')
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   const fetchSettings = async () => {
@@ -48,6 +49,7 @@ const AdminSettings = () => {
         setSupportEmail(data.supportEmail || 'support@flashfit.com')
         setStoreAddress(data.storeAddress || '42 Fashion Street, Mumbai, MH 400001')
         setBrandLogos(data.brandLogos && data.brandLogos.length > 0 ? data.brandLogos : DEFAULT_BRANDS)
+        setVirtualTryOnEnabled(data.virtualTryOnEnabled !== false)
       } else {
         setBrandLogos(DEFAULT_BRANDS)
       }
@@ -121,11 +123,12 @@ const AdminSettings = () => {
           supportPhone,
           supportEmail,
           storeAddress,
-          brandLogos
+          brandLogos,
+          virtualTryOnEnabled
         }
       })
       if (response.data.success) {
-        toast.success("Settings & Brand Logos saved successfully!")
+        toast.success("Store Settings & Virtual Try-On configuration saved successfully!")
       }
     } catch (error) {
       AxiosToastError(error)
@@ -140,13 +143,50 @@ const AdminSettings = () => {
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-extrabold text-fashion-dark flex items-center gap-2">
-            <FiShoppingBag className="text-orange-500" /> Store Settings & Brand Partners
+            <FiShoppingBag className="text-orange-500" /> Store Settings & Global Features
           </h1>
-          <p className="text-xs text-fashion-gray mt-0.5">Manage store details, support info, and marquee brand logos</p>
+          <p className="text-xs text-fashion-gray mt-0.5">Manage store details, global Virtual Try-On feature, and brand logos</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+
+        {/* GLOBAL VIRTUAL TRY-ON CONTROL CARD */}
+        <section className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+          <div className="flex justify-between items-center border-b pb-3">
+            <div>
+              <h2 className="text-base font-extrabold text-fashion-dark flex items-center gap-2">
+                <FiLayers className="text-orange-500" /> Global FlashFit Virtual Try-On Control
+              </h2>
+              <p className="text-xs text-fashion-gray">Control whether the Virtual Try-On feature is visible across all products in your store</p>
+            </div>
+
+            <span className={`text-xs font-black px-3 py-1 rounded-full ${virtualTryOnEnabled ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              {virtualTryOnEnabled ? 'Active on All Products' : 'Disabled (Hidden)'}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-orange-50/70 rounded-2xl border border-orange-200">
+            <div>
+              <h3 className="text-xs font-extrabold text-fashion-dark">FlashFit Virtual Try-On Feature Status</h3>
+              <p className="text-[11px] text-fashion-gray mt-0.5">
+                {virtualTryOnEnabled
+                  ? 'ON: "FlashFit Virtual Try-On" link will be displayed next to Select Size on all product pages.'
+                  : 'OFF: "FlashFit Virtual Try-On" link is hidden from all product pages.'}
+              </p>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={virtualTryOnEnabled}
+                onChange={(e) => setVirtualTryOnEnabled(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-12 h-6.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5.5 after:w-5.5 after:transition-all peer-checked:bg-orange-600"></div>
+            </label>
+          </div>
+        </section>
         
         {/* BRAND LOGOS MANAGEMENT SECTION */}
         <section className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
@@ -361,7 +401,7 @@ const AdminSettings = () => {
           disabled={loading}
           className="w-full py-3.5 px-6 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-extrabold text-sm rounded-2xl shadow-md hover:opacity-95 transition-all disabled:opacity-50 cursor-pointer"
         >
-          {loading ? "Saving Settings..." : "Save All Settings & Brand Logos"}
+          {loading ? "Saving Settings..." : "Save All Store Settings"}
         </button>
       </form>
     </div>
