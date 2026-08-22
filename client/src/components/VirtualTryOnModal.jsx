@@ -95,7 +95,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
             </div>
             <div>
               <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-                AI Virtual Fitting Room
+                FlashFit Virtual Fitting Room
                 <span className="text-[10px] bg-yellow-300 text-orange-950 font-black px-2 py-0.5 rounded-full uppercase">
                   Powered by IDM-VTON
                 </span>
@@ -248,7 +248,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
                 <div className="relative rounded-2xl overflow-hidden bg-gray-900 border-2 border-orange-400 shadow-xl text-center group">
                   <img src={resultImage} alt="Virtual Try-On Result" className="w-full max-h-[360px] object-contain mx-auto py-2" />
                   <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] text-white font-extrabold uppercase">
-                    Virtual Fitting Complete ✨
+                    Virtual Fitting Complete
                   </div>
                 </div>
               )}

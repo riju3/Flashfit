@@ -585,14 +585,14 @@ const ProductDisplayPage = () => {
               )}
             </div>
 
-            {/* AI Virtual Try-On & Share Buttons */}
+            {/* FlashFit Virtual Try-On & Share Buttons */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <button
                 onClick={() => setShowTryOnModal(true)}
                 className="flex items-center gap-2 text-xs font-extrabold px-4.5 py-2.5 rounded-xl border bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white shadow-md hover:shadow-orange-500/20 transition-all cursor-pointer"
               >
-                <HiSparkles size={16} className="text-yellow-300 animate-pulse" />
-                AI Virtual Try-On Room
+                <HiSparkles size={16} className="text-yellow-300" />
+                FlashFit Virtual Try-On Room
               </button>
 
               <button
