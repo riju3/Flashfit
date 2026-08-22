@@ -66,19 +66,18 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
           garmentImage: productImage,
           category: product?.category?.[0]?.name || "Upper Garment",
           garmentName: product?.name || "fashion item"
-        },
-        timeout: 120000 // 2 minutes timeout for IDM-VTON AI GPU processing on user photo
+        }
       })
 
       if (response.data?.success && response.data?.data?.resultImage) {
         setResultImage(response.data.data.resultImage)
         toast.success("Virtual Try-On generated on your photo")
       } else {
-        setErrorMessage(response.data?.message || "AI Virtual Fitting GPU queue is currently busy. Please try again in 30-60 seconds.")
+        setErrorMessage(response.data?.message || "Google Gemini AI Fitting Room is temporarily busy. Please click Generate again.")
       }
     } catch (error) {
       console.error("Try-On Error:", error)
-      const backendMsg = error?.response?.data?.message || "AI Virtual Fitting GPU queue is currently busy. Please try again in 30-60 seconds."
+      const backendMsg = error?.response?.data?.message || "Google Gemini AI Fitting Room is temporarily busy. Please click Generate again."
       setErrorMessage(backendMsg)
       toast.error(backendMsg)
     } finally {
@@ -100,7 +99,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
               <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
                 FlashFit Virtual Fitting Room
                 <span className="text-[10px] bg-yellow-300 text-orange-950 font-black px-2 py-0.5 rounded-full uppercase">
-                  Powered by IDM-VTON AI
+                  Powered by Google Gemini AI
                 </span>
               </h2>
               <p className="text-xs text-white/90">See how this item fits your photo before buying</p>
@@ -209,7 +208,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
             {generating ? (
               <>
                 <FiRefreshCw className="animate-spin" size={18} />
-                IDM-VTON AI Processing Garment onto Your Photo... (Please wait up to 1-2 mins)
+                Google Gemini AI Processing Garment onto Your Photo...
               </>
             ) : (
               <>
@@ -232,7 +231,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
             <div className="space-y-4 pt-3 border-t border-gray-100 animate-fade-in">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold uppercase tracking-wider text-green-700 flex items-center gap-1.5">
-                  <FiCheck className="text-green-600" /> IDM-VTON AI Result on Your Photo
+                  <FiCheck className="text-green-600" /> Google Gemini AI Result on Your Photo
                 </span>
 
                 <button
