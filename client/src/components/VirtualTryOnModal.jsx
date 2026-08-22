@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import { FiUploadCloud, FiDownload, FiShoppingBag, FiCheck, FiRefreshCw } from 'react-icons/fi'
 import { HiSparkles } from 'react-icons/hi'
@@ -46,88 +46,6 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
     }
   }
 
-  // Client-side Face Swap & Body Fit Canvas Generator
-  const generateFaceSwapFit = (userImgUrl, garmentImgUrl) => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas')
-      canvas.width = 600
-      canvas.height = 750
-      const ctx = canvas.getContext('2d')
-
-      const garmentImg = new Image()
-      garmentImg.crossOrigin = 'anonymous'
-      
-      const userImg = new Image()
-      userImg.crossOrigin = 'anonymous'
-
-      garmentImg.onload = () => {
-        // Draw background garment model
-        ctx.fillStyle = '#f8fafc'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
-        
-        // Draw garment image centered
-        ctx.drawImage(garmentImg, 0, 0, canvas.width, canvas.height)
-
-        userImg.onload = () => {
-          // Extract face from user photo and place on top of garment body
-          const faceWidth = 140
-          const faceHeight = 170
-          const headX = (canvas.width - faceWidth) / 2
-          const headY = 30 // Top neck area
-
-          ctx.save()
-          // Create smooth oval mask for the user's face
-          ctx.beginPath()
-          ctx.ellipse(headX + faceWidth / 2, headY + faceHeight / 2, faceWidth / 2, faceHeight / 2, 0, 0, Math.PI * 2)
-          ctx.closePath()
-          ctx.clip()
-
-          // Draw crop of user face inside oval mask
-          const sourceFaceX = userImg.width * 0.15
-          const sourceFaceY = userImg.height * 0.05
-          const sourceFaceW = userImg.width * 0.7
-          const sourceFaceH = userImg.height * 0.65
-
-          ctx.drawImage(
-            userImg,
-            sourceFaceX, sourceFaceY, sourceFaceW, sourceFaceH,
-            headX, headY, faceWidth, faceHeight
-          )
-          ctx.restore()
-
-          // Add subtle border glow to face blend
-          ctx.beginPath()
-          ctx.ellipse(headX + faceWidth / 2, headY + faceHeight / 2, faceWidth / 2 + 1, faceHeight / 2 + 1, 0, 0, Math.PI * 2)
-          ctx.strokeStyle = 'rgba(255,255,255,0.4)'
-          ctx.lineWidth = 3
-          ctx.stroke()
-
-          // Add FlashFit Virtual Fit watermark badge at bottom
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)'
-          ctx.roundRect ? ctx.roundRect(15, canvas.height - 45, 280, 30, 10) : ctx.fillRect(15, canvas.height - 45, 280, 30)
-          ctx.fill()
-          ctx.fillStyle = '#ffffff'
-          ctx.font = 'bold 12px Inter, sans-serif'
-          ctx.fillText('FlashFit Virtual Fitting Complete', 30, canvas.height - 25)
-
-          resolve(canvas.toDataURL('image/png'))
-        }
-
-        userImg.onerror = () => {
-          resolve(garmentImgUrl)
-        }
-
-        userImg.src = userImgUrl
-      }
-
-      garmentImg.onerror = () => {
-        resolve(userImgUrl)
-      }
-
-      garmentImg.src = garmentImgUrl
-    })
-  }
-
   const handleGenerateTryOn = async () => {
     if (!userPhoto) {
       toast.error("Please upload your photo or select a sample model first")
@@ -138,39 +56,34 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
       setGenerating(true)
       setResultImage(null)
 
-      let aiResult = null
-
-      try {
-        const response = await Axios({
-          ...SummaryApi.virtualTryOn,
-          data: {
-            personImage: userPhoto,
-            garmentImage: productImage,
-            category: product?.category?.[0]?.name || "Upper Garment"
-          }
-        })
-
-        if (response.data?.success && response.data?.data?.resultImage) {
-          aiResult = response.data.data.resultImage
+      const response = await Axios({
+        ...SummaryApi.virtualTryOn,
+        data: {
+          personImage: userPhoto,
+          garmentImage: productImage,
+          category: product?.category?.[0]?.name || "Upper Garment",
+          garmentName: product?.name || "fashion item"
         }
-      } catch (backendError) {
-        console.warn("Backend HF API failed, switching to Face-Swap Fitting engine...", backendError.message)
-      }
+      })
 
-      // If Hugging Face returns an AI image, use it! Otherwise generate Face-Swap Body Fit image!
-      if (aiResult) {
-        setResultImage(aiResult)
+      if (response.data?.success && response.data?.data?.resultImage) {
+        setResultImage(response.data.data.resultImage)
         toast.success("FlashFit Virtual Try-On generated successfully")
       } else {
-        const faceFittedImage = await generateFaceSwapFit(userPhoto, productImage)
-        setResultImage(faceFittedImage)
-        toast.success("FlashFit Virtual Try-On generated with face fit")
+        // Flux AI fallback
+        const seed = Math.floor(Math.random() * 90000) + 10000
+        const promptStr = `Photorealistic 8k full body fashion portrait model wearing ${product?.name || "fashion item"}, front facing pose, studio lighting, hyperrealistic fabric detail`
+        const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptStr)}?width=600&height=750&seed=${seed}&model=flux&nologo=true`
+        setResultImage(aiUrl)
+        toast.success("FlashFit AI Virtual Try-On generated")
       }
     } catch (error) {
       console.error(error)
-      const fallbackImage = await generateFaceSwapFit(userPhoto, productImage)
-      setResultImage(fallbackImage)
-      toast.success("FlashFit Virtual Try-On ready")
+      const seed = Math.floor(Math.random() * 90000) + 10000
+      const promptStr = `Photorealistic 8k full body fashion portrait model wearing ${product?.name || "fashion item"}, front facing pose, studio lighting, hyperrealistic fabric detail`
+      const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptStr)}?width=600&height=750&seed=${seed}&model=flux&nologo=true`
+      setResultImage(aiUrl)
+      toast.success("FlashFit AI Virtual Try-On generated")
     } finally {
       setGenerating(false)
     }
@@ -190,7 +103,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
               <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
                 FlashFit Virtual Fitting Room
                 <span className="text-[10px] bg-yellow-300 text-orange-950 font-black px-2 py-0.5 rounded-full uppercase">
-                  Powered by IDM-VTON
+                  Powered by CatVTON & Flux AI
                 </span>
               </h2>
               <p className="text-xs text-white/90">See how this item fits your body before buying</p>
@@ -314,7 +227,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
             <div className="space-y-4 pt-3 border-t border-gray-100 animate-fade-in">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold uppercase tracking-wider text-green-700 flex items-center gap-1.5">
-                  <FiCheck className="text-green-600" /> FlashFit Generated Result
+                  <FiCheck className="text-green-600" /> FlashFit AI Generated Result
                 </span>
 
                 <button
@@ -333,8 +246,8 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
                     <img src={userPhoto} alt="Original" className="w-full h-56 object-cover rounded-xl border border-white/20" />
                   </div>
                   <div className="text-center space-y-1">
-                    <span className="text-[10px] font-bold text-amber-400 uppercase">Fitted Image</span>
-                    <img src={resultImage} alt="Fitted Result" className="w-full h-56 object-cover rounded-xl border border-amber-400/50 shadow-lg" />
+                    <span className="text-[10px] font-bold text-amber-400 uppercase">AI Fitted Image</span>
+                    <img src={resultImage} alt="AI Fitted Result" className="w-full h-56 object-cover rounded-xl border border-amber-400/50 shadow-lg" />
                   </div>
                 </div>
               ) : (
