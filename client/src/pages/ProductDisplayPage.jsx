@@ -521,11 +521,19 @@ const ProductDisplayPage = () => {
               )}
             </div>
 
-            {/* Size Selector (Image 2) */}
+            {/* Size Selector */}
             {data.sizes?.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-bold text-fashion-dark">Select Size</p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm font-bold text-fashion-dark">Select Size</p>
+                    <button
+                      onClick={() => setShowTryOnModal(true)}
+                      className="text-xs text-orange-600 hover:text-orange-700 font-extrabold hover:underline cursor-pointer transition-all"
+                    >
+                      FlashFit Virtual Try-On
+                    </button>
+                  </div>
                   <button onClick={() => setOpenSizeModal(true)} className="text-xs text-primary-200 font-extrabold hover:underline cursor-pointer">Size Guide</button>
                 </div>
                 <div className="flex gap-2 flex-wrap">
@@ -585,14 +593,8 @@ const ProductDisplayPage = () => {
               )}
             </div>
 
-            {/* FlashFit Virtual Try-On & Share Buttons */}
+            {/* Share Product Button */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <button
-                onClick={() => setShowTryOnModal(true)}
-                className="flex items-center gap-2 text-xs font-extrabold px-4.5 py-2.5 rounded-xl border bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white shadow-md hover:shadow-orange-500/20 transition-all cursor-pointer"
-              >
-                FlashFit Virtual Try-On Room
-              </button>
 
               <button
                 onClick={handleShareProduct}
