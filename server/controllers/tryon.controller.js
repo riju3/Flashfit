@@ -1,4 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Replicate from "replicate";
+import { Client, handle_file } from "@gradio/client";
 
 export const virtualTryOnController = async (request, response) => {
     try {
@@ -12,36 +13,78 @@ export const virtualTryOnController = async (request, response) => {
             });
         }
 
-        console.log("Processing Google Gemini AI Virtual Try-On...");
+        console.log("Starting 100% User Photo Virtual Try-On...");
 
-        const geminiApiKey = process.env.GEMINI_API_KEY || "AIzaSyBTJbIAFmh3PuozIWAz9oiOXqSW_wCPy1I";
+        let resultImage = null;
+        const replicateToken = process.env.REPLICATE_API_TOKEN;
+        const hfToken = process.env.HF_TOKEN;
 
-        // Clean garment title to remove brand codes
-        const cleanItemName = (garmentName || category)
-            .replace(/By\s+[A-Za-z0-9]+/gi, '')
-            .replace(/Decathlon|Quechua|Nike|Adidas|Puma|ZARA|H&M/gi, '')
-            .replace(/MH\d+|4XL|3XL|2XL|XL|L|M|S/gi, '')
-            .replace(/[-|–]/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
+        // 1. Try Replicate API (prunaai/p-image-try-on)
+        if (replicateToken) {
+            try {
+                console.log("Attempting Replicate API prunaai/p-image-try-on...");
+                const replicate = new Replicate({ auth: replicateToken });
+                const output = await replicate.run(
+                    "prunaai/p-image-try-on:c32fa800b6d963d7ca5ef253e9336014d3bcbe78d1cb8f2e5242394b3e438b5c",
+                    {
+                        input: {
+                            human_img: personImage,
+                            garm_img: garmentImage
+                        }
+                    }
+                );
 
-        // 1. Run Gemini 1.5 Vision Analysis
-        try {
-            const genAI = new GoogleGenerativeAI(geminiApiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `Analyze user portrait and fit garment: ${cleanItemName}`;
-            model.generateContent([prompt]).catch(() => {});
-        } catch (e) {
-            console.warn("Gemini Vision async warning:", e.message);
+                if (output) {
+                    resultImage = Array.isArray(output) ? output[0] : (typeof output === 'string' ? output : output?.url);
+                    console.log("Replicate Try-On Success on User Photo:", resultImage);
+                }
+            } catch (repErr) {
+                console.warn("Replicate API note:", repErr.message);
+            }
         }
 
-        // 2. Generate Photorealistic Fashion AI Image
-        const seed = Math.floor(Math.random() * 90000) + 10000;
-        const promptStr = `Photorealistic 8k full body studio fashion model portrait wearing ${cleanItemName}, front facing pose, plain light grey studio background, high fashion ecommerce catalog photography, studio lighting, hyperrealistic fabric texture, no outdoor background`;
-        const resultImage = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptStr)}?width=600&height=750&seed=${seed}&model=flux&nologo=true`;
+        // 2. Try Hugging Face IDM-VTON (yisol/IDM-VTON - 100% Free on User Photo)
+        if (!resultImage && hfToken) {
+            try {
+                console.log("Attempting Hugging Face yisol/IDM-VTON...");
+                const app = await Client.connect("yisol/IDM-VTON", { token: hfToken });
+                const predictPromise = app.predict("/tryon", {
+                    dict: {
+                        background: handle_file(personImage),
+                        layers: [],
+                        composite: handle_file(personImage)
+                    },
+                    garm_img: handle_file(garmentImage),
+                    garment_des: garmentName || category || "clothing item",
+                    is_checked: true,
+                    is_checked_crop: false,
+                    denoise_steps: 30,
+                    seed: 42
+                });
+
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("HF Queue Timeout")), 90000));
+                const result = await Promise.race([predictPromise, timeoutPromise]);
+
+                if (result?.data?.[0]) {
+                    resultImage = typeof result.data[0] === 'string' ? result.data[0] : result.data[0]?.url;
+                    console.log("Hugging Face IDM-VTON Success on User Photo:", resultImage);
+                }
+            } catch (hfErr) {
+                console.warn("Hugging Face IDM-VTON queue note:", hfErr.message);
+            }
+        }
+
+        // 3. Strict Check: NO fake model images! If busy/insufficient credit, show polite notice
+        if (!resultImage) {
+            return response.status(503).json({
+                message: "AI Virtual Fitting GPU queue is processing. If using Replicate, add $1 billing credit at replicate.com/account/billing, or click Generate again in 30 seconds for Free Hugging Face GPU.",
+                error: true,
+                success: false
+            });
+        }
 
         return response.json({
-            message: "Google Gemini AI Virtual Try-On generated successfully",
+            message: "100% Accurate Virtual Try-On generated on your photo",
             error: false,
             success: true,
             data: {
@@ -52,7 +95,7 @@ export const virtualTryOnController = async (request, response) => {
     } catch (error) {
         console.error("Virtual Try-On Controller Error:", error);
         return response.status(500).json({
-            message: "Google Gemini AI Fitting Room is temporarily busy. Please try again.",
+            message: "AI Virtual Fitting GPU queue is currently busy. Please try again in a few moments.",
             error: true,
             success: false
         });
