@@ -66,18 +66,19 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
           garmentImage: productImage,
           category: product?.category?.[0]?.name || "Upper Garment",
           garmentName: product?.name || "fashion item"
-        }
+        },
+        timeout: 120000 // 2 minutes timeout for IDM-VTON AI GPU processing on user photo
       })
 
       if (response.data?.success && response.data?.data?.resultImage) {
         setResultImage(response.data.data.resultImage)
-        toast.success("FlashFit Virtual Try-On generated successfully")
+        toast.success("Virtual Try-On generated on your photo")
       } else {
-        setErrorMessage(response.data?.message || "AI Virtual Fitting Room is temporarily processing or busy. Please try uploading a front-facing photo again.")
+        setErrorMessage(response.data?.message || "AI Virtual Fitting GPU queue is currently busy. Please try again in 30-60 seconds.")
       }
     } catch (error) {
       console.error("Try-On Error:", error)
-      const backendMsg = error?.response?.data?.message || "AI Virtual Fitting Room is temporarily busy or processing. Please try uploading a front-facing photo again."
+      const backendMsg = error?.response?.data?.message || "AI Virtual Fitting GPU queue is currently busy. Please try again in 30-60 seconds."
       setErrorMessage(backendMsg)
       toast.error(backendMsg)
     } finally {
@@ -99,10 +100,10 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
               <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
                 FlashFit Virtual Fitting Room
                 <span className="text-[10px] bg-yellow-300 text-orange-950 font-black px-2 py-0.5 rounded-full uppercase">
-                  Powered by Google Gemini & Flux AI
+                  Powered by IDM-VTON AI
                 </span>
               </h2>
-              <p className="text-xs text-white/90">See how this item fits your body before buying</p>
+              <p className="text-xs text-white/90">See how this item fits your photo before buying</p>
             </div>
           </div>
 
@@ -208,7 +209,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
             {generating ? (
               <>
                 <FiRefreshCw className="animate-spin" size={18} />
-                Google Gemini AI Fitting Garment onto Your Photo...
+                IDM-VTON AI Processing Garment onto Your Photo... (Please wait up to 1-2 mins)
               </>
             ) : (
               <>
@@ -231,7 +232,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
             <div className="space-y-4 pt-3 border-t border-gray-100 animate-fade-in">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold uppercase tracking-wider text-green-700 flex items-center gap-1.5">
-                  <FiCheck className="text-green-600" /> FlashFit AI Generated Result
+                  <FiCheck className="text-green-600" /> IDM-VTON AI Result on Your Photo
                 </span>
 
                 <button
@@ -246,11 +247,11 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
               {showBeforeAfter ? (
                 <div className="grid grid-cols-2 gap-3 bg-gray-900 p-3 rounded-2xl">
                   <div className="text-center space-y-1">
-                    <span className="text-[10px] font-bold text-white/70 uppercase">Original Photo</span>
+                    <span className="text-[10px] font-bold text-white/70 uppercase">Your Photo</span>
                     <img src={userPhoto} alt="Original" className="w-full h-56 object-cover rounded-xl border border-white/20" />
                   </div>
                   <div className="text-center space-y-1">
-                    <span className="text-[10px] font-bold text-amber-400 uppercase">AI Fitted Image</span>
+                    <span className="text-[10px] font-bold text-amber-400 uppercase">AI Try-On Result</span>
                     <img src={resultImage} alt="AI Fitted Result" className="w-full h-56 object-cover rounded-xl border border-amber-400/50 shadow-lg" />
                   </div>
                 </div>
