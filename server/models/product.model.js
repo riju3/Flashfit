@@ -78,6 +78,10 @@ const productSchema = new mongoose.Schema({
         type : [String],
         default : [],
         enum : { values : ['new-arrival','trending','sale','best-seller',''], message : '{VALUE} is not a valid tag' }
+    },
+    virtualTryOnEnabled : {
+        type : Boolean,
+        default : true
     }
 },{
     timestamps : true

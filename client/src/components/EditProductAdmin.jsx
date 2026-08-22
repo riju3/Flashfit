@@ -95,6 +95,7 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
     sizes: propsData.sizes || [],
     tags: propsData.tags || [],
     keywords: propsData.keywords || [],
+    virtualTryOnEnabled: propsData.virtualTryOnEnabled !== false,
   })
   const [keywordInput, setKeywordInput] = useState('')
 
@@ -673,6 +674,23 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
                   </div>
                 )}
                 <p className="text-[10px] text-gray-500">💡 These keywords are hidden from customers on the product page, but help the AI Chatbot find exact matches.</p>
+              </div>
+
+              {/* Virtual Try-On Admin Toggle Switch */}
+              <div className="flex items-center justify-between p-3.5 bg-orange-50/70 rounded-xl border border-orange-200">
+                <div>
+                  <p className="text-xs font-bold text-fashion-dark">Enable FlashFit Virtual Try-On for this product</p>
+                  <p className="text-[10px] text-gray-500">Show "FlashFit Virtual Try-On" link on the product page so users can generate try-ons. Turn OFF to hide it completely.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={data.virtualTryOnEnabled !== false}
+                    onChange={e => setData(p => ({ ...p, virtualTryOnEnabled: e.target.checked }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                </label>
               </div>
 
               {/* ── Key Features & Specifications Card ── */}

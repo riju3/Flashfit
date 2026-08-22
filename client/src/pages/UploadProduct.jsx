@@ -96,6 +96,7 @@ const UploadProduct = () => {
     name: '', image: [], category: [], subCategory: [],
     unit: '', stock: '', price: '', discount: '', description: '',
     more_details: {}, sizes: [], colors: [], tags: [], keywords: [],
+    virtualTryOnEnabled: true,
   })
   const [keywordInput, setKeywordInput] = useState('')
 
@@ -553,6 +554,23 @@ const UploadProduct = () => {
               )}
               <p className="text-[11px] text-gray-400 mt-1">💡 These keywords are hidden from customers on the product page, but help the AI Chatbot find exact matches.</p>
             </FieldGroup>
+
+            {/* Virtual Try-On Admin Toggle Switch */}
+            <div className="flex items-center justify-between p-4 bg-orange-50/60 rounded-2xl border border-orange-100">
+              <div>
+                <p className="text-xs font-bold text-fashion-dark">Enable FlashFit Virtual Try-On for this product</p>
+                <p className="text-[10px] text-gray-500">Show "FlashFit Virtual Try-On" link on the product page so users can generate try-ons. Turn OFF to hide it completely.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={data.virtualTryOnEnabled !== false}
+                  onChange={e => setData(p => ({ ...p, virtualTryOnEnabled: e.target.checked }))}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+              </label>
+            </div>
           </div>
 
           {/* ── Key Features & Specifications Card ── */}

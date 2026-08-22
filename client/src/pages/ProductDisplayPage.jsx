@@ -527,12 +527,14 @@ const ProductDisplayPage = () => {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <p className="text-sm font-bold text-fashion-dark">Select Size</p>
-                    <button
-                      onClick={() => setShowTryOnModal(true)}
-                      className="text-xs text-orange-600 hover:text-orange-700 font-extrabold hover:underline cursor-pointer transition-all"
-                    >
-                      FlashFit Virtual Try-On
-                    </button>
+                    {data?.virtualTryOnEnabled !== false && (
+                      <button
+                        onClick={() => setShowTryOnModal(true)}
+                        className="text-xs text-orange-600 hover:text-orange-700 font-extrabold hover:underline cursor-pointer transition-all"
+                      >
+                        FlashFit Virtual Try-On
+                      </button>
+                    )}
                   </div>
                   <button onClick={() => setOpenSizeModal(true)} className="text-xs text-primary-200 font-extrabold hover:underline cursor-pointer">Size Guide</button>
                 </div>
