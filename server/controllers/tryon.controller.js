@@ -12,16 +12,23 @@ export const virtualTryOnController = async (request, response) => {
             });
         }
 
-        console.log("Starting FlashFit Virtual Try-On with 100% Google Gemini API...");
+        console.log("Starting FlashFit Virtual Try-On with Google Gemini API...");
 
-        // Use process.env.GEMINI_API_KEY or default user key
-        const geminiApiKey = process.env.GEMINI_API_KEY || "AIzaSyBTJbIAFmh3PuozIWAz9oiOXqSW_wCPy1I";
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+
+        if (!geminiApiKey) {
+            return response.status(500).json({
+                message: "GEMINI_API_KEY is not configured in Render Environment Variables.",
+                error: true,
+                success: false
+            });
+        }
 
         let resultImage = null;
 
         // Google Gemini API Multimodal Generation
         try {
-            console.log("Connecting to Google Gemini API (gemini-1.5-flash)...");
+            console.log("Connecting to Google Gemini API...");
             const genAI = new GoogleGenerativeAI(geminiApiKey);
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -37,7 +44,6 @@ export const virtualTryOnController = async (request, response) => {
 
         } catch (geminiError) {
             console.error("Google Gemini API error:", geminiError.message);
-            // Fallback generation using Google Gemini prompt parameters
             const seed = Math.floor(Math.random() * 90000) + 10000;
             const promptStr = `Photorealistic 8k full body fashion portrait model wearing ${garmentName}, front facing pose, studio lighting, hyperrealistic fabric texture, catalog style`;
             resultImage = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptStr)}?width=600&height=750&seed=${seed}&model=flux&nologo=true`;
