@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { IoClose } from 'react-icons/io5'
-import { FiUploadCloud, FiDownload, FiShoppingBag, FiCheck, FiRefreshCw } from 'react-icons/fi'
+import { FiUploadCloud, FiDownload, FiShoppingBag, FiCheck, FiRefreshCw, FiAlertCircle } from 'react-icons/fi'
 import { HiSparkles } from 'react-icons/hi'
 import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
@@ -21,6 +21,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
   const [uploading, setUploading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [resultImage, setResultImage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState('')
   const [showBeforeAfter, setShowBeforeAfter] = useState(false)
 
   if (!isOpen || !product) return null
@@ -34,6 +35,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
 
     try {
       setUploading(true)
+      setErrorMessage('')
       const response = await UploadImage(file)
       if (response.data?.success) {
         setUserPhoto(response.data.data.url)
@@ -55,6 +57,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
     try {
       setGenerating(true)
       setResultImage(null)
+      setErrorMessage('')
 
       const response = await Axios({
         ...SummaryApi.virtualTryOn,
@@ -70,20 +73,13 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
         setResultImage(response.data.data.resultImage)
         toast.success("FlashFit Virtual Try-On generated successfully")
       } else {
-        // Flux AI fallback
-        const seed = Math.floor(Math.random() * 90000) + 10000
-        const promptStr = `Photorealistic 8k full body fashion portrait model wearing ${product?.name || "fashion item"}, front facing pose, studio lighting, hyperrealistic fabric detail`
-        const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptStr)}?width=600&height=750&seed=${seed}&model=flux&nologo=true`
-        setResultImage(aiUrl)
-        toast.success("FlashFit AI Virtual Try-On generated")
+        setErrorMessage(response.data?.message || "AI Virtual Fitting Room is temporarily processing or busy. Please try uploading a front-facing photo again.")
       }
     } catch (error) {
-      console.error(error)
-      const seed = Math.floor(Math.random() * 90000) + 10000
-      const promptStr = `Photorealistic 8k full body fashion portrait model wearing ${product?.name || "fashion item"}, front facing pose, studio lighting, hyperrealistic fabric detail`
-      const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptStr)}?width=600&height=750&seed=${seed}&model=flux&nologo=true`
-      setResultImage(aiUrl)
-      toast.success("FlashFit AI Virtual Try-On generated")
+      console.error("Try-On Error:", error)
+      const backendMsg = error?.response?.data?.message || "AI Virtual Fitting Room is temporarily busy or processing. Please try uploading a front-facing photo again."
+      setErrorMessage(backendMsg)
+      toast.error(backendMsg)
     } finally {
       setGenerating(false)
     }
@@ -103,7 +99,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
               <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
                 FlashFit Virtual Fitting Room
                 <span className="text-[10px] bg-yellow-300 text-orange-950 font-black px-2 py-0.5 rounded-full uppercase">
-                  Powered by CatVTON & Flux AI
+                  Powered by Google Gemini & Flux AI
                 </span>
               </h2>
               <p className="text-xs text-white/90">See how this item fits your body before buying</p>
@@ -212,7 +208,7 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
             {generating ? (
               <>
                 <FiRefreshCw className="animate-spin" size={18} />
-                AI Model Fitting Garment onto Your Photo...
+                Google Gemini AI Fitting Garment onto Your Photo...
               </>
             ) : (
               <>
@@ -221,6 +217,14 @@ const VirtualTryOnModal = ({ isOpen, onClose, product, onAddToCart }) => {
               </>
             )}
           </button>
+
+          {/* Error Message Display (No Fake Images!) */}
+          {errorMessage && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl flex items-start gap-3 animate-fade-in">
+              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={18} />
+              <p className="text-xs font-bold leading-relaxed">{errorMessage}</p>
+            </div>
+          )}
 
           {/* STEP 3: RESULT DISPLAY */}
           {resultImage && (
