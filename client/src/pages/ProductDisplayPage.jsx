@@ -8,6 +8,7 @@ import Axios from '../utils/Axios'
 import AxiosToastError from '../utils/AxiosToastError'
 import { FaAngleRight, FaAngleLeft, FaHeart, FaRegHeart, FaStar } from "react-icons/fa6"
 import { FiShare2, FiTruck, FiRefreshCw, FiShield, FiZap, FiMapPin, FiCheckCircle, FiChevronRight, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { HiSparkles } from 'react-icons/hi'
 import { DisplayPriceInRupees } from '../utils/DisplayPriceInRupees'
 import Divider from '../components/Divider'
 import { pricewithDiscount } from '../utils/PriceWithDiscount'
@@ -15,6 +16,7 @@ import AddToCartButton from '../components/AddToCartButton'
 import CardProduct from '../components/CardProduct'
 import { valideURLConvert } from '../utils/valideURLConvert'
 import SizeGuideModal from '../components/SizeGuideModal'
+import VirtualTryOnModal from '../components/VirtualTryOnModal'
 
 const TAG_LABELS = {
   'new-arrival': { label: 'New Arrival', className: 'bg-green-500 text-white' },
@@ -38,6 +40,7 @@ const ProductDisplayPage = () => {
   const [reviewsData,    setReviewsData]    = useState({ reviews: [], averageRating: 0, totalReviews: 0 })
   const [showReviewsDropdown, setShowReviewsDropdown] = useState(false)
   const [openSizeModal, setOpenSizeModal] = useState(false)
+  const [showTryOnModal, setShowTryOnModal] = useState(false)
   const [openProductDetails, setOpenProductDetails] = useState(true)
   const [copiedLink, setCopiedLink] = useState(false)
   const [touchStart, setTouchStart] = useState(null)
@@ -582,25 +585,35 @@ const ProductDisplayPage = () => {
               )}
             </div>
 
-            {/* Share Product Button */}
-            <button
-              onClick={handleShareProduct}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl border transition-all cursor-pointer w-fit ${
-                copiedLink
-                  ? 'bg-green-50 text-green-700 border-green-200 shadow-sm'
-                  : 'bg-gray-50 text-fashion-dark hover:bg-orange-50 hover:border-orange-200 border-gray-200'
-              }`}
-            >
-              {copiedLink ? (
-                <>
-                  <FiCheckCircle size={15} className="text-green-600" /> Link Copied to Clipboard!
-                </>
-              ) : (
-                <>
-                  <FiShare2 size={15} className="text-orange-500" /> Share Product
-                </>
-              )}
-            </button>
+            {/* AI Virtual Try-On & Share Buttons */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                onClick={() => setShowTryOnModal(true)}
+                className="flex items-center gap-2 text-xs font-extrabold px-4.5 py-2.5 rounded-xl border bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white shadow-md hover:shadow-orange-500/20 transition-all cursor-pointer"
+              >
+                <HiSparkles size={16} className="text-yellow-300 animate-pulse" />
+                AI Virtual Try-On Room
+              </button>
+
+              <button
+                onClick={handleShareProduct}
+                className={`flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl border transition-all cursor-pointer ${
+                  copiedLink
+                    ? 'bg-green-50 text-green-700 border-green-200 shadow-sm'
+                    : 'bg-gray-50 text-fashion-dark hover:bg-orange-50 hover:border-orange-200 border-gray-200'
+                }`}
+              >
+                {copiedLink ? (
+                  <>
+                    <FiCheckCircle size={15} className="text-green-600" /> Link Copied!
+                  </>
+                ) : (
+                  <>
+                    <FiShare2 size={15} className="text-orange-500" /> Share Product
+                  </>
+                )}
+              </button>
+            </div>
 
             {/* 30-Min Express, Returns & COD Trust Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 text-xs">
@@ -849,6 +862,11 @@ const ProductDisplayPage = () => {
       )}
 
       <SizeGuideModal isOpen={openSizeModal} onClose={() => setOpenSizeModal(false)} />
+      <VirtualTryOnModal
+        isOpen={showTryOnModal}
+        onClose={() => setShowTryOnModal(false)}
+        product={data}
+      />
     </section>
   )
 }

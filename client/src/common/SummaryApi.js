@@ -252,6 +252,10 @@ const SummaryApi = {
     chatbot : {
         url : '/api/chatbot/chat',
         method : 'post'
+    },
+    virtualTryOn : {
+        url : '/api/tryon/process',
+        method : 'post'
     }
 }
 

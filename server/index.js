@@ -19,6 +19,7 @@ import reviewRouter from './route/review.route.js'
 import couponRouter from './route/coupon.route.js'
 import bannerRouter from './route/banner.route.js'
 import chatbotRouter from './route/chatbot.route.js'
+import tryonRouter from './route/tryon.route.js'
 
 const app = express()
 const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'];
@@ -62,6 +63,7 @@ app.use('/api/review',reviewRouter)
 app.use('/api/coupon',couponRouter)
 app.use('/api/banner',bannerRouter)
 app.use('/api/chatbot',chatbotRouter)
+app.use('/api/tryon',tryonRouter)
 
 connectDB().then(()=>{
     app.listen(PORT,()=>{
