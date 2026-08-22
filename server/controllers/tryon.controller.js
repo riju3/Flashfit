@@ -24,6 +24,16 @@ export const virtualTryOnController = async (request, response) => {
             });
         }
 
+        // Clean garment title to remove outdoor/brand/size keywords
+        const cleanName = (garmentName || category)
+            .replace(/By\s+[A-Za-z0-9]+/gi, '')
+            .replace(/Decathlon|Quechua|Nike|Adidas|Puma|ZARA|H&M/gi, '')
+            .replace(/MH\d+|4XL|3XL|2XL|XL|L|M|S/gi, '')
+            .replace(/Hiking|Trekking|Outdoor|Mountain/gi, '')
+            .replace(/[-|–]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
         let resultImage = null;
 
         // Google Gemini API Multimodal Generation
@@ -32,20 +42,20 @@ export const virtualTryOnController = async (request, response) => {
             const genAI = new GoogleGenerativeAI(geminiApiKey);
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-            const prompt = `You are an AI virtual fashion fitting assistant. Analyze the user's pose and fit this item: ${garmentName} (Category: ${category}).`;
+            const prompt = `Analyze this fashion garment: ${cleanName} (Category: ${category}). Describe the exact color, fabric, and studio model fitting.`;
 
             const geminiResult = await model.generateContent([prompt]);
             await geminiResult.response.text();
             console.log("Google Gemini Analysis Complete.");
 
             const seed = Math.floor(Math.random() * 90000) + 10000;
-            const promptStr = `Photorealistic 8k full body fashion portrait model wearing ${garmentName}, front facing pose, studio lighting, hyperrealistic fabric texture, catalog style`;
+            const promptStr = `Studio portrait of a model wearing ${cleanName}, front facing pose, plain solid grey studio background, high fashion ecommerce product catalog photography, studio lighting, hyperrealistic fabric detail, no outdoor background`;
             resultImage = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptStr)}?width=600&height=750&seed=${seed}&model=flux&nologo=true`;
 
         } catch (geminiError) {
             console.error("Google Gemini API error:", geminiError.message);
             const seed = Math.floor(Math.random() * 90000) + 10000;
-            const promptStr = `Photorealistic 8k full body fashion portrait model wearing ${garmentName}, front facing pose, studio lighting, hyperrealistic fabric texture, catalog style`;
+            const promptStr = `Studio portrait of a model wearing ${cleanName}, front facing pose, plain solid grey studio background, high fashion ecommerce product catalog photography, studio lighting, hyperrealistic fabric detail, no outdoor background`;
             resultImage = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptStr)}?width=600&height=750&seed=${seed}&model=flux&nologo=true`;
         }
 
