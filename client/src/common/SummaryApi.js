@@ -165,6 +165,14 @@ const SummaryApi = {
         url : "/api/order/cash-on-delivery",
         method : 'post'
     },
+    razorpayCreateOrder : {
+        url : '/api/order/razorpay-create-order',
+        method : 'post'
+    },
+    razorpayVerifyPayment : {
+        url : '/api/order/razorpay-verify-payment',
+        method : 'post'
+    },
     payment_url : {
         url : "/api/order/checkout",
         method : 'post'

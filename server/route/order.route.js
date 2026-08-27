@@ -1,12 +1,14 @@
 import { Router } from 'express'
 import auth from '../middleware/auth.js'
-import { CashOnDeliveryOrderController, getOrderDetailsController, paymentController, webhookStripe, cancelOrderController, returnOrderController, getAllOrdersAdminController, updateOrderStatusAdminController } from '../controllers/order.controller.js'
+import { CashOnDeliveryOrderController, getOrderDetailsController, paymentController, webhookStripe, cancelOrderController, returnOrderController, getAllOrdersAdminController, updateOrderStatusAdminController, razorpayCreateOrderController, razorpayVerifyPaymentController } from '../controllers/order.controller.js'
 
 const orderRouter = Router()
 
 orderRouter.post("/cash-on-delivery",auth,CashOnDeliveryOrderController)
 orderRouter.post('/checkout',auth,paymentController)
 orderRouter.post('/webhook',webhookStripe)
+orderRouter.post('/razorpay-create-order',auth,razorpayCreateOrderController)
+orderRouter.post('/razorpay-verify-payment',auth,razorpayVerifyPaymentController)
 orderRouter.get("/order-list",auth,getOrderDetailsController)
 orderRouter.post("/cancel-order",auth,cancelOrderController)
 orderRouter.post("/return-order",auth,returnOrderController)

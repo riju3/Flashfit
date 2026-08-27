@@ -142,84 +142,112 @@ const CheckoutPage = () => {
     }
   }
 
-  const handleUPIAppPayment = async (appName) => {
-    if (validCartItemsList.length === 0) {
-      toast.error("Your cart contains no active products")
-      return
-    }
-    const merchantUpi = upiId || 'flashfit@upi'
-    const payeeName = 'FlashFit Fashion'
-    const transactionNote = `FlashFit Order Payment`
-    
-    // Standard UPI Intent Link
-    const upiLink = `upi://pay?pa=${encodeURIComponent(merchantUpi)}&pn=${encodeURIComponent(payeeName)}&am=${finalPayableAmount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`
-
-    // Attempt to launch the app on mobile devices
-    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      window.location.href = upiLink
-    } else {
-      toast.info(`Opening ${appName}... Please complete payment on your mobile.`)
-    }
-
-    // Place the order into backend database and show success animation
-    try {
-      toast.loading(`Processing ${appName} order...`)
-      const response = await Axios({
-        ...SummaryApi.CashOnDeliveryOrder,
-        data: {
-          list_items: validCartItemsList,
-          addressId: addressList[selectAddress]?._id,
-          subTotalAmt: totalPrice,
-          totalAmt: finalPayableAmount,
-          couponCode: appliedCoupon?.code || "",
-          payment_status: "PAID via " + appName
-        }
-      })
-
-      const { data: responseData } = response
-      toast.dismiss()
-
-      if (responseData.success) {
-        if (fetchCartItem) fetchCartItem()
-        if (fetchOrder) fetchOrder()
-        navigate('/order-success', {
-          state: {
-            orderDetails: responseData.data || { _id: responseData.orderId }
-          }
-        })
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true)
+        return
       }
-    } catch (error) {
-      toast.dismiss()
-      AxiosToastError(error)
-    }
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.onload = () => resolve(true)
+      script.onerror = () => resolve(false)
+      document.body.appendChild(script)
+    })
   }
 
-  const handleOnlinePayment = async () => {
+  const handleRazorpayPayment = async () => {
     if (validCartItemsList.length === 0) {
       toast.error("Your cart contains no active products")
       return
     }
-    try {
-      toast.loading("Redirecting to Card Payment Gateway...")
-      const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY
-      const stripePromise = await loadStripe(stripePublicKey)
 
-      const response = await Axios({
-        ...SummaryApi.payment_url,
+    const scriptLoaded = await loadRazorpayScript()
+    if (!scriptLoaded) {
+      toast.error("Failed to load Razorpay Payment Gateway. Check your internet connection.")
+      return
+    }
+
+    try {
+      toast.loading("Initiating secure Razorpay checkout...")
+      const createOrderRes = await Axios({
+        ...SummaryApi.razorpayCreateOrder,
         data: {
-          list_items: validCartItemsList,
-          addressId: addressList[selectAddress]?._id,
-          subTotalAmt: totalPrice,
-          totalAmt: totalPrice,
+          totalAmt: finalPayableAmount
         }
       })
-
-      const { data: responseData } = response
       toast.dismiss()
-      stripePromise.redirectToCheckout({ sessionId: responseData.id })
 
-      if (fetchCartItem) fetchCartItem()
-      if (fetchOrder) fetchOrder()
+      if (!createOrderRes.data?.success || !createOrderRes.data?.data) {
+        toast.error(createOrderRes.data?.message || "Failed to create Razorpay Order")
+        return
+      }
+
+      const { razorpayOrderId, amount, currency, keyId } = createOrderRes.data.data
+
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: currency,
+        name: "FlashFit Fashion",
+        description: "Order Payment",
+        order_id: razorpayOrderId,
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+          contact: user?.mobile || ""
+        },
+        theme: {
+          color: "#FF4D00"
+        },
+        handler: async function (response) {
+          try {
+            toast.loading("Verifying payment signature...")
+            const verifyRes = await Axios({
+              ...SummaryApi.razorpayVerifyPayment,
+              data: {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                list_items: validCartItemsList,
+                subTotalAmt: totalPrice,
+                totalAmt: finalPayableAmount,
+                addressId: addressList[selectAddress]?._id,
+                couponCode: appliedCoupon?.code || ""
+              }
+            })
+            toast.dismiss()
+
+            if (verifyRes.data?.success) {
+              toast.success("Payment verified successfully! Order placed.")
+              if (fetchCartItem) fetchCartItem()
+              if (fetchOrder) fetchOrder()
+              navigate('/order-success', {
+                state: {
+                  orderDetails: verifyRes.data.data || { _id: verifyRes.data.orderId }
+                }
+              })
+            } else {
+              toast.error(verifyRes.data?.message || "Payment verification failed.")
+            }
+          } catch (err) {
+            toast.dismiss()
+            AxiosToastError(err)
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            toast.error("Payment was cancelled. Order was NOT placed.")
+          }
+        }
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.on('payment.failed', function (response) {
+        toast.error(`Payment Failed: ${response.error?.description || 'Transaction declined'}`)
+      })
+      rzp.open()
+
     } catch (error) {
       toast.dismiss()
       AxiosToastError(error)
@@ -375,8 +403,8 @@ const CheckoutPage = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {/* Google Pay Button */}
                         <button
-                          onClick={() => handleUPIAppPayment('Google Pay')}
-                          className="flex items-center justify-center gap-2.5 p-3.5 bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-orange-300 rounded-xl transition-all group"
+                          onClick={handleRazorpayPayment}
+                          className="flex items-center justify-center gap-2.5 p-3.5 bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-orange-300 rounded-xl transition-all group cursor-pointer"
                         >
                           <span className="font-extrabold text-xs text-blue-600 group-hover:scale-105 transition-transform">
                             GPay
@@ -386,8 +414,8 @@ const CheckoutPage = () => {
 
                         {/* PhonePe Button */}
                         <button
-                          onClick={() => handleUPIAppPayment('PhonePe')}
-                          className="flex items-center justify-center gap-2.5 p-3.5 bg-gray-50 hover:bg-purple-50 border border-gray-200 hover:border-purple-300 rounded-xl transition-all group"
+                          onClick={handleRazorpayPayment}
+                          className="flex items-center justify-center gap-2.5 p-3.5 bg-gray-50 hover:bg-purple-50 border border-gray-200 hover:border-purple-300 rounded-xl transition-all group cursor-pointer"
                         >
                           <span className="font-extrabold text-xs text-purple-700 group-hover:scale-105 transition-transform">
                             PhonePe
@@ -397,21 +425,24 @@ const CheckoutPage = () => {
 
                         {/* Paytm Button */}
                         <button
-                          onClick={() => handleUPIAppPayment('Paytm')}
-                          className="flex items-center justify-center gap-2.5 p-3.5 bg-gray-50 hover:bg-cyan-50 border border-gray-200 hover:border-cyan-300 rounded-xl transition-all group"
+                          onClick={handleRazorpayPayment}
+                          className="flex items-center justify-center gap-2.5 p-3.5 bg-gray-50 hover:bg-cyan-50 border border-gray-200 hover:border-cyan-300 rounded-xl transition-all group cursor-pointer"
                         >
                           <span className="font-extrabold text-xs text-cyan-600 group-hover:scale-105 transition-transform">
                             Paytm
                           </span>
-                          <span className="text-xs font-bold text-fashion-dark">Paytm UPI</span>
+                          <span className="text-xs font-bold text-fashion-dark">Paytm / UPI</span>
                         </button>
                       </div>
 
-                      {upiId && (
-                        <p className="text-[11px] text-gray-400 text-center pt-1">
-                          Merchant UPI ID: <span className="font-mono font-bold text-gray-600">{upiId}</span>
-                        </p>
-                      )}
+                      <div className="pt-2">
+                        <button
+                          onClick={handleRazorpayPayment}
+                          className="w-full py-3.5 px-6 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-extrabold rounded-xl shadow-md transition-all cursor-pointer"
+                        >
+                          Pay via Razorpay Checkout (UPI / GPay / PhonePe)
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -443,7 +474,7 @@ const CheckoutPage = () => {
                     <div className="mt-4 pt-3 border-t border-gray-100">
                       <button
                         onClick={handleCashOnDelivery}
-                        className="w-full py-3.5 px-6 bg-green-600 hover:bg-green-700 text-white text-xs font-extrabold rounded-xl shadow-md transition-all"
+                        className="w-full py-3.5 px-6 bg-green-600 hover:bg-green-700 text-white text-xs font-extrabold rounded-xl shadow-md transition-all cursor-pointer"
                       >
                         Confirm & Place COD Order
                       </button>
@@ -451,7 +482,7 @@ const CheckoutPage = () => {
                   )}
                 </div>
 
-                {/* Option 3: Credit / Debit Card (Stripe) */}
+                {/* Option 3: Credit / Debit Card & Netbanking (Razorpay) */}
                 <div
                   onClick={() => setSelectedPayment('card')}
                   className={`border-2 rounded-2xl p-4 cursor-pointer transition-all ${
@@ -468,19 +499,19 @@ const CheckoutPage = () => {
                     />
                     <div>
                       <span className="font-bold text-sm text-fashion-dark flex items-center gap-2">
-                        <FiCreditCard className="text-blue-600" size={16} /> Credit / Debit Card
+                        <FiCreditCard className="text-blue-600" size={16} /> Credit / Debit Card & Netbanking
                       </span>
-                      <p className="text-xs text-fashion-gray">Secured by Stripe International Payment Gateway</p>
+                      <p className="text-xs text-fashion-gray">Secured by Official Razorpay Payment Gateway</p>
                     </div>
                   </div>
 
                   {selectedPayment === 'card' && (
                     <div className="mt-4 pt-3 border-t border-gray-100">
                       <button
-                        onClick={handleOnlinePayment}
-                        className="w-full py-3.5 px-6 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl shadow-md transition-all"
+                        onClick={handleRazorpayPayment}
+                        className="w-full py-3.5 px-6 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl shadow-md transition-all cursor-pointer"
                       >
-                        Proceed to Card Checkout
+                        Proceed to Razorpay Checkout
                       </button>
                     </div>
                   )}

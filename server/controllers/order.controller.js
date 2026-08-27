@@ -5,6 +5,8 @@ import UserModel from "../models/user.model.js";
 import CouponModel from "../models/coupon.model.js";
 import ProductModel from "../models/product.model.js";
 import mongoose from "mongoose";
+import Razorpay from "razorpay";
+import crypto from "crypto";
 
 // Decrement overall stock AND per-size stock after an order
 const decrementStock = async (productId, size, qty = 1) => {
@@ -505,3 +507,164 @@ export async function updateOrderStatusAdminController(request, response) {
         });
     }
 }
+
+// 1. Create Razorpay Order
+export async function razorpayCreateOrderController(request, response) {
+    try {
+        const { totalAmt } = request.body;
+
+        if (!totalAmt || Number(totalAmt) <= 0) {
+            return response.status(400).json({
+                message: "Invalid order total amount",
+                error: true,
+                success: false
+            });
+        }
+
+        const instance = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
+
+        const options = {
+            amount: Math.round(Number(totalAmt) * 100), // amount in paise
+            currency: "INR",
+            receipt: `receipt_order_${Date.now()}`,
+        };
+
+        const razorpayOrder = await instance.orders.create(options);
+
+        return response.json({
+            message: "Razorpay order created successfully",
+            error: false,
+            success: true,
+            data: {
+                razorpayOrderId: razorpayOrder.id,
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                keyId: process.env.RAZORPAY_KEY_ID
+            }
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || "Failed to create Razorpay Order",
+            error: true,
+            success: false
+        });
+    }
+}
+
+// 2. Verify Razorpay Payment Signature & Place Order ONLY IF PAID
+export async function razorpayVerifyPaymentController(request, response) {
+    try {
+        const userId = request.userId;
+        const {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+            list_items,
+            totalAmt,
+            subTotalAmt,
+            addressId,
+            couponCode
+        } = request.body;
+
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            return response.status(400).json({
+                message: "Payment details incomplete or cancelled. Order was not placed.",
+                error: true,
+                success: false
+            });
+        }
+
+        // Verify Razorpay HMAC SHA256 signature
+        const generated_signature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(razorpay_order_id + "|" + razorpay_payment_id)
+            .digest("hex");
+
+        if (generated_signature !== razorpay_signature) {
+            return response.status(400).json({
+                message: "Payment verification failed. Invalid transaction signature.",
+                error: true,
+                success: false
+            });
+        }
+
+        // Filter valid products
+        const validItems = (list_items || []).filter(el => el?.productId && (el?.productId?._id || el?.productId));
+
+        if (!validItems || validItems.length === 0) {
+            return response.status(400).json({
+                message: "No valid products found in your cart.",
+                error: true,
+                success: false
+            });
+        }
+
+        // Signature verified! Create official paid order
+        const payload = validItems.map(el => {
+            const pId = el.productId._id || el.productId;
+            const pName = el.productId.name || "Product";
+            const pImage = el.productId.image || [];
+            return ({
+                userId: userId,
+                orderId: `ORD-${new mongoose.Types.ObjectId()}`,
+                productId: pId,
+                product_details: {
+                    name: pName,
+                    image: pImage,
+                    size: el.size || ""
+                },
+                couponCode: couponCode ? String(couponCode).toUpperCase().trim() : "",
+                paymentId: razorpay_payment_id,
+                payment_status: "PAID via Razorpay",
+                delivery_address: addressId,
+                subTotalAmt: subTotalAmt,
+                totalAmt: totalAmt,
+            });
+        });
+
+        const generatedOrder = await OrderModel.insertMany(payload);
+
+        // Decrement stock for each ordered item
+        for (const el of validItems) {
+            const pId = el.productId._id || el.productId;
+            await decrementStock(
+                pId,
+                el.size || "",
+                el.quantity || 1
+            );
+        }
+
+        // Increment coupon usage count and record user ID
+        if (couponCode) {
+            await CouponModel.findOneAndUpdate(
+                { code: String(couponCode).toUpperCase().trim() },
+                {
+                    $inc: { usesCount: 1 },
+                    $addToSet: { usedByUsers: userId }
+                }
+            );
+        }
+
+        // Clear cart
+        await CartProductModel.deleteMany({ userId: userId });
+        await UserModel.updateOne({ _id: userId }, { shopping_cart: [] });
+
+        return response.json({
+            message: "Payment verified successfully! Order placed.",
+            error: false,
+            success: true,
+            data: generatedOrder
+        });
+
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+
