@@ -156,7 +156,7 @@ const CheckoutPage = () => {
     })
   }
 
-  const handleRazorpayPayment = async () => {
+  const handleRazorpayPayment = async (preferredMethod = '') => {
     if (validCartItemsList.length === 0) {
       toast.error("Your cart contains no active products")
       return
@@ -195,14 +195,15 @@ const CheckoutPage = () => {
         prefill: {
           name: user?.name || "",
           email: user?.email || "",
-          contact: user?.mobile || ""
+          contact: user?.mobile || "",
+          method: preferredMethod ? 'upi' : undefined
         },
         theme: {
           color: "#FF4D00"
         },
         handler: async function (response) {
           try {
-            toast.loading("Verifying payment signature...")
+            toast.loading("Verifying payment signature with bank...")
             const verifyRes = await Axios({
               ...SummaryApi.razorpayVerifyPayment,
               data: {
@@ -228,7 +229,7 @@ const CheckoutPage = () => {
                 }
               })
             } else {
-              toast.error(verifyRes.data?.message || "Payment verification failed.")
+              toast.error(verifyRes.data?.message || "Payment verification failed. Order was NOT placed.")
             }
           } catch (err) {
             toast.dismiss()
@@ -237,14 +238,14 @@ const CheckoutPage = () => {
         },
         modal: {
           ondismiss: function () {
-            toast.error("Payment was cancelled. Order was NOT placed.")
+            toast.error("Payment Failed or Cancelled. Order was NOT placed.")
           }
         }
       }
 
       const rzp = new window.Razorpay(options)
       rzp.on('payment.failed', function (response) {
-        toast.error(`Payment Failed: ${response.error?.description || 'Transaction declined'}`)
+        toast.error(`Payment Failed: ${response.error?.description || 'Transaction cancelled or declined'}`)
       })
       rzp.open()
 
