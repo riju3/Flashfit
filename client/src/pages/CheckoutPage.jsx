@@ -195,8 +195,7 @@ const CheckoutPage = () => {
         prefill: {
           name: user?.name || "",
           email: user?.email || "",
-          contact: user?.mobile || "",
-          method: preferredMethod ? 'upi' : undefined
+          contact: user?.mobile || ""
         },
         theme: {
           color: "#FF4D00"
